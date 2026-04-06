@@ -44,6 +44,7 @@ function App() {
     slots,
     status: saveApiStatus,
     error: saveError,
+    backgroundSync,
     selectedSlotId,
     setSelectedSlotId,
     activeSave,
@@ -146,6 +147,7 @@ function App() {
           />
           <GameHud
             runtime={runtime}
+            latestReward={playerProfile.latestReward}
             soundEnabled={soundEnabled}
             onToggleSound={() => setSoundEnabled((current) => !current)}
           />
@@ -189,6 +191,7 @@ function App() {
           <InventoryPanel
             items={compatibleItems}
             equippedItems={equippedItems}
+            latestReward={playerProfile.latestReward}
             locked={!auth.isAuthenticated}
             onEquip={(item) => playerProfile.equipItem(item.id)}
           />
@@ -196,8 +199,11 @@ function App() {
             slots={slots}
             status={saveApiStatus}
             error={saveError}
+            backgroundSync={backgroundSync}
+            profileResumeRegion={playerProfile.profile?.currentRegionId}
             selectedSlotId={selectedSlotId}
             setSelectedSlotId={setSelectedSlotId}
+            onUseProfileResume={() => setSelectedSlotId("")}
             onCreateSlot={async () => {
               try {
                 setSaveStatus("creating");

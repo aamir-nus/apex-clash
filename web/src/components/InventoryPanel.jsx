@@ -1,8 +1,19 @@
-export function InventoryPanel({ items, equippedItems, onEquip, locked }) {
+export function InventoryPanel({ items, equippedItems, latestReward, onEquip, locked }) {
   return (
     <section className="panel">
       <h2>Inventory</h2>
       {locked ? <p className="hero-text">Login to manage persistent gear and loadout.</p> : null}
+      {latestReward ? (
+        <div className="reward-card">
+          <strong>New reward: {latestReward.name}</strong>
+          <span>
+            {latestReward.type} · {latestReward.rarity}
+          </span>
+          <button className="mini-button" disabled={locked} onClick={() => onEquip(latestReward)} type="button">
+            Quick equip
+          </button>
+        </div>
+      ) : null}
       <div className="inventory-equipped">
         {equippedItems.map((item) => (
           <div key={item.id} className="inventory-slot">

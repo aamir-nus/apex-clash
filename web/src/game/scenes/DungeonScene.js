@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import {
+  emitInventoryReward,
   emitRuntimeUpdate,
   emitSceneUpdate,
   emitSoundEvent,
@@ -26,10 +27,14 @@ export class DungeonScene extends Phaser.Scene {
     this.playerProfile = null;
     this.selectedArchetype = "close_combat";
     this.relicNode = null;
+    this.miniboss = null;
     this.bossGate = null;
     this.promptText = null;
     this.relicClaimed = false;
+    this.minibossDefeated = false;
+    this.minibossHp = 0;
     this.playerState = null;
+    this.skillKeys = null;
   }
 
   create() {
@@ -55,10 +60,13 @@ export class DungeonScene extends Phaser.Scene {
           archetype: this.playerProfile?.classType ?? this.selectedArchetype
         };
     this.relicClaimed = Boolean(loadedSessionState.dungeonRelicClaimed);
+    this.minibossDefeated = Boolean(loadedSessionState.dungeonMinibossDefeated);
+    this.minibossHp = loadedSessionState.dungeonMinibossHp ?? 72;
 
     this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, 0x0c1218);
     this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, 0x171f29, 1).setStrokeStyle(2, 0x8fb9ff);
     this.add.rectangle(300, 270, 160, 220, 0x13283a, 0.22).setStrokeStyle(1, 0x74c0fc);
+    this.add.rectangle(488, 270, 140, 180, 0x2a1626, 0.2).setStrokeStyle(1, 0xe56b6f);
     this.add.rectangle(660, 270, 180, 220, 0x28161c, 0.22).setStrokeStyle(1, 0xff8f70);
 
     this.add.text(100, 86, "Shatter Dungeon", {
@@ -70,7 +78,7 @@ export class DungeonScene extends Phaser.Scene {
     this.add.text(
       100,
       128,
-      "Claim the relic shard, then push into the boss vault.\nThis is the first authored dungeon chain for demo flow.",
+      "Claim the relic shard, defeat the miniboss sentinel, then push into the boss vault.\nThis is the first authored dungeon chain for demo flow.",
       {
         color: "#d9e7d2",
         fontFamily: "monospace",
@@ -103,13 +111,29 @@ export class DungeonScene extends Phaser.Scene {
     });
 
     this.bossGate = this.add.rectangle(690, 270, 72, 120, 0xf25f5c, 0.2).setStrokeStyle(2, 0xff8f70);
+    this.miniboss = this.add.rectangle(490, 270, 34, 34, 0xe56b6f, this.relicClaimed ? 0.8 : 0.18);
+    this.miniboss.setStrokeStyle(2, 0xffd6a5);
+    this.minibossPulse = this.tweens.add({
+      targets: this.miniboss,
+      scaleX: 1.08,
+      scaleY: 1.08,
+      duration: 520,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut"
+    });
     if (this.relicClaimed) {
       this.relicNode.pulseTween?.stop();
       this.relicNode.setFillStyle(0x5a5a5a, 0.28);
     }
+    if (this.minibossDefeated) {
+      this.miniboss.setFillStyle(0x5a5a5a, 0.28);
+      this.minibossPulse?.stop();
+    }
 
     this.cursors = this.input.keyboard.createCursorKeys();
     this.actionKeys = this.input.keyboard.addKeys("W,A,S,D");
+    this.skillKeys = this.input.keyboard.addKeys("J,Q,E");
     this.returnKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H);
     this.interactKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
@@ -121,24 +145,38 @@ export class DungeonScene extends Phaser.Scene {
   }
 
   emitDungeonRuntime() {
+    const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
     emitRuntimeUpdate({
       player: this.playerState,
       controls: [
         { key: "WASD", label: "Move" },
         { key: "E", label: "Claim relic / enter boss vault" },
+        { key: "J / Q / E", label: "Pressure miniboss" },
         { key: "H", label: "Return to region" }
       ],
       cooldowns: [],
+      resumeSource,
       castState: {
         phase: "idle",
-        label: this.relicClaimed ? "Boss vault unlocked" : "Relic search active",
+        label: this.minibossDefeated
+          ? "Boss vault unlocked"
+          : this.relicClaimed
+            ? `Miniboss HP ${this.minibossHp}`
+            : "Relic search active",
         progress: 0
       },
       activeEffects: this.relicClaimed
-        ? [{ id: "dungeon-relic", label: "Relic shard", detail: "Boss vault key acquired", tone: "boon" }]
+        ? [
+            { id: "dungeon-relic", label: "Relic shard", detail: "Miniboss chamber opened", tone: "boon" },
+            ...(this.minibossDefeated
+              ? [{ id: "dungeon-miniboss", label: "Sentinel broken", detail: "Boss vault key acquired", tone: "boon" }]
+              : [{ id: "dungeon-miniboss", label: "Sentinel active", detail: "Break the chamber guardian", tone: "danger" }])
+          ]
         : [],
       sessionState: {
-        dungeonRelicClaimed: this.relicClaimed
+        dungeonRelicClaimed: this.relicClaimed,
+        dungeonMinibossDefeated: this.minibossDefeated,
+        dungeonMinibossHp: this.minibossHp
       },
       levelUp: {
         available: false,
@@ -147,14 +185,20 @@ export class DungeonScene extends Phaser.Scene {
       combatFeed: [
         {
           id: 1,
-          message: this.relicClaimed
+          message: this.minibossDefeated
             ? "Boss vault is open. Push through the crimson gate."
-            : "Claim the relic shard to unlock the boss vault."
+            : this.relicClaimed
+              ? "Relic claimed. Break the sentinel to unlock the boss vault."
+              : "Claim the relic shard to wake the chamber sentinel."
         }
       ],
       encounter: {
-        enemiesRemaining: this.relicClaimed ? 1 : 0,
-        status: this.relicClaimed ? "Boss vault ready" : "Dungeon sweep"
+        enemiesRemaining: this.minibossDefeated ? 1 : this.relicClaimed ? 2 : 1,
+        status: this.minibossDefeated
+          ? "Boss vault ready"
+          : this.relicClaimed
+            ? "Miniboss chamber"
+            : "Dungeon sweep"
       }
     });
   }
@@ -179,14 +223,32 @@ export class DungeonScene extends Phaser.Scene {
     this.player.body.velocity.normalize().scale(velocity);
 
     const relicDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.relicNode.x, this.relicNode.y);
+    const minibossDistance = Phaser.Math.Distance.Between(
+      this.player.x,
+      this.player.y,
+      this.miniboss.x,
+      this.miniboss.y
+    );
     const gateDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.bossGate.x, this.bossGate.y);
+    const attacking =
+      Phaser.Input.Keyboard.JustDown(this.skillKeys.J) ||
+      Phaser.Input.Keyboard.JustDown(this.skillKeys.Q) ||
+      Phaser.Input.Keyboard.JustDown(this.skillKeys.E);
 
     if (!this.relicClaimed && relicDistance < 56) {
       this.promptText.setText("Press E to claim the relic shard");
-    } else if (this.relicClaimed && gateDistance < 82) {
+    } else if (this.relicClaimed && !this.minibossDefeated && minibossDistance < 120) {
+      this.promptText.setText("Use J / Q / E to break the sentinel");
+    } else if (this.minibossDefeated && gateDistance < 82) {
       this.promptText.setText("Press E to enter the boss vault");
     } else {
-      this.promptText.setText(this.relicClaimed ? "Boss vault open. Move to the crimson gate." : "Sweep the room and secure the relic.");
+      this.promptText.setText(
+        this.minibossDefeated
+          ? "Boss vault open. Move to the crimson gate."
+          : this.relicClaimed
+            ? "Sentinel active. Pressure the chamber guardian."
+            : "Sweep the room and secure the relic."
+      );
     }
 
     if (!this.relicClaimed && relicDistance < 56 && Phaser.Input.Keyboard.JustDown(this.interactKey)) {
@@ -194,13 +256,30 @@ export class DungeonScene extends Phaser.Scene {
       this.relicNode.pulseTween?.stop();
       this.relicNode.setFillStyle(0x5a5a5a, 0.28);
       this.registry.set("dungeonRelicClaimed", true);
-      this.playerState.pendingStatPoints += 1;
+      this.miniboss.setFillStyle(0xe56b6f, 0.82);
       emitSoundEvent({ type: "enemy_down" });
       this.emitDungeonRuntime();
       return;
     }
 
-    if (this.relicClaimed && gateDistance < 82 && Phaser.Input.Keyboard.JustDown(this.interactKey)) {
+    if (this.relicClaimed && !this.minibossDefeated && attacking && minibossDistance < 150) {
+      const damage = Math.max(10, Math.floor(this.playerState.attack * 0.8));
+      this.minibossHp = Math.max(0, this.minibossHp - damage);
+      emitSoundEvent({ type: this.minibossHp === 0 ? "enemy_down" : "skill_cast" });
+      if (this.minibossHp === 0) {
+        this.minibossDefeated = true;
+        this.miniboss.setFillStyle(0x5a5a5a, 0.28);
+        this.minibossPulse?.stop();
+        this.playerState.pendingStatPoints += 1;
+        emitInventoryReward({
+          rewardSource: "dungeon_miniboss"
+        });
+      }
+      this.emitDungeonRuntime();
+      return;
+    }
+
+    if (this.minibossDefeated && gateDistance < 82 && Phaser.Input.Keyboard.JustDown(this.interactKey)) {
       emitTransitionUpdate({
         active: true,
         label: "Entering boss vault",

@@ -11,9 +11,11 @@ import { getContentBootstrap } from "../src/controllers/contentController.js";
 import {
   applyPlayerCombatProgression,
   applyPlayerLevelChoice,
+  claimPlayerDungeonReward,
   equipPlayerInventoryItem,
   equipPlayerLoadoutSkills,
   getPlayerProfile,
+  updatePlayerSession,
   updatePlayerClass
 } from "../src/controllers/playerController.js";
 import { createSaveSlot, getSaveSlot, updateSaveSlot } from "../src/controllers/saveController.js";
@@ -212,7 +214,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   assert.equal(progressionResponse.payload.data.pendingStatPoints, 0);
   assert.equal(progressionResponse.payload.data.statAllocations.attack, 1);
 
-  const rewardResponse = createMockResponse();
+  const combatRewardResponse = createMockResponse();
   await applyPlayerCombatProgression(
     {
       ...request,
@@ -223,12 +225,52 @@ test("player profile endpoints keep loadout logic server-side", async () => {
         xpGained: 20
       }
     },
-    rewardResponse
+    combatRewardResponse
   );
-  assert.equal(rewardResponse.statusCode, 200);
-  assert.equal(rewardResponse.payload.data.level, 3);
-  assert.equal(rewardResponse.payload.data.xp, 15);
-  assert.equal(rewardResponse.payload.data.pendingStatPoints, 1);
+  assert.equal(combatRewardResponse.statusCode, 200);
+  assert.equal(combatRewardResponse.payload.data.level, 3);
+  assert.equal(combatRewardResponse.payload.data.xp, 15);
+  assert.equal(combatRewardResponse.payload.data.pendingStatPoints, 1);
+
+  const sessionResponse = createMockResponse();
+  await updatePlayerSession(
+    {
+      ...request,
+      body: {
+        regionId: "shatter_dungeon",
+        sessionState: {
+          explorationBonus: {
+            label: "Technique resonance",
+            ceBonus: 18
+          },
+          dungeonRelicClaimed: true
+        }
+      }
+    },
+    sessionResponse
+  );
+  assert.equal(sessionResponse.statusCode, 200);
+  assert.equal(sessionResponse.payload.data.currentRegionId, "shatter_dungeon");
+  assert.equal(sessionResponse.payload.data.sessionState.dungeonRelicClaimed, true);
+
+  const inventoryRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "dungeon_miniboss"
+      }
+    },
+    inventoryRewardResponse
+  );
+  assert.equal(inventoryRewardResponse.statusCode, 200);
+  assert.equal(Boolean(inventoryRewardResponse.payload.data.reward?.id), true);
+  assert.equal(
+    inventoryRewardResponse.payload.data.profile.inventoryItems.some(
+      (item) => item.id === inventoryRewardResponse.payload.data.reward.id
+    ),
+    true
+  );
 });
 
 test("save controller stores progression-oriented player state", async () => {

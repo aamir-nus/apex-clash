@@ -244,6 +244,7 @@ export class RegionScene extends Phaser.Scene {
     const definition = (this.content.classes ?? []).find((entry) => entry.id === this.selectedArchetype);
     const stats = this.playerProfile?.computedStats ?? definition?.baseStats ?? {};
     const bonusText = this.explorationBonus?.label ?? "No exploration boon";
+    const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
     emitRuntimeUpdate({
       player: {
         hp: stats.hp ?? 0,
@@ -265,6 +266,7 @@ export class RegionScene extends Phaser.Scene {
         { key: "H", label: "Return to hub" }
       ],
       cooldowns: [],
+      resumeSource,
       activeEffects: this.explorationBonus
         ? [{ id: "region-boon", label: this.explorationBonus.label, detail: "Recovered from prior sweep", tone: "boon" }]
         : [],

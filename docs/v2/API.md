@@ -4,7 +4,7 @@ This document defines the expected backend API contract for the current scaffold
 
 ## Status
 
-- Implemented now: `GET /health`, `POST /auth/guest`, `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `GET /content/bootstrap`, `GET /player/profile`, `PUT /player/profile/class`, `PUT /player/progression/reward`, `PUT /player/progression/choice`, `PUT /player/loadout/item`, `PUT /player/loadout/skills`, `GET /save-slots`, `POST /save-slots`, `GET /save/:slotId`, `PUT /save/:slotId`
+- Implemented now: `GET /health`, `POST /auth/guest`, `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `GET /content/bootstrap`, `GET /player/profile`, `PUT /player/profile/class`, `POST /player/rewards/claim`, `PUT /player/session-state`, `PUT /player/progression/reward`, `PUT /player/progression/choice`, `PUT /player/loadout/item`, `PUT /player/loadout/skills`, `GET /save-slots`, `POST /save-slots`, `GET /save/:slotId`, `PUT /save/:slotId`
 - Planned next: session lifecycle endpoints, Mongo-backed persistence, inventory/progression endpoints once the hub-to-region slice grows
 
 ## Base Rules
@@ -233,6 +233,7 @@ Success response:
   "data": {
     "userId": "user-uuid",
     "classType": "close_combat",
+    "currentRegionId": "hub_blacksite",
     "level": 1,
     "xp": 0,
     "xpToNextLevel": 30,
@@ -242,6 +243,7 @@ Success response:
       "defense": 0,
       "speed": 0
     },
+    "sessionState": {},
     "computedStats": {
       "hp": 118,
       "ce": 52,
@@ -282,6 +284,66 @@ Validation error response:
   "error": "Invalid classType"
 }
 ```
+
+### `PUT /player/session-state`
+
+Persists authenticated runtime session outcomes without creating a save-slot snapshot.
+
+Request body:
+
+```json
+{
+  "regionId": "shatter_dungeon",
+  "sessionState": {
+    "explorationBonus": {
+      "label": "Technique resonance",
+      "ceBonus": 18
+    },
+    "dungeonRelicClaimed": true
+  }
+}
+```
+
+Success response contract:
+
+- same payload shape as `GET /player/profile`
+
+Rules:
+
+- intended for lightweight background sync of active run state
+- save slots remain explicit snapshot transport, not primary background truth
+
+### `POST /player/rewards/claim`
+
+Claims a backend-owned reward for a validated dungeon progression milestone.
+
+Request body:
+
+```json
+{
+  "rewardSource": "dungeon_miniboss"
+}
+```
+
+Success response:
+
+```json
+{
+  "ok": true,
+  "data": {
+    "profile": {},
+    "reward": {
+      "id": "prism_seal",
+      "name": "Prism Seal"
+    }
+  }
+}
+```
+
+Rules:
+
+- reward grant is class-aware
+- already-owned rewards are treated idempotently and return `reward: null`
 
 ### `PUT /player/progression/reward`
 

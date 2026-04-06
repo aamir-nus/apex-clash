@@ -15,11 +15,13 @@ function serializeMongoProfile(document) {
   return {
     userId: document.userId,
     classType: document.classType,
+    currentRegionId: document.currentRegionId,
     level: document.level,
     xp: document.xp,
     xpToNextLevel: document.xpToNextLevel,
     pendingStatPoints: document.pendingStatPoints,
     statAllocations: clone(document.statAllocations),
+    sessionState: clone(document.sessionState),
     inventoryItemIds: clone(document.inventoryItemIds),
     equippedItemIds: clone(document.equippedItemIds),
     unlockedSkillIds: clone(document.unlockedSkillIds),
@@ -49,11 +51,13 @@ export async function upsertPlayerProfileRecord(profile) {
     {
       $set: {
         classType: profile.classType,
+        currentRegionId: profile.currentRegionId,
         level: profile.level,
         xp: profile.xp,
         xpToNextLevel: profile.xpToNextLevel,
         pendingStatPoints: profile.pendingStatPoints,
         statAllocations: profile.statAllocations,
+        sessionState: profile.sessionState,
         inventoryItemIds: profile.inventoryItemIds,
         equippedItemIds: profile.equippedItemIds,
         unlockedSkillIds: profile.unlockedSkillIds,

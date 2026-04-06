@@ -8,6 +8,7 @@ import {
   equipPlayerInventoryItem,
   equipPlayerLoadoutSkills,
   getPlayerProfile,
+  updatePlayerSession,
   updatePlayerClass
 } from "../server/src/controllers/playerController.js";
 import { createSaveSlot, listSaveSlots } from "../server/src/controllers/saveController.js";
@@ -146,6 +147,23 @@ results.push(
 );
 
 results.push(
+  await runStep("PUT /player/session-state", updatePlayerSession, {
+    id: "req-session-state-contract",
+    authUser,
+    body: {
+      regionId: "shatter_dungeon",
+      sessionState: {
+        explorationBonus: {
+          label: "Technique resonance",
+          ceBonus: 18
+        },
+        dungeonRelicClaimed: true
+      }
+    }
+  })
+);
+
+results.push(
   await runStep("GET /save-slots authorized before create", listSaveSlots, {
     authUser
   })
@@ -205,6 +223,14 @@ const assertions = results.map((entry) => {
   if (entry.label === "PUT /player/progression/reward") {
     expectation =
       entry.payload?.data?.level === 2 && entry.payload?.data?.pendingStatPoints === 1
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "PUT /player/session-state") {
+    expectation =
+      entry.payload?.data?.currentRegionId === "shatter_dungeon" &&
+      entry.payload?.data?.sessionState?.dungeonRelicClaimed === true
         ? "OK"
         : "BUG";
   }

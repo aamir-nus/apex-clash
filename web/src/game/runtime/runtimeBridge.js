@@ -4,6 +4,7 @@ const sceneEventName = "apex-clash:scene-update";
 const transitionEventName = "apex-clash:transition-update";
 const levelChoiceEventName = "apex-clash:level-choice";
 const progressionRewardEventName = "apex-clash:progression-reward";
+const inventoryRewardEventName = "apex-clash:inventory-reward";
 
 export function emitRuntimeUpdate(detail) {
   window.dispatchEvent(new CustomEvent(runtimeEventName, { detail }));
@@ -63,4 +64,14 @@ export function subscribeToProgressionRewards(handler) {
   const listener = (event) => handler(event.detail);
   window.addEventListener(progressionRewardEventName, listener);
   return () => window.removeEventListener(progressionRewardEventName, listener);
+}
+
+export function emitInventoryReward(detail) {
+  window.dispatchEvent(new CustomEvent(inventoryRewardEventName, { detail }));
+}
+
+export function subscribeToInventoryRewards(handler) {
+  const listener = (event) => handler(event.detail);
+  window.addEventListener(inventoryRewardEventName, listener);
+  return () => window.removeEventListener(inventoryRewardEventName, listener);
 }

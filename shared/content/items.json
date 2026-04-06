@@ -78,5 +78,53 @@
       "speed": 2,
       "defense": 1
     }
+  },
+  {
+    "id": "siege_anklet",
+    "name": "Siege Anklet",
+    "type": "charm",
+    "rarity": "rare",
+    "equipSlot": "charm",
+    "classRestrictions": ["close_combat"],
+    "statModifiers": {
+      "attack": 2,
+      "speed": 1
+    }
+  },
+  {
+    "id": "echo_band",
+    "name": "Echo Band",
+    "type": "charm",
+    "rarity": "rare",
+    "equipSlot": "charm",
+    "classRestrictions": ["mid_range"],
+    "statModifiers": {
+      "technique": 2,
+      "ce": 4
+    }
+  },
+  {
+    "id": "prism_seal",
+    "name": "Prism Seal",
+    "type": "charm",
+    "rarity": "rare",
+    "equipSlot": "charm",
+    "classRestrictions": ["long_range"],
+    "statModifiers": {
+      "technique": 3,
+      "crit": 2
+    }
+  },
+  {
+    "id": "butcher_wrap",
+    "name": "Butcher Wrap",
+    "type": "charm",
+    "rarity": "rare",
+    "equipSlot": "charm",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 2,
+      "defense": 2
+    }
   }
 ]

@@ -1,129 +1,125 @@
 # Apex Clash
 
-Browser-first occult pixel action RPG scaffold built on React, Phaser, Express, and MongoDB.
+Browser-first occult action RPG built with React, Phaser, Express, and MongoDB.
 
-## Release Note
+## Status
 
-Current mini release target: `v0.5-noqa`
+Current target: `v2` vertical slice
 
-This tag is a demo-recovery build, not a QA-approved release. It exists to present one coherent playable flow:
+Working now:
+- browser launcher and Phaser play surface
+- auth, player profile, inventory, and save slots
+- hub -> region -> dungeon -> miniboss -> boss flow
+- backend-owned XP, level-up choices, session sync, and reward claims
+- manual save snapshots plus profile-session resume
 
-- hub
-- region
-- dungeon
-- boss room
-- return / save path
+In progress:
+- stronger authored content and reward pacing
+- live Mongo verification in Docker
+- sprite/audio pipeline
+- browser bundle hardening beyond current chunk splitting
 
-Known release status:
+Known issue:
+- `phaser-runtime` still exceeds Vite's chunk warning threshold
 
-- `NO QA SIGNOFF`
-- bundle risk reduced with initial Phaser/runtime chunk splitting, but the standalone Phaser core chunk still exceeds Vite's warning threshold
-- gameplay and persistence flow improved, but not production-ready
+## Setup
 
-## Stack
+### Local Dev
 
-- Frontend: React + Phaser + Vite
-- Backend: Node.js + Express + MongoDB-ready runtime
-- Shared content: JSON definitions for archetypes, enemies, items, regions, and skills
-- Future desktop target: Electron wrapping the web build
-
-## Repo Layout
-
-```text
-web/            React shell + Phaser runtime
-server/         Express API and persistence shell
-shared/         JSON-driven game content
-docs/           Versioned product docs and tasklists
-docs/tasklists/ Active execution memory
-docs/v1..final/ Version-specific design targets
+```bash
+npm install
+npm run dev:server
+npm run dev:web
 ```
 
-## Current State
+Defaults:
+- Web: `http://localhost:5173`
+- API: `http://localhost:4000`
+- Dev admin: `admin` / `admin`
 
-This repo now includes:
+### Docker
 
-- a workspace-based monorepo skeleton
-- an Express API with content bootstrap, guest session, request logging, and save-slot scaffolding
-- a React shell that mounts a Phaser combat sandbox with live HUD and browser audio cues
-- progression-aware combat with XP, level-ups, cooldowns, and wave respawns
-- browser save-slot controls wired to the scaffold API
-- auth, player profile, inventory/loadout, and save-slot business logic owned by the backend API
-- initial shared content definitions aligned to the v1 scope
-- tasklists, smoke-test docs, and Docker packaging baseline
-
-## Local Setup
-
-1. Copy `.env.example` to `.env` if needed.
-2. Install dependencies with `npm install`.
-3. Run `npm run dev:server`.
-4. Run `npm run dev:web`.
-
-Server default: `http://localhost:4000`
-
-Web default: `http://localhost:5173`
-
-Default dev admin:
-
-- username: `admin`
-- password: `admin`
-
-## Quality Gate
-
-- `npm run validate:content`
-- `npm run test:server`
-- `npm run test:auth-profile-contract`
-- `npm run lint`
-- `npm run build`
-- `npm run test:smoke`
-
-## Next Release Focus
-
-- backend-owned session/progression sync for exploration and encounter outcomes
-- live Mongo verification through Docker
-- authored dungeon content and better reward pacing
-- sprite-backed animation states
-- further browser bundle hardening if scene growth reintroduces load risk
-
-Task tracking and session memory live under [docs/tasklists/README.md](/Users/aamirsyedaltaf/Documents/apex-clash/docs/tasklists/README.md).
-Versioned product docs are indexed in [docs/README.md](/Users/aamirsyedaltaf/Documents/apex-clash/docs/README.md).
-API contracts are documented in [docs/API.md](/Users/aamirsyedaltaf/Documents/apex-clash/docs/API.md).
-
-## Backend Verification
-
-The current backend contract is covered by controller and logging tests:
-
-- content bootstrap shape
-- guest session creation
-- save-slot create, read, and update flows
-- invalid archetype rejection
-- request logging with request IDs
-- error logging with structured request context
-
-Current backend logs are structured as timestamped event lines with JSON context so request flow and save mutations are easy to trace during iteration.
-
-Useful backend checks:
-
-- `npm run test:server`
-- `npm run test:backend-contract`
-- `npm run test:auth-profile-contract`
-
-Current save-slot persistence uses a repository boundary:
-
-- memory fallback during no-DB runs and isolated tests
-- Mongo-backed storage automatically when the server has a live Mongo connection
-
-Current player-profile persistence uses the same pattern.
-
-## Docker
-
-Run the stack with:
+Start:
 
 ```bash
 docker compose up --build
 ```
 
-Services:
+Stop:
 
+```bash
+docker compose down
+```
+
+Services:
 - Web: `http://localhost:8080`
 - API: `http://localhost:4000`
 - MongoDB: `mongodb://localhost:27017/apex-clash`
+
+## Test Commands
+
+```bash
+npm run validate:content
+npm run test:server
+npm run test:auth-profile-contract
+npm run lint
+npm run build
+npm run test:smoke
+```
+
+## Game Flow
+
+Simple loop:
+
+```text
+Login or guest -> pick archetype -> enter hub -> explore region -> clear dungeon
+-> defeat miniboss -> defeat boss -> earn reward -> sync progress -> continue or save
+```
+
+HTML flow:
+
+<div>
+  <strong>Launcher</strong>
+  <span> -> </span>
+  <strong>Hub</strong>
+  <span> -> </span>
+  <strong>Region</strong>
+  <span> -> </span>
+  <strong>Dungeon</strong>
+  <span> -> </span>
+  <strong>Miniboss</strong>
+  <span> -> </span>
+  <strong>Boss</strong>
+  <span> -> </span>
+  <strong>Reward + Save/Resume</strong>
+</div>
+
+## Repo Layout
+
+```text
+web/                React shell + Phaser runtime
+server/             Express API + persistence layer
+shared/content/     JSON-driven game definitions
+scripts/            validation and contract checks
+docs/               roadmap, API, issues, and tasklists
+docker-compose.yml  local web/api/mongo stack
+```
+
+## Docs
+
+- [Docs Index](./docs/README.md)
+- [API Docs](./docs/API.md)
+- [Common Issues](./docs/COMMON_ISSUES.md)
+- [Roadmap](./docs/ROADMAP.md)
+- [Current Build](./docs/tasklists/CURRENT_BUILD.md)
+- [Smoke Tests](./docs/tasklists/SMOKE_TESTS.md)
+
+## Release Reality
+
+This is not the full product `v1` from the PRD yet.
+
+It is a progressively hardened `v2` slice with:
+- real backend contracts
+- resumable session state
+- early dungeon progression
+- persistent item rewards

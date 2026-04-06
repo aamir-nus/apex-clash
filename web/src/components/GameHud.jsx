@@ -16,7 +16,7 @@ function StatBar({ label, value, max, tone }) {
   );
 }
 
-export function GameHud({ runtime, soundEnabled, onToggleSound }) {
+export function GameHud({ runtime, latestReward, soundEnabled, onToggleSound }) {
   return (
     <div className="game-hud">
       <div className="hud-topline">
@@ -24,6 +24,7 @@ export function GameHud({ runtime, soundEnabled, onToggleSound }) {
           <p className="hud-kicker">Live Session</p>
           <h3>{runtime.player.archetype}</h3>
           <small className="scene-label">Scene: {runtime.scene.label}</small>
+          <small className="scene-label">Resume: {runtime.resumeSource}</small>
         </div>
         <button className="sound-toggle" onClick={onToggleSound} type="button">
           Sound: {soundEnabled ? "On" : "Off"}
@@ -38,6 +39,15 @@ export function GameHud({ runtime, soundEnabled, onToggleSound }) {
           </div>
         ))}
       </section>
+
+      {latestReward ? (
+        <section className="reward-banner">
+          <strong>Reward secured</strong>
+          <span>
+            {latestReward.name} · {latestReward.type} · {latestReward.rarity}
+          </span>
+        </section>
+      ) : null}
 
       <div className="hud-grid">
         <section className="hud-panel">

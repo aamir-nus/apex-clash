@@ -40,6 +40,24 @@ function getStarterSkills(classType) {
   }
 }
 
+function getRewardItemId(classType, rewardSource) {
+  if (rewardSource === "dungeon_miniboss") {
+    switch (classType) {
+      case "mid_range":
+        return "echo_band";
+      case "long_range":
+        return "prism_seal";
+      case "heavenly_restriction":
+        return "butcher_wrap";
+      case "close_combat":
+      default:
+        return "siege_anklet";
+    }
+  }
+
+  return null;
+}
+
 function computeStats(classType, equippedItemIds, statAllocations = {}) {
   const classDefinition = getClassDefinition(classType);
   const items = getItemDefinitions();
@@ -90,14 +108,14 @@ function buildProfile(userId, classType = "close_combat") {
   return {
     userId,
     classType,
+    currentRegionId: "hub_blacksite",
     level: 1,
     xp: 0,
     xpToNextLevel: 30,
     pendingStatPoints: 0,
     statAllocations,
-    inventoryItemIds: getItemDefinitions()
-      .filter((item) => !item.classRestrictions?.length || item.classRestrictions.includes(classType))
-      .map((item) => item.id),
+    sessionState: {},
+    inventoryItemIds: [...new Set(Object.values(equippedItemIds))],
     equippedItemIds,
     unlockedSkillIds,
     equippedSkillIds,
@@ -117,11 +135,13 @@ function serializeProfile(profile) {
   return {
     userId: profile.userId,
     classType: profile.classType,
+    currentRegionId: profile.currentRegionId,
     level: profile.level,
     xp: profile.xp,
     xpToNextLevel: profile.xpToNextLevel,
     pendingStatPoints: profile.pendingStatPoints,
     statAllocations: profile.statAllocations,
+    sessionState: profile.sessionState,
     computedStats: profile.computedStats,
     inventoryItems,
     equippedItems,
@@ -250,4 +270,37 @@ export async function applyPlayerCombatReward(userId, rewardState = {}) {
 
   const storedProfile = await upsertPlayerProfileRecord(profile);
   return { profile: serializeProfile(storedProfile) };
+}
+
+export async function updatePlayerSessionState(userId, sessionUpdate = {}) {
+  const profile = (await getPlayerProfileRecord(userId)) ?? buildProfile(userId);
+
+  profile.currentRegionId = sessionUpdate.regionId ?? profile.currentRegionId;
+  profile.sessionState = {
+    ...(profile.sessionState ?? {}),
+    ...(sessionUpdate.sessionState ?? {})
+  };
+
+  const storedProfile = await upsertPlayerProfileRecord(profile);
+  return { profile: serializeProfile(storedProfile) };
+}
+
+export async function claimPlayerReward(userId, rewardSource) {
+  const profile = (await getPlayerProfileRecord(userId)) ?? buildProfile(userId);
+  const rewardItemId = getRewardItemId(profile.classType, rewardSource);
+
+  if (!rewardItemId) {
+    return { error: "Invalid reward source" };
+  }
+
+  const hasReward = profile.inventoryItemIds.includes(rewardItemId);
+  if (!hasReward) {
+    profile.inventoryItemIds = [...profile.inventoryItemIds, rewardItemId];
+  }
+
+  const storedProfile = await upsertPlayerProfileRecord(profile);
+  return {
+    profile: serializeProfile(storedProfile),
+    reward: hasReward ? null : getItemDefinitions().find((item) => item.id === rewardItemId) ?? null
+  };
 }

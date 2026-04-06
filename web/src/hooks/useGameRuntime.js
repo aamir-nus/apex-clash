@@ -28,6 +28,7 @@ const defaultRuntime = {
     progress: 0
   },
   activeEffects: [],
+  resumeSource: "fresh-start",
   sessionState: {},
   levelUp: {
     available: false,

@@ -7,13 +7,13 @@ This is the active delivery list for the `v2` vertical slice.
 - [x] Create `HubScene`
 - [x] Add launcher to hub transition
 - [x] Create `RegionScene`
-- [ ] Create first dungeon layout chain
+- [x] Create first dungeon layout chain
 - [x] Add region entry and return flow
-- [ ] Add loot drops and pickup handling
+- [x] Add loot drops and pickup handling
 - [ ] Add first inventory screen
 - [ ] Add first progression or stat allocation screen
-- [ ] Add first miniboss encounter
-- [ ] Add first boss encounter
+- [x] Add first miniboss encounter
+- [x] Add first boss encounter
 - [x] Add adaptive region exploration nodes keyed off recent combat behavior
 - [x] Feed exploration boons back into combat runtime
 - [x] Add first-pass action animation timing for movement, strikes, projectiles, dodge, hits, and POIs
@@ -30,6 +30,9 @@ This is the active delivery list for the `v2` vertical slice.
 - [ ] Move auth, save, inventory, and progression source-of-truth logic to backend services
 - [x] Move level-up choice persistence to backend progression service
 - [x] Move combat XP reward application to backend progression service
+- [x] Auto-sync authenticated runtime session outcomes through the backend save contract
+- [x] Move authenticated background runtime sync onto a dedicated backend session-state endpoint
+- [x] Restore authenticated boot flow from backend profile session state when no save snapshot is selected
 - [ ] Move loadout validation and stat application to backend responses
 - [ ] Add data definitions for region, dungeon, loot, and enemy slice
 

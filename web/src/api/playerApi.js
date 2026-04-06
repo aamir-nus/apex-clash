@@ -29,6 +29,20 @@ export function updatePlayerClassType(token, classType) {
   });
 }
 
+export function updatePlayerSessionState(token, sessionUpdate) {
+  return request("/player/session-state", token, {
+    method: "PUT",
+    body: JSON.stringify(sessionUpdate)
+  });
+}
+
+export function claimPlayerReward(token, rewardSource) {
+  return request("/player/rewards/claim", token, {
+    method: "POST",
+    body: JSON.stringify({ rewardSource })
+  });
+}
+
 export function applyPlayerLevelChoice(token, optionId, runtimeState) {
   return request("/player/progression/choice", token, {
     method: "PUT",

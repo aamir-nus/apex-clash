@@ -69,6 +69,7 @@ export class HubScene extends Phaser.Scene {
 
   emitHubRuntime() {
     const definition = (this.content.classes ?? []).find((entry) => entry.id === this.selectedArchetype);
+    const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
     emitRuntimeUpdate({
       player: {
         hp: 0,
@@ -89,6 +90,7 @@ export class HubScene extends Phaser.Scene {
         { key: "Shell", label: "Switch build from browser UI" }
       ],
       cooldowns: [],
+      resumeSource,
       combatFeed: [
         { id: 1, message: "Hub ready. Press ENTER in the game window to enter the region." },
         { id: 2, message: "This is the first v2 shell replacing direct sandbox boot." }

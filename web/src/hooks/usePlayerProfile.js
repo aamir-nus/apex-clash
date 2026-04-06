@@ -2,21 +2,25 @@ import { useEffect, useState } from "react";
 import {
   applyPlayerCombatReward,
   applyPlayerLevelChoice,
+  claimPlayerReward,
   equipPlayerItem,
   equipPlayerSkills,
   fetchPlayerProfile,
+  updatePlayerSessionState,
   updatePlayerClassType
 } from "../api/playerApi";
-import { subscribeToProgressionRewards } from "../game/runtime/runtimeBridge";
+import { subscribeToInventoryRewards, subscribeToProgressionRewards } from "../game/runtime/runtimeBridge";
 
 export function usePlayerProfile(authToken, selectedArchetype) {
   const [profile, setProfile] = useState(null);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
+  const [latestReward, setLatestReward] = useState(null);
 
   useEffect(() => {
     if (!authToken) {
       setProfile(null);
+      setLatestReward(null);
       return;
     }
 
@@ -57,9 +61,28 @@ export function usePlayerProfile(authToken, selectedArchetype) {
     });
   }, [authToken]);
 
+  useEffect(() => {
+    if (!authToken) {
+      return undefined;
+    }
+
+    return subscribeToInventoryRewards(async (rewardEvent) => {
+      try {
+        const data = await claimPlayerReward(authToken, rewardEvent.rewardSource);
+        setProfile(data.profile);
+        setLatestReward(data.reward ?? null);
+      } catch (rewardError) {
+        setError(rewardError.message);
+      }
+    });
+  }, [authToken]);
+
   async function equipItem(itemId) {
     const data = await equipPlayerItem(authToken, itemId);
     setProfile(data);
+    if (latestReward?.id === itemId) {
+      setLatestReward(null);
+    }
   }
 
   async function equipSkills(skillIds) {
@@ -78,12 +101,20 @@ export function usePlayerProfile(authToken, selectedArchetype) {
     return data;
   }
 
+  async function syncSessionState(sessionUpdate) {
+    const data = await updatePlayerSessionState(authToken, sessionUpdate);
+    setProfile(data);
+    return data;
+  }
+
   return {
     profile,
     status,
     error,
+    latestReward,
     equipItem,
     equipSkills,
-    applyLevelChoice: applyLevelChoiceChoice
+    applyLevelChoice: applyLevelChoiceChoice,
+    syncSessionState
   };
 }

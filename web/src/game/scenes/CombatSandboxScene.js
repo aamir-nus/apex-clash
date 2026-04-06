@@ -603,6 +603,8 @@ export class CombatSandboxScene extends Phaser.Scene {
       });
     }
 
+    const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
+
     emitRuntimeUpdate({
       player: this.playerState,
       controls: [
@@ -618,6 +620,7 @@ export class CombatSandboxScene extends Phaser.Scene {
         label: entry.label,
         remaining: entry.remaining
       })),
+      resumeSource,
       castState: this.getCastRuntimeState(),
       activeEffects,
       sessionState: {

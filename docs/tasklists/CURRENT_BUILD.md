@@ -6,7 +6,7 @@
 
 Target mini release tag: `v0.5-noqa`
 
-Roadmap reference: [docs/ROADMAP.md](/Users/aamirsyedaltaf/Documents/apex-clash/docs/ROADMAP.md)
+Roadmap reference: [../ROADMAP.md](../ROADMAP.md)
 
 ## Active Milestone
 
@@ -59,9 +59,10 @@ Constraints:
 - [x] Route player profile persistence through a repository boundary
 - [x] Build hub scene shell and hub-to-region entry flow
 - [x] Build first authored region scene
-- [ ] Build first dungeon layout chain
+- [x] Build first dungeon layout chain
 - [ ] Add loot pickup and reward loop
-- [ ] Add first miniboss and first boss encounter
+- [x] Add first backend-owned dungeon reward claim loop
+- [x] Add first miniboss and first boss encounter
 - [ ] Add inventory and progression screens usable from browser flow
 - [x] Make region exploration react to recent combat behavior with adaptive nodes and combat boons
 - [x] Add first-pass combat and exploration animation language using Phaser tweens and runtime FX
@@ -75,6 +76,10 @@ Constraints:
 - [x] Restore gameplay boot path from selected save slot into the correct scene
 - [x] Restore scene-local runtime state for region boons, dungeon relic progress, and boss HP from save data
 - [x] Move level-up stat choices into the backend player progression service
+- [x] Auto-sync authenticated runtime session outcomes through the backend save contract
+- [x] Surface background save sync state and harden it against stale response overwrite
+- [x] Move authenticated background runtime sync onto a dedicated backend session-state endpoint
+- [x] Restore authenticated boot flow from backend profile session state when no save snapshot is selected
 
 ## Current Risks
 
@@ -83,7 +88,7 @@ Constraints:
 - No sprite pipeline or authored tilemaps yet.
 - No sound effect pipeline yet.
 - Save repository supports Mongo, but live DB persistence is not manually verified yet.
-- Too much temporary gameplay state still lives in the client and should move server-side before the slice grows.
+- Too much temporary gameplay state still lives in the client and should move server-side before the slice grows, even though authenticated runtime state now auto-syncs through a dedicated backend session endpoint.
 - Exploration adaptation is scene-local right now and should eventually be driven by backend progression/session state.
 - Animation readability is better now, but still uses geometry placeholders rather than real sprite sheets.
 - Enemy behavior is more readable, but still lacks richer pattern variety and authored encounter scripting.
@@ -121,7 +126,7 @@ Planned mitigation later:
 2. Implement hub scene shell plus region entry routing.
 3. Verify live Mongo-backed save persistence through Docker and local DB runs.
 4. Verify live Mongo-backed player profile persistence.
-5. Persist exploration boons and encounter outcomes through the backend save/profile contracts.
+5. Verify manual browser resume flow from backend profile session state across hub, region, dungeon, and boss routes.
 6. Add the first authored dungeon content slice.
 7. Replace geometry placeholder scenes with authored tile/sprite content before any real external demo.
 8. Move demo-progress persistence from save-only state into profile-aware progression services.

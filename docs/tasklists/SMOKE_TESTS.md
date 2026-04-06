@@ -28,6 +28,10 @@
 - [ ] Confirm kills grant XP and trigger level-up behavior
 - [ ] Confirm authenticated combat XP gain updates persisted profile level/xp state
 - [ ] Confirm save slot creation and sync complete without API errors
+- [ ] Confirm authenticated exploration boon or dungeon progress reaches the backend without pressing manual save
+- [ ] Confirm background save status surfaces pending, synced, and failure states without going silent
+- [ ] Confirm authenticated runtime session sync uses the dedicated profile/session endpoint and manual save remains a separate snapshot action
+- [ ] Confirm authenticated boot resumes from backend profile session state when no explicit save snapshot is selected
 - [ ] Confirm login works with seeded dev admin `admin` / `admin`
 - [ ] Confirm authenticated save slot is isolated from guest save listing
 

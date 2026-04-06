@@ -30,6 +30,12 @@
 - Moved level-up stat choices into a backend progression endpoint and synced live profile stat updates back into combat runtime.
 - Moved combat XP reward application into a backend progression endpoint and synced profile level/xp updates back into the active combat runtime.
 - Added initial Vite manual chunking for Phaser, React, and game runtime modules to reduce browser bundle risk in the current slice.
+- Added authenticated background runtime save sync so exploration boons and encounter state reach the backend save contract without a manual save click.
+- Hardened background save sync so stale responses are ignored and failure states are visible in the UI and browser logs.
+- Moved authenticated background runtime sync from save-slot updates to a dedicated backend player session-state endpoint.
+- Restored boot flow from backend profile session state so authenticated users can resume region, dungeon, or boss routes without relying on a selected save snapshot.
+- Added a real dungeon miniboss gate so the authored slice now flows relic -> miniboss sentinel -> boss vault instead of skipping directly from relic to boss.
+- Added a first backend-owned dungeon reward claim path so miniboss clears can grant persistent inventory items by class.
 - Marked the recovery build target as `v0.5-noqa` to reflect that this is a mini release without QA signoff.
 - Reaffirmed backend-first ownership for business logic and updated v2 execution docs to move auth, save, inventory, and progression rules server-side.
 - Added the first region scene shell and a real hub -> region -> combat -> region -> hub gameplay chain.

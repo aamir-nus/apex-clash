@@ -87,6 +87,7 @@ export class BossScene extends Phaser.Scene {
   }
 
   emitBossRuntime() {
+    const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
     emitRuntimeUpdate({
       player: this.playerState,
       controls: [
@@ -95,6 +96,7 @@ export class BossScene extends Phaser.Scene {
         { key: "H", label: "Extract after clear" }
       ],
       cooldowns: [],
+      resumeSource,
       castState: {
         phase: "boss",
         label: `Boss HP ${this.bossHp}`,

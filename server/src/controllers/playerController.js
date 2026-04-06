@@ -2,10 +2,12 @@ import { logger } from "../lib/logger.js";
 import {
   applyPlayerCombatReward,
   applyPlayerProgressionChoice,
+  claimPlayerReward,
   equipPlayerItem,
   equipPlayerSkills,
   getOrCreatePlayerProfile,
-  setPlayerClassType
+  setPlayerClassType,
+  updatePlayerSessionState
 } from "../services/playerProfileService.js";
 
 function requireAuth(request, response) {
@@ -115,4 +117,32 @@ export async function applyPlayerCombatProgression(request, response) {
 
   const result = await applyPlayerCombatReward(request.authUser.id, request.body ?? {});
   response.json({ ok: true, data: result.profile });
+}
+
+export async function updatePlayerSession(request, response) {
+  if (!requireAuth(request, response)) {
+    return;
+  }
+
+  const result = await updatePlayerSessionState(request.authUser.id, request.body ?? {});
+  response.json({ ok: true, data: result.profile });
+}
+
+export async function claimPlayerDungeonReward(request, response) {
+  if (!requireAuth(request, response)) {
+    return;
+  }
+
+  const result = await claimPlayerReward(request.authUser.id, request.body?.rewardSource);
+  if (result.error) {
+    logger.warn("Rejected reward claim", {
+      requestId: request.id,
+      rewardSource: request.body?.rewardSource,
+      userId: request.authUser.id
+    });
+    response.status(400).json({ ok: false, error: result.error });
+    return;
+  }
+
+  response.json({ ok: true, data: result });
 }
