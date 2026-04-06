@@ -1,0 +1,32 @@
+[
+  {
+    "id": "cleave_step",
+    "name": "Cleave Step",
+    "classRestrictions": ["close_combat"],
+    "damageType": "physical",
+    "cost": 12,
+    "cooldown": 5,
+    "castType": "dash_attack",
+    "range": 1
+  },
+  {
+    "id": "shard_arc",
+    "name": "Shard Arc",
+    "classRestrictions": ["mid_range", "long_range"],
+    "damageType": "cursed",
+    "cost": 16,
+    "cooldown": 6,
+    "castType": "projectile",
+    "range": 5
+  },
+  {
+    "id": "predator_sense",
+    "name": "Predator Sense",
+    "classRestrictions": ["heavenly_restriction"],
+    "damageType": "utility",
+    "cost": 0,
+    "cooldown": 10,
+    "castType": "buff",
+    "range": 0
+  }
+]

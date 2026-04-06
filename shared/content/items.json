@@ -1,0 +1,21 @@
+[
+  {
+    "id": "rust_talisman",
+    "name": "Rust Talisman",
+    "type": "charm",
+    "rarity": "common",
+    "statModifiers": {
+      "defense": 2
+    }
+  },
+  {
+    "id": "breach_blade",
+    "name": "Breach Blade",
+    "type": "weapon",
+    "rarity": "rare",
+    "statModifiers": {
+      "attack": 5,
+      "poise": 2
+    }
+  }
+]

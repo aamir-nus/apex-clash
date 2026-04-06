@@ -1,0 +1,38 @@
+[
+  {
+    "id": "crawler_grade_4",
+    "name": "Crawl Maw",
+    "curseGrade": 4,
+    "aiTier": "fsm",
+    "moveset": ["lunge_bite"],
+    "baseStats": {
+      "hp": 36,
+      "attack": 8,
+      "speed": 11
+    }
+  },
+  {
+    "id": "shrieker_grade_3",
+    "name": "Shrieker Wisp",
+    "curseGrade": 3,
+    "aiTier": "fsm",
+    "moveset": ["pulse_bolt"],
+    "baseStats": {
+      "hp": 44,
+      "attack": 10,
+      "speed": 10
+    }
+  },
+  {
+    "id": "warden_grade_2",
+    "name": "Ashen Warden",
+    "curseGrade": 2,
+    "aiTier": "fsm_utility",
+    "moveset": ["ground_slam", "guard_shift"],
+    "baseStats": {
+      "hp": 74,
+      "attack": 14,
+      "speed": 8
+    }
+  }
+]

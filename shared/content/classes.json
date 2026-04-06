@@ -1,0 +1,66 @@
+[
+  {
+    "id": "close_combat",
+    "name": "Close Combat Sorcerer",
+    "combatStyle": "Melee burst",
+    "baseStats": {
+      "hp": 120,
+      "ce": 70,
+      "attack": 16,
+      "defense": 10,
+      "speed": 12,
+      "technique": 9,
+      "perception": 8,
+      "crit": 6,
+      "poise": 11
+    }
+  },
+  {
+    "id": "mid_range",
+    "name": "Mid-Range Sorcerer",
+    "combatStyle": "Hybrid spacing",
+    "baseStats": {
+      "hp": 108,
+      "ce": 82,
+      "attack": 13,
+      "defense": 9,
+      "speed": 11,
+      "technique": 12,
+      "perception": 10,
+      "crit": 7,
+      "poise": 8
+    }
+  },
+  {
+    "id": "long_range",
+    "name": "Long-Range Sorcerer",
+    "combatStyle": "Projectile control",
+    "baseStats": {
+      "hp": 96,
+      "ce": 96,
+      "attack": 11,
+      "defense": 7,
+      "speed": 10,
+      "technique": 15,
+      "perception": 12,
+      "crit": 8,
+      "poise": 6
+    }
+  },
+  {
+    "id": "heavenly_restriction",
+    "name": "Heavenly Restriction",
+    "combatStyle": "Weapon mastery",
+    "baseStats": {
+      "hp": 136,
+      "ce": 32,
+      "attack": 15,
+      "defense": 11,
+      "speed": 13,
+      "technique": 5,
+      "perception": 11,
+      "crit": 7,
+      "poise": 12
+    }
+  }
+]

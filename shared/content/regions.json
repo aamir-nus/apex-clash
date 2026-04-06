@@ -1,0 +1,20 @@
+[
+  {
+    "id": "hub_blacksite",
+    "name": "Blacksite Hub",
+    "type": "hub",
+    "recommendedLevel": 1
+  },
+  {
+    "id": "shatter_block",
+    "name": "Shatter Block",
+    "type": "region",
+    "recommendedLevel": 1
+  },
+  {
+    "id": "veil_shrine",
+    "name": "Veil Shrine",
+    "type": "region",
+    "recommendedLevel": 6
+  }
+]
