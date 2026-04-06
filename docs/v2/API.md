@@ -312,6 +312,7 @@ Rules:
 
 - intended for lightweight background sync of active run state
 - save slots remain explicit snapshot transport, not primary background truth
+- `sessionState` updates merge into existing session keys; partial updates must not erase previously persisted runtime state
 
 ### `POST /player/rewards/claim`
 

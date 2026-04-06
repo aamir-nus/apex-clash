@@ -3,8 +3,9 @@ FROM node:22-alpine
 WORKDIR /app
 
 COPY package.json package-lock.json ./
+COPY web/package.json web/package.json
 COPY server/package.json server/package.json
-RUN npm install --workspaces --include-workspace-root
+RUN npm ci --workspace server
 
 COPY . .
 

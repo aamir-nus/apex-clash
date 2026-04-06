@@ -12,9 +12,9 @@ This document defines what each version should look like so future sessions can 
 Detailed version docs:
 
 - [v1](./v1/PRD.md)
-- [v2](./v2/PRD_AND_DESIGN.md)
-- [v3](./v3/README.md)
-- [final](./final/README.md)
+- `v2`: active vertical-slice planning is maintained alongside the tracked API and roadmap docs
+- `v3`: content-complete browser release candidate target
+- `final`: expanded target-state game target
 
 ## v1
 

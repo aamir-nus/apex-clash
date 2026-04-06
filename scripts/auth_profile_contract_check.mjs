@@ -5,6 +5,7 @@ import {
 } from "../server/src/controllers/authController.js";
 import {
   applyPlayerCombatProgression,
+  claimPlayerDungeonReward,
   equipPlayerInventoryItem,
   equipPlayerLoadoutSkills,
   getPlayerProfile,
@@ -164,6 +165,26 @@ results.push(
 );
 
 results.push(
+  await runStep("POST /player/rewards/claim first", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-1",
+    authUser,
+    body: {
+      rewardSource: "dungeon_miniboss"
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim duplicate", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-2",
+    authUser,
+    body: {
+      rewardSource: "dungeon_miniboss"
+    }
+  })
+);
+
+results.push(
   await runStep("GET /save-slots authorized before create", listSaveSlots, {
     authUser
   })
@@ -231,6 +252,18 @@ const assertions = results.map((entry) => {
     expectation =
       entry.payload?.data?.currentRegionId === "shatter_dungeon" &&
       entry.payload?.data?.sessionState?.dungeonRelicClaimed === true
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim first") {
+    expectation = entry.payload?.data?.reward?.id ? "OK" : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim duplicate") {
+    expectation =
+      entry.payload?.data?.reward === null &&
+      entry.payload?.data?.profile?.inventoryItems?.length > 0
         ? "OK"
         : "BUG";
   }

@@ -54,7 +54,7 @@ docker compose down
 Services:
 - Web: `http://localhost:8080`
 - API: `http://localhost:4000`
-- MongoDB: `mongodb://localhost:27017/apex-clash`
+- MongoDB: internal to Docker Compose at `mongodb://mongo:27017/apex-clash`
 
 ## Test Commands
 
@@ -111,8 +111,6 @@ docker-compose.yml  local web/api/mongo stack
 - [API Docs](./docs/API.md)
 - [Common Issues](./docs/COMMON_ISSUES.md)
 - [Roadmap](./docs/ROADMAP.md)
-- [Current Build](./docs/tasklists/CURRENT_BUILD.md)
-- [Smoke Tests](./docs/tasklists/SMOKE_TESTS.md)
 
 ## Release Reality
 

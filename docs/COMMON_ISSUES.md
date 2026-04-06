@@ -45,10 +45,13 @@ Then:
 - run `docker compose down`
 - rerun `docker compose up --build`
 
+Note:
+- Mongo is intentionally not published to a host port in Docker Compose, to avoid collisions with any local Mongo instance
+
 ## Mongo Persistence Not Verified Yet
 
 Current state:
 - repository layers support Mongo
 - live Docker/manual persistence verification is still pending
 
-Do not assume persistence is production-ready until the manual Docker checks in [tasklists/SMOKE_TESTS.md](./tasklists/SMOKE_TESTS.md) are completed.
+Do not assume persistence is production-ready until local and Docker verification have both passed.

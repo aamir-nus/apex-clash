@@ -253,6 +253,22 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   assert.equal(sessionResponse.payload.data.currentRegionId, "shatter_dungeon");
   assert.equal(sessionResponse.payload.data.sessionState.dungeonRelicClaimed, true);
 
+  const mergedSessionResponse = createMockResponse();
+  await updatePlayerSession(
+    {
+      ...request,
+      body: {
+        sessionState: {
+          bossDoorUnlocked: true
+        }
+      }
+    },
+    mergedSessionResponse
+  );
+  assert.equal(mergedSessionResponse.statusCode, 200);
+  assert.equal(mergedSessionResponse.payload.data.sessionState.dungeonRelicClaimed, true);
+  assert.equal(mergedSessionResponse.payload.data.sessionState.bossDoorUnlocked, true);
+
   const inventoryRewardResponse = createMockResponse();
   await claimPlayerDungeonReward(
     {
@@ -270,6 +286,25 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       (item) => item.id === inventoryRewardResponse.payload.data.reward.id
     ),
     true
+  );
+
+  const duplicateRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "dungeon_miniboss"
+      }
+    },
+    duplicateRewardResponse
+  );
+  assert.equal(duplicateRewardResponse.statusCode, 200);
+  assert.equal(duplicateRewardResponse.payload.data.reward, null);
+  assert.equal(
+    duplicateRewardResponse.payload.data.profile.inventoryItems.filter(
+      (item) => item.id === inventoryRewardResponse.payload.data.reward.id
+    ).length,
+    1
   );
 });
 

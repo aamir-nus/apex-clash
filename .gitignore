@@ -143,7 +143,14 @@ vite.config.ts.timestamp-*
 .claude/
 
 *.md
-!README.md
-docs/**/*.md
+!/README.md
+!docs/README.md
+!docs/API.md
+!docs/COMMON_ISSUES.md
+!docs/ROADMAP.md
+!docs/v1/PRD.md
+!docs/v1/TECHNICAL_DESIGN.md
+!docs/v2/API.md
+docs/tasklists/
 CLAUDE.md
 CODING_PRACTICES.md
