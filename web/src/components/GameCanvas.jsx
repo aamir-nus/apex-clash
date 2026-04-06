@@ -42,7 +42,9 @@ export function GameCanvas({ content, selectedArchetype, playerProfile, activeSa
     }
 
     const sandboxScene = gameRef.current?.scene?.getScene("CombatSandboxScene");
-    if (sandboxScene?.applyProfile) {
+    if (sandboxScene?.syncProfile) {
+      sandboxScene.syncProfile(playerProfile);
+    } else if (sandboxScene?.applyProfile) {
       sandboxScene.applyProfile(playerProfile, selectedArchetype);
     }
   }, [activeSave, playerProfile, selectedArchetype]);

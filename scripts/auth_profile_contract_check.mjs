@@ -4,6 +4,7 @@ import {
   registerUserSession
 } from "../server/src/controllers/authController.js";
 import {
+  applyPlayerCombatProgression,
   equipPlayerInventoryItem,
   equipPlayerLoadoutSkills,
   getPlayerProfile,
@@ -131,6 +132,20 @@ results.push(
 );
 
 results.push(
+  await runStep("PUT /player/progression/reward", applyPlayerCombatProgression, {
+    id: "req-progression-reward-contract",
+    authUser,
+    body: {
+      level: 1,
+      xp: 25,
+      pendingStatPoints: 0,
+      xpGained: 10,
+      source: "combat"
+    }
+  })
+);
+
+results.push(
   await runStep("GET /save-slots authorized before create", listSaveSlots, {
     authUser
   })
@@ -185,6 +200,13 @@ const assertions = results.map((entry) => {
 
   if (entry.label === "GET /save-slots authorized before create") {
     expectation = entry.payload?.data?.length === 0 ? "OK" : "BUG";
+  }
+
+  if (entry.label === "PUT /player/progression/reward") {
+    expectation =
+      entry.payload?.data?.level === 2 && entry.payload?.data?.pendingStatPoints === 1
+        ? "OK"
+        : "BUG";
   }
 
   if (entry.label === "GET /save-slots authorized after create") {

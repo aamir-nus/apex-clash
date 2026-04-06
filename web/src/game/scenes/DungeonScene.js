@@ -36,6 +36,8 @@ export class DungeonScene extends Phaser.Scene {
     this.playerProfile = this.registry.get("playerProfile") ?? null;
     this.selectedArchetype = this.registry.get("selectedArchetype") ?? "close_combat";
     const loadedPlayerState = this.registry.get("loadedPlayerState");
+    const loadedSessionSummary = this.registry.get("loadedSessionSummary") ?? null;
+    const loadedSessionState = loadedSessionSummary?.sessionState ?? {};
     this.playerState = loadedPlayerState
       ? cloneState(loadedPlayerState)
       : {
@@ -52,6 +54,7 @@ export class DungeonScene extends Phaser.Scene {
           pendingStatPoints: 0,
           archetype: this.playerProfile?.classType ?? this.selectedArchetype
         };
+    this.relicClaimed = Boolean(loadedSessionState.dungeonRelicClaimed);
 
     this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, 0x0c1218);
     this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, 0x171f29, 1).setStrokeStyle(2, 0x8fb9ff);
@@ -100,6 +103,10 @@ export class DungeonScene extends Phaser.Scene {
     });
 
     this.bossGate = this.add.rectangle(690, 270, 72, 120, 0xf25f5c, 0.2).setStrokeStyle(2, 0xff8f70);
+    if (this.relicClaimed) {
+      this.relicNode.pulseTween?.stop();
+      this.relicNode.setFillStyle(0x5a5a5a, 0.28);
+    }
 
     this.cursors = this.input.keyboard.createCursorKeys();
     this.actionKeys = this.input.keyboard.addKeys("W,A,S,D");
@@ -130,6 +137,9 @@ export class DungeonScene extends Phaser.Scene {
       activeEffects: this.relicClaimed
         ? [{ id: "dungeon-relic", label: "Relic shard", detail: "Boss vault key acquired", tone: "boon" }]
         : [],
+      sessionState: {
+        dungeonRelicClaimed: this.relicClaimed
+      },
       levelUp: {
         available: false,
         options: []

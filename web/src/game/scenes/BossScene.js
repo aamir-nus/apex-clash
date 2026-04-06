@@ -30,6 +30,8 @@ export class BossScene extends Phaser.Scene {
 
   create() {
     const loadedPlayerState = this.registry.get("loadedPlayerState");
+    const loadedSessionSummary = this.registry.get("loadedSessionSummary") ?? null;
+    const loadedSessionState = loadedSessionSummary?.sessionState ?? {};
     const profile = this.registry.get("playerProfile");
     this.playerState = loadedPlayerState
       ? cloneState(loadedPlayerState)
@@ -47,6 +49,7 @@ export class BossScene extends Phaser.Scene {
           pendingStatPoints: 0,
           archetype: profile?.classType ?? "sorcerer"
         };
+    this.bossHp = loadedSessionState.bossHp ?? 120;
 
     this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, 0x120b12);
     this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, 0x24131d, 1).setStrokeStyle(2, 0xff8f70);
@@ -98,6 +101,10 @@ export class BossScene extends Phaser.Scene {
         progress: Math.max(0, Math.min(1, 1 - this.bossHp / 120))
       },
       activeEffects: [{ id: "boss-room", label: "Vault curse", detail: "Final chamber active", tone: "danger" }],
+      sessionState: {
+        bossHp: this.bossHp,
+        bossCleared: this.bossHp === 0
+      },
       levelUp: {
         available: false,
         options: []

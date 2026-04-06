@@ -1,6 +1,4 @@
-import { emitLevelChoice } from "../game/runtime/runtimeBridge";
-
-export function LevelUpPanel({ runtime }) {
+export function LevelUpPanel({ runtime, onChoose }) {
   if (!runtime.levelUp?.available) {
     return null;
   }
@@ -17,7 +15,7 @@ export function LevelUpPanel({ runtime }) {
           <button
             key={option.id}
             className="levelup-card"
-            onClick={() => emitLevelChoice({ optionId: option.id })}
+            onClick={() => onChoose?.(option.id)}
             type="button"
           >
             <strong>{option.label}</strong>

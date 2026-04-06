@@ -9,6 +9,8 @@ import {
 } from "../src/controllers/authController.js";
 import { getContentBootstrap } from "../src/controllers/contentController.js";
 import {
+  applyPlayerCombatProgression,
+  applyPlayerLevelChoice,
   equipPlayerInventoryItem,
   equipPlayerLoadoutSkills,
   getPlayerProfile,
@@ -188,6 +190,45 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     persistedProfileResponse.payload.data.equippedSkills.map((skill) => skill.id),
     ["predator_sense", "bone_breaker"]
   );
+
+  const progressionResponse = createMockResponse();
+  await applyPlayerLevelChoice(
+    {
+      ...request,
+      body: {
+        optionId: "attack",
+        runtimeState: {
+          level: 2,
+          xp: 8,
+          xpToNextLevel: 50,
+          pendingStatPoints: 1
+        }
+      }
+    },
+    progressionResponse
+  );
+  assert.equal(progressionResponse.statusCode, 200);
+  assert.equal(progressionResponse.payload.data.level, 2);
+  assert.equal(progressionResponse.payload.data.pendingStatPoints, 0);
+  assert.equal(progressionResponse.payload.data.statAllocations.attack, 1);
+
+  const rewardResponse = createMockResponse();
+  await applyPlayerCombatProgression(
+    {
+      ...request,
+      body: {
+        level: 2,
+        xp: 45,
+        pendingStatPoints: 0,
+        xpGained: 20
+      }
+    },
+    rewardResponse
+  );
+  assert.equal(rewardResponse.statusCode, 200);
+  assert.equal(rewardResponse.payload.data.level, 3);
+  assert.equal(rewardResponse.payload.data.xp, 15);
+  assert.equal(rewardResponse.payload.data.pendingStatPoints, 1);
 });
 
 test("save controller stores progression-oriented player state", async () => {

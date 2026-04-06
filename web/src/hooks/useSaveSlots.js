@@ -105,7 +105,8 @@ export function useSaveSlots(selectedArchetype, runtime, authToken) {
       },
       sessionSummary: {
         enemiesRemaining: runtime.encounter.enemiesRemaining,
-        combatFeed: runtime.combatFeed.slice(0, 3)
+        combatFeed: runtime.combatFeed.slice(0, 3),
+        sessionState: runtime.sessionState ?? {}
       }
     }, authToken);
 

@@ -1,10 +1,10 @@
 import Phaser from "phaser";
 import {
+  emitProgressionReward,
   emitRuntimeUpdate,
   emitSceneUpdate,
   emitSoundEvent,
-  emitTransitionUpdate,
-  subscribeToLevelChoices
+  emitTransitionUpdate
 } from "../runtime/runtimeBridge";
 
 const arena = {
@@ -38,7 +38,6 @@ export class CombatSandboxScene extends Phaser.Scene {
     this.activeCast = null;
     this.enemyTelegraphs = null;
     this.floatingTexts = null;
-    this.unsubscribeLevelChoices = null;
   }
 
   create() {
@@ -95,14 +94,6 @@ export class CombatSandboxScene extends Phaser.Scene {
     ];
 
     this.skillKeys = this.input.keyboard.addKeys("J,Q,E");
-    this.unsubscribeLevelChoices = subscribeToLevelChoices((detail) => {
-      this.applyLevelChoice(detail?.optionId);
-    });
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.unsubscribeLevelChoices?.();
-      this.unsubscribeLevelChoices = null;
-    });
-
     this.applyProfile(this.playerProfile, this.selectedArchetype);
     this.startPlayerIdleTween();
     this.pushFeed("Sandbox live. Use WASD, J, Q, E, SPACE.");
@@ -123,7 +114,8 @@ export class CombatSandboxScene extends Phaser.Scene {
 
     const definition = (this.content.classes ?? []).find((entry) => entry.id === archetypeId);
     const profileStats = profile?.computedStats ?? {};
-    const moveSpeed = profileStats.speed ?? definition?.baseStats?.speed ? 90 + (profileStats.speed ?? definition?.baseStats?.speed ?? 10) * 4 : 140;
+    const resolvedSpeed = profileStats.speed ?? definition?.baseStats?.speed ?? 10;
+    const moveSpeed = 90 + resolvedSpeed * 4;
 
     if (this.player?.body) {
       this.player.body.maxSpeed = moveSpeed;
@@ -189,6 +181,29 @@ export class CombatSandboxScene extends Phaser.Scene {
       this.pushFeed(`Exploration boon active: ${explorationBonus.label}.`);
     }
     this.pushFeed(`${this.playerState.archetype} ready: ${this.playerState.combatStyle}.`);
+    this.emitRuntime();
+  }
+
+  syncProfile(profile) {
+    if (!profile || !this.playerState) {
+      return;
+    }
+
+    this.playerProfile = profile;
+    this.registry.set("playerProfile", profile);
+    const stats = profile.computedStats ?? {};
+    this.playerState.level = profile.level ?? this.playerState.level;
+    this.playerState.xp = profile.xp ?? this.playerState.xp;
+    this.playerState.xpToNextLevel = profile.xpToNextLevel ?? this.playerState.xpToNextLevel;
+    this.playerState.pendingStatPoints =
+      profile.pendingStatPoints ?? this.playerState.pendingStatPoints;
+    this.playerState.maxHp = stats.hp ?? this.playerState.maxHp;
+    this.playerState.hp = Math.min(this.playerState.hp, this.playerState.maxHp);
+    this.playerState.maxCe = stats.ce ?? this.playerState.maxCe;
+    this.playerState.ce = Math.min(this.playerState.ce, this.playerState.maxCe);
+    this.playerState.attack = stats.attack ?? this.playerState.attack;
+    this.playerState.defense = stats.defense ?? this.playerState.defense;
+    this.playerState.speed = stats.speed ?? this.playerState.speed;
     this.emitRuntime();
   }
 
@@ -605,6 +620,10 @@ export class CombatSandboxScene extends Phaser.Scene {
       })),
       castState: this.getCastRuntimeState(),
       activeEffects,
+      sessionState: {
+        explorationBonus: this.explorationBonus,
+        combatSnapshot: this.combatSnapshot
+      },
       levelUp: {
         available: this.playerState.pendingStatPoints > 0,
         options: [
@@ -674,6 +693,19 @@ export class CombatSandboxScene extends Phaser.Scene {
   }
 
   gainXp(amount) {
+    if (this.playerProfile?.userId) {
+      emitProgressionReward({
+        level: this.playerState.level,
+        xp: this.playerState.xp,
+        pendingStatPoints: this.playerState.pendingStatPoints,
+        xpGained: amount,
+        source: "combat"
+      });
+      this.pushFeed(`Gained ${amount} XP. Syncing progression...`);
+      this.emitRuntime();
+      return;
+    }
+
     this.playerState.xp += amount;
     this.playerState.xpToNextLevel = this.getXpThreshold(this.playerState.level);
 
@@ -681,43 +713,11 @@ export class CombatSandboxScene extends Phaser.Scene {
       this.playerState.xp -= this.playerState.xpToNextLevel;
       this.playerState.level += 1;
       this.playerState.pendingStatPoints += 1;
-      this.playerState.maxHp += 8;
-      this.playerState.maxCe += 5;
-      this.playerState.attack += 2;
-      this.playerState.defense += 1;
-      this.playerState.speed += 1;
-      this.playerState.hp = this.playerState.maxHp;
-      this.playerState.ce = this.playerState.maxCe;
       this.playerState.xpToNextLevel = this.getXpThreshold(this.playerState.level);
       this.pushFeed(`Level up. You are now level ${this.playerState.level}.`);
       emitSoundEvent({ type: "enemy_down" });
     }
-  }
 
-  applyLevelChoice(optionId) {
-    if (!this.playerState || this.playerState.pendingStatPoints <= 0) {
-      return;
-    }
-
-    if (optionId === "attack") {
-      this.playerState.attack += 2;
-      this.playerState.maxCe += 4;
-      this.playerState.ce = Math.min(this.playerState.maxCe, this.playerState.ce + 4);
-      this.pushFeed("Attack focus chosen. Damage pressure increased.");
-    } else if (optionId === "defense") {
-      this.playerState.defense += 1;
-      this.playerState.maxHp += 10;
-      this.playerState.hp = Math.min(this.playerState.maxHp, this.playerState.hp + 10);
-      this.pushFeed("Defense focus chosen. Sustain increased.");
-    } else if (optionId === "speed") {
-      this.playerState.speed += 1;
-      this.pushFeed("Speed focus chosen. Mobility increased.");
-    } else {
-      return;
-    }
-
-    this.playerState.pendingStatPoints -= 1;
-    emitSoundEvent({ type: "skill_cast" });
     this.emitRuntime();
   }
 

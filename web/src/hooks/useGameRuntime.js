@@ -28,6 +28,7 @@ const defaultRuntime = {
     progress: 0
   },
   activeEffects: [],
+  sessionState: {},
   levelUp: {
     available: false,
     options: []

@@ -40,7 +40,7 @@ function getStarterSkills(classType) {
   }
 }
 
-function computeStats(classType, equippedItemIds) {
+function computeStats(classType, equippedItemIds, statAllocations = {}) {
   const classDefinition = getClassDefinition(classType);
   const items = getItemDefinitions();
   const baseStats = structuredClone(classDefinition?.baseStats ?? {});
@@ -51,6 +51,12 @@ function computeStats(classType, equippedItemIds) {
       baseStats[key] = (baseStats[key] ?? 0) + value;
     }
   }
+
+  baseStats.attack = (baseStats.attack ?? 0) + (statAllocations.attack ?? 0) * 2;
+  baseStats.defense = (baseStats.defense ?? 0) + (statAllocations.defense ?? 0);
+  baseStats.hp = (baseStats.hp ?? 0) + (statAllocations.defense ?? 0) * 10;
+  baseStats.speed = (baseStats.speed ?? 0) + (statAllocations.speed ?? 0);
+  baseStats.ce = (baseStats.ce ?? 0) + (statAllocations.attack ?? 0) * 4;
 
   return {
     hp: baseStats.hp ?? 0,
@@ -65,9 +71,18 @@ function computeStats(classType, equippedItemIds) {
   };
 }
 
+function getXpThreshold(level) {
+  return 30 + (level - 1) * 20;
+}
+
 function buildProfile(userId, classType = "close_combat") {
   const equippedItemIds = getStarterLoadout(classType);
   const equippedSkillIds = getStarterSkills(classType);
+  const statAllocations = {
+    attack: 0,
+    defense: 0,
+    speed: 0
+  };
   const unlockedSkillIds = getSkillDefinitions()
     .filter((skill) => !skill.classRestrictions?.length || skill.classRestrictions.includes(classType))
     .map((skill) => skill.id);
@@ -76,13 +91,17 @@ function buildProfile(userId, classType = "close_combat") {
     userId,
     classType,
     level: 1,
+    xp: 0,
+    xpToNextLevel: 30,
+    pendingStatPoints: 0,
+    statAllocations,
     inventoryItemIds: getItemDefinitions()
       .filter((item) => !item.classRestrictions?.length || item.classRestrictions.includes(classType))
       .map((item) => item.id),
     equippedItemIds,
     unlockedSkillIds,
     equippedSkillIds,
-    computedStats: computeStats(classType, equippedItemIds)
+    computedStats: computeStats(classType, equippedItemIds, statAllocations)
   };
 }
 
@@ -99,6 +118,10 @@ function serializeProfile(profile) {
     userId: profile.userId,
     classType: profile.classType,
     level: profile.level,
+    xp: profile.xp,
+    xpToNextLevel: profile.xpToNextLevel,
+    pendingStatPoints: profile.pendingStatPoints,
+    statAllocations: profile.statAllocations,
     computedStats: profile.computedStats,
     inventoryItems,
     equippedItems,
@@ -147,7 +170,11 @@ export async function equipPlayerItem(userId, itemId) {
   }
 
   profile.equippedItemIds[item.equipSlot] = item.id;
-  profile.computedStats = computeStats(profile.classType, profile.equippedItemIds);
+  profile.computedStats = computeStats(
+    profile.classType,
+    profile.equippedItemIds,
+    profile.statAllocations
+  );
   const storedProfile = await upsertPlayerProfileRecord(profile);
   return { profile: serializeProfile(storedProfile) };
 }
@@ -161,6 +188,66 @@ export async function equipPlayerSkills(userId, skillIds) {
   }
 
   profile.equippedSkillIds = skillIds.slice(0, 4);
+  const storedProfile = await upsertPlayerProfileRecord(profile);
+  return { profile: serializeProfile(storedProfile) };
+}
+
+export async function applyPlayerProgressionChoice(userId, optionId, runtimeState = {}) {
+  const profile = (await getPlayerProfileRecord(userId)) ?? buildProfile(userId);
+
+  profile.level = Number.isFinite(runtimeState.level) ? runtimeState.level : profile.level;
+  profile.xp = Number.isFinite(runtimeState.xp) ? runtimeState.xp : profile.xp;
+  profile.xpToNextLevel = Number.isFinite(runtimeState.xpToNextLevel)
+    ? runtimeState.xpToNextLevel
+    : profile.xpToNextLevel;
+  profile.pendingStatPoints = Number.isFinite(runtimeState.pendingStatPoints)
+    ? runtimeState.pendingStatPoints
+    : profile.pendingStatPoints;
+
+  if (profile.pendingStatPoints <= 0) {
+    return { error: "No pending stat points" };
+  }
+
+  if (!["attack", "defense", "speed"].includes(optionId)) {
+    return { error: "Invalid progression option" };
+  }
+
+  profile.statAllocations = {
+    attack: profile.statAllocations?.attack ?? 0,
+    defense: profile.statAllocations?.defense ?? 0,
+    speed: profile.statAllocations?.speed ?? 0
+  };
+  profile.statAllocations[optionId] += 1;
+  profile.pendingStatPoints -= 1;
+  profile.computedStats = computeStats(
+    profile.classType,
+    profile.equippedItemIds,
+    profile.statAllocations
+  );
+
+  const storedProfile = await upsertPlayerProfileRecord(profile);
+  return { profile: serializeProfile(storedProfile) };
+}
+
+export async function applyPlayerCombatReward(userId, rewardState = {}) {
+  const profile = (await getPlayerProfileRecord(userId)) ?? buildProfile(userId);
+  const xpGained = Number.isFinite(rewardState.xpGained) ? Math.max(0, rewardState.xpGained) : 0;
+
+  profile.level = Number.isFinite(rewardState.level) ? rewardState.level : profile.level;
+  profile.xp = Number.isFinite(rewardState.xp) ? rewardState.xp : profile.xp;
+  profile.pendingStatPoints = Number.isFinite(rewardState.pendingStatPoints)
+    ? rewardState.pendingStatPoints
+    : profile.pendingStatPoints;
+  profile.xpToNextLevel = getXpThreshold(profile.level);
+  profile.xp += xpGained;
+
+  while (profile.xp >= profile.xpToNextLevel) {
+    profile.xp -= profile.xpToNextLevel;
+    profile.level += 1;
+    profile.pendingStatPoints += 1;
+    profile.xpToNextLevel = getXpThreshold(profile.level);
+  }
+
   const storedProfile = await upsertPlayerProfileRecord(profile);
   return { profile: serializeProfile(storedProfile) };
 }

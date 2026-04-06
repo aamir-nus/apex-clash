@@ -140,7 +140,10 @@ function App() {
             />
           </Suspense>
           <SceneTransitionOverlay transition={runtime.transition} />
-          <LevelUpPanel runtime={runtime} />
+          <LevelUpPanel
+            runtime={runtime}
+            onChoose={(optionId) => playerProfile.applyLevelChoice(optionId, runtime.player)}
+          />
           <GameHud
             runtime={runtime}
             soundEnabled={soundEnabled}

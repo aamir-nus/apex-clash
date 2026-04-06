@@ -1,5 +1,7 @@
 import { logger } from "../lib/logger.js";
 import {
+  applyPlayerCombatReward,
+  applyPlayerProgressionChoice,
   equipPlayerItem,
   equipPlayerSkills,
   getOrCreatePlayerProfile,
@@ -79,5 +81,38 @@ export async function equipPlayerLoadoutSkills(request, response) {
     return;
   }
 
+  response.json({ ok: true, data: result.profile });
+}
+
+export async function applyPlayerLevelChoice(request, response) {
+  if (!requireAuth(request, response)) {
+    return;
+  }
+
+  const result = await applyPlayerProgressionChoice(
+    request.authUser.id,
+    request.body?.optionId,
+    request.body?.runtimeState ?? {}
+  );
+
+  if (result.error) {
+    logger.warn("Rejected progression choice", {
+      requestId: request.id,
+      optionId: request.body?.optionId,
+      userId: request.authUser.id
+    });
+    response.status(400).json({ ok: false, error: result.error });
+    return;
+  }
+
+  response.json({ ok: true, data: result.profile });
+}
+
+export async function applyPlayerCombatProgression(request, response) {
+  if (!requireAuth(request, response)) {
+    return;
+  }
+
+  const result = await applyPlayerCombatReward(request.authUser.id, request.body ?? {});
   response.json({ ok: true, data: result.profile });
 }

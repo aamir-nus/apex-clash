@@ -39,6 +39,16 @@ export class RegionScene extends Phaser.Scene {
     this.playerProfile = this.registry.get("playerProfile") ?? null;
     this.combatSnapshot = this.registry.get("combatSnapshot") ?? null;
     this.explorationBonus = this.registry.get("explorationBonus") ?? null;
+    const loadedSessionSummary = this.registry.get("loadedSessionSummary") ?? null;
+    const loadedSessionState = loadedSessionSummary?.sessionState ?? {};
+    if (loadedSessionState.combatSnapshot && !this.combatSnapshot) {
+      this.combatSnapshot = loadedSessionState.combatSnapshot;
+      this.registry.set("combatSnapshot", this.combatSnapshot);
+    }
+    if (loadedSessionState.explorationBonus && !this.explorationBonus) {
+      this.explorationBonus = loadedSessionState.explorationBonus;
+      this.registry.set("explorationBonus", this.explorationBonus);
+    }
     this.enterKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.returnKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H);
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -255,6 +265,13 @@ export class RegionScene extends Phaser.Scene {
         { key: "H", label: "Return to hub" }
       ],
       cooldowns: [],
+      activeEffects: this.explorationBonus
+        ? [{ id: "region-boon", label: this.explorationBonus.label, detail: "Recovered from prior sweep", tone: "boon" }]
+        : [],
+      sessionState: {
+        explorationBonus: this.explorationBonus,
+        combatSnapshot: this.combatSnapshot
+      },
       combatFeed: [
         { id: 1, message: `Exploration boon: ${bonusText}` },
         ...this.discoveryFeed

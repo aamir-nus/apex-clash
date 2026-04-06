@@ -17,7 +17,7 @@ This tag is a demo-recovery build, not a QA-approved release. It exists to prese
 Known release status:
 
 - `NO QA SIGNOFF`
-- bundle-size warning still present
+- bundle risk reduced with initial Phaser/runtime chunk splitting, but the standalone Phaser core chunk still exceeds Vite's warning threshold
 - gameplay and persistence flow improved, but not production-ready
 
 ## Stack
@@ -71,9 +71,18 @@ Default dev admin:
 
 - `npm run validate:content`
 - `npm run test:server`
+- `npm run test:auth-profile-contract`
 - `npm run lint`
 - `npm run build`
 - `npm run test:smoke`
+
+## Next Release Focus
+
+- backend-owned session/progression sync for exploration and encounter outcomes
+- live Mongo verification through Docker
+- authored dungeon content and better reward pacing
+- sprite-backed animation states
+- further browser bundle hardening if scene growth reintroduces load risk
 
 Task tracking and session memory live under [docs/tasklists/README.md](/Users/aamirsyedaltaf/Documents/apex-clash/docs/tasklists/README.md).
 Versioned product docs are indexed in [docs/README.md](/Users/aamirsyedaltaf/Documents/apex-clash/docs/README.md).

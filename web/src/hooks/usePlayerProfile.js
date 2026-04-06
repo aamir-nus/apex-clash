@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import {
+  applyPlayerCombatReward,
+  applyPlayerLevelChoice,
   equipPlayerItem,
   equipPlayerSkills,
   fetchPlayerProfile,
   updatePlayerClassType
 } from "../api/playerApi";
+import { subscribeToProgressionRewards } from "../game/runtime/runtimeBridge";
 
 export function usePlayerProfile(authToken, selectedArchetype) {
   const [profile, setProfile] = useState(null);
@@ -39,6 +42,21 @@ export function usePlayerProfile(authToken, selectedArchetype) {
       .catch((updateError) => setError(updateError.message));
   }, [authToken, profile, selectedArchetype]);
 
+  useEffect(() => {
+    if (!authToken) {
+      return undefined;
+    }
+
+    return subscribeToProgressionRewards(async (rewardState) => {
+      try {
+        const data = await applyPlayerCombatReward(authToken, rewardState);
+        setProfile(data);
+      } catch (rewardError) {
+        setError(rewardError.message);
+      }
+    });
+  }, [authToken]);
+
   async function equipItem(itemId) {
     const data = await equipPlayerItem(authToken, itemId);
     setProfile(data);
@@ -49,11 +67,23 @@ export function usePlayerProfile(authToken, selectedArchetype) {
     setProfile(data);
   }
 
+  async function applyLevelChoiceChoice(optionId, runtimePlayer) {
+    const data = await applyPlayerLevelChoice(authToken, optionId, {
+      level: runtimePlayer.level,
+      xp: runtimePlayer.xp,
+      xpToNextLevel: runtimePlayer.xpToNextLevel,
+      pendingStatPoints: runtimePlayer.pendingStatPoints
+    });
+    setProfile(data);
+    return data;
+  }
+
   return {
     profile,
     status,
     error,
     equipItem,
-    equipSkills
+    equipSkills,
+    applyLevelChoice: applyLevelChoiceChoice
   };
 }
