@@ -10,6 +10,16 @@
     "range": 1
   },
   {
+    "id": "iron_maelstrom",
+    "name": "Iron Maelstrom",
+    "classRestrictions": ["close_combat"],
+    "damageType": "physical",
+    "cost": 18,
+    "cooldown": 8,
+    "castType": "aoe_burst",
+    "range": 2
+  },
+  {
     "id": "shard_arc",
     "name": "Shard Arc",
     "classRestrictions": ["mid_range", "long_range"],
@@ -20,6 +30,26 @@
     "range": 5
   },
   {
+    "id": "veil_sweep",
+    "name": "Veil Sweep",
+    "classRestrictions": ["mid_range"],
+    "damageType": "cursed",
+    "cost": 12,
+    "cooldown": 4,
+    "castType": "melee_strike",
+    "range": 2
+  },
+  {
+    "id": "starfall_lance",
+    "name": "Starfall Lance",
+    "classRestrictions": ["long_range"],
+    "damageType": "cursed",
+    "cost": 24,
+    "cooldown": 9,
+    "castType": "projectile",
+    "range": 7
+  },
+  {
     "id": "predator_sense",
     "name": "Predator Sense",
     "classRestrictions": ["heavenly_restriction"],
@@ -28,5 +58,15 @@
     "cooldown": 10,
     "castType": "buff",
     "range": 0
+  },
+  {
+    "id": "bone_breaker",
+    "name": "Bone Breaker",
+    "classRestrictions": ["heavenly_restriction"],
+    "damageType": "physical",
+    "cost": 0,
+    "cooldown": 6,
+    "castType": "dash_attack",
+    "range": 2
   }
 ]

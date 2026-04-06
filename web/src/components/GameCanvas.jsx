@@ -1,9 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createGame } from "../game/config/createGame";
 
-export function GameCanvas({ content, selectedArchetype, ready }) {
+export function GameCanvas({ content, selectedArchetype, playerProfile, activeSave, ready }) {
   const containerRef = useRef(null);
   const gameRef = useRef(null);
+  const [focused, setFocused] = useState(false);
 
   useEffect(() => {
     if (!ready || !containerRef.current || gameRef.current) {
@@ -13,7 +14,9 @@ export function GameCanvas({ content, selectedArchetype, ready }) {
     gameRef.current = createGame({
       parent: containerRef.current,
       content,
-      selectedArchetype
+      selectedArchetype,
+      playerProfile,
+      activeSave
     });
 
     return () => {
@@ -22,14 +25,46 @@ export function GameCanvas({ content, selectedArchetype, ready }) {
         gameRef.current = null;
       }
     };
-  }, [content, ready, selectedArchetype]);
+  }, [content, ready, selectedArchetype, playerProfile, activeSave]);
 
   useEffect(() => {
-    const sandboxScene = gameRef.current?.scene?.getScene("CombatSandboxScene");
-    if (sandboxScene?.applyArchetype) {
-      sandboxScene.applyArchetype(selectedArchetype);
+    if (ready && containerRef.current) {
+      containerRef.current.focus();
+      setFocused(true);
     }
-  }, [selectedArchetype]);
+  }, [ready]);
 
-  return <div ref={containerRef} className="game-canvas" />;
+  useEffect(() => {
+    if (gameRef.current) {
+      gameRef.current.registry.set("selectedArchetype", selectedArchetype);
+      gameRef.current.registry.set("playerProfile", playerProfile ?? null);
+      gameRef.current.registry.set("activeSave", activeSave ?? null);
+    }
+
+    const sandboxScene = gameRef.current?.scene?.getScene("CombatSandboxScene");
+    if (sandboxScene?.applyProfile) {
+      sandboxScene.applyProfile(playerProfile, selectedArchetype);
+    }
+  }, [activeSave, playerProfile, selectedArchetype]);
+
+  return (
+    <div className={focused ? "game-shell focused" : "game-shell"}>
+      <div
+        ref={containerRef}
+        className="game-canvas"
+        onBlur={() => setFocused(false)}
+        onClick={() => {
+          containerRef.current?.focus();
+          setFocused(true);
+        }}
+        onFocus={() => setFocused(true)}
+        role="application"
+        tabIndex={0}
+      />
+      <div className="game-focus-bar">
+        <span>{focused ? "Controls armed" : "Click game to focus controls"}</span>
+        <small>Keyboard-first play surface</small>
+      </div>
+    </div>
+  );
 }

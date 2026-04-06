@@ -13,9 +13,70 @@
     "name": "Breach Blade",
     "type": "weapon",
     "rarity": "rare",
+    "equipSlot": "weapon",
+    "classRestrictions": ["close_combat"],
     "statModifiers": {
       "attack": 5,
       "poise": 2
+    }
+  },
+  {
+    "id": "pulse_tanto",
+    "name": "Pulse Tanto",
+    "type": "weapon",
+    "rarity": "uncommon",
+    "equipSlot": "weapon",
+    "classRestrictions": ["mid_range"],
+    "statModifiers": {
+      "attack": 3,
+      "speed": 2
+    }
+  },
+  {
+    "id": "ritual_focus",
+    "name": "Ritual Focus",
+    "type": "weapon",
+    "rarity": "rare",
+    "equipSlot": "weapon",
+    "classRestrictions": ["long_range"],
+    "statModifiers": {
+      "technique": 4,
+      "attack": 2
+    }
+  },
+  {
+    "id": "grave_polearm",
+    "name": "Grave Polearm",
+    "type": "weapon",
+    "rarity": "rare",
+    "equipSlot": "weapon",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 4,
+      "poise": 3
+    }
+  },
+  {
+    "id": "focus_charm",
+    "name": "Focus Charm",
+    "type": "charm",
+    "rarity": "uncommon",
+    "equipSlot": "charm",
+    "classRestrictions": ["mid_range", "long_range"],
+    "statModifiers": {
+      "ce": 8
+    }
+  },
+  {
+    "id": "hunter_sash",
+    "name": "Hunter Sash",
+    "type": "charm",
+    "rarity": "uncommon",
+    "equipSlot": "charm",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "speed": 2,
+      "defense": 1
     }
   }
 ]

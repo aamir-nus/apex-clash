@@ -1,40 +1,37 @@
 import { logger } from "../lib/logger.js";
+import { getClassDefinition } from "../services/contentService.js";
+import {
+  createSaveSlotRecord,
+  getNextSaveSlotId,
+  getSaveSlotById,
+  listSaveSlotsByOwner,
+  updateSaveSlotRecord
+} from "../services/saveSlotRepository.js";
 
-function createDefaultPlayerState(_archetypeId = "close_combat") {
+function createDefaultPlayerState(archetypeId = "close_combat") {
+  const classDefinition = getClassDefinition(archetypeId);
+
   return {
     level: 1,
     xp: 0,
     xpToNextLevel: 30,
-    hp: 120,
-    maxHp: 120,
-    ce: 70,
-    maxCe: 70,
-    attack: 16,
-    defense: 10,
-    speed: 12,
+    hp: classDefinition?.baseStats?.hp ?? 120,
+    maxHp: classDefinition?.baseStats?.hp ?? 120,
+    ce: classDefinition?.baseStats?.ce ?? 70,
+    maxCe: classDefinition?.baseStats?.ce ?? 70,
+    attack: classDefinition?.baseStats?.attack ?? 16,
+    defense: classDefinition?.baseStats?.defense ?? 10,
+    speed: classDefinition?.baseStats?.speed ?? 12,
     pendingStatPoints: 0
   };
 }
 
-const saveSlots = [
-  {
-    id: "slot-1",
-    label: "Vertical Slice",
-    level: 1,
-    regionId: "hub_blacksite",
-    archetypeId: "close_combat",
-    playerState: createDefaultPlayerState("close_combat"),
-    sessionSummary: {
-      enemiesRemaining: 3,
-      combatFeed: []
-    }
-  }
-];
+export async function listSaveSlots(request, response) {
+  const visibleSlots = await listSaveSlotsByOwner(request.authUser?.id ?? null);
 
-export function listSaveSlots(_request, response) {
   response.json({
     ok: true,
-    data: saveSlots.map((slot) => ({
+    data: visibleSlots.map((slot) => ({
       id: slot.id,
       label: slot.label,
       level: slot.level,
@@ -44,10 +41,10 @@ export function listSaveSlots(_request, response) {
   });
 }
 
-export function getSaveSlot(request, response) {
-  const slot = saveSlots.find((entry) => entry.id === request.params.slotId);
+export async function getSaveSlot(request, response) {
+  const slot = await getSaveSlotById(request.params.slotId);
 
-  if (!slot) {
+  if (!slot || (slot.ownerUserId && slot.ownerUserId !== request.authUser?.id)) {
     response.status(404).json({ ok: false, error: "Save slot not found" });
     return;
   }
@@ -55,60 +52,74 @@ export function getSaveSlot(request, response) {
   response.json({
     ok: true,
     data: {
-      ...slot
+      ...structuredClone(slot)
     }
   });
 }
 
-export function createSaveSlot(request, response) {
+export async function createSaveSlot(request, response) {
+  const archetypeId = request.body?.archetypeId ?? "close_combat";
+  const classDefinition = getClassDefinition(archetypeId);
+
+  if (!classDefinition) {
+    logger.warn("Rejected save slot create for invalid archetype", {
+      requestId: request.id,
+      archetypeId
+    });
+    response.status(400).json({
+      ok: false,
+      error: "Invalid archetypeId"
+    });
+    return;
+  }
+
+  const nextSlotId = await getNextSaveSlotId();
   const nextSlot = {
-    id: `slot-${saveSlots.length + 1}`,
-    label: request.body?.label ?? `Save ${saveSlots.length + 1}`,
+    id: nextSlotId,
+    label: request.body?.label ?? `Save ${nextSlotId.replace("slot-", "")}`,
     level: 1,
     regionId: "hub_blacksite",
-    archetypeId: request.body?.archetypeId ?? "close_combat",
-    playerState: createDefaultPlayerState(request.body?.archetypeId),
+    archetypeId,
+    ownerUserId: request.authUser?.id ?? null,
+    playerState: createDefaultPlayerState(archetypeId),
     sessionSummary: {
       enemiesRemaining: 3,
       combatFeed: []
     }
   };
 
-  saveSlots.push(nextSlot);
+  const createdSlot = await createSaveSlotRecord(nextSlot);
   logger.info("Save slot created", {
     requestId: request.id,
-    slotId: nextSlot.id,
-    archetypeId: nextSlot.archetypeId
+    slotId: createdSlot.id,
+    archetypeId: createdSlot.archetypeId,
+    ownerUserId: createdSlot.ownerUserId,
+    persistence: "repository"
   });
-  response.status(201).json({ ok: true, data: nextSlot });
+  response.status(201).json({ ok: true, data: createdSlot });
 }
 
-export function updateSaveSlot(request, response) {
-  const slot = saveSlots.find((entry) => entry.id === request.params.slotId);
-  if (!slot) {
+export async function updateSaveSlot(request, response) {
+  const slot = await getSaveSlotById(request.params.slotId);
+  if (!slot || (slot.ownerUserId && slot.ownerUserId !== request.authUser?.id)) {
+    logger.warn("Rejected save slot update for missing slot", {
+      requestId: request.id,
+      slotId: request.params.slotId
+    });
     response.status(404).json({ ok: false, error: "Save slot not found" });
     return;
   }
 
   const payload = request.body ?? {};
-  Object.assign(slot, {
-    ...payload,
-    level: payload.level ?? payload.playerState?.level ?? slot.level,
-    playerState: {
-      ...slot.playerState,
-      ...(payload.playerState ?? {})
-    },
-    sessionSummary: {
-      ...slot.sessionSummary,
-      ...(payload.sessionSummary ?? {})
-    }
-  });
+  const updatedSlot = await updateSaveSlotRecord(slot.id, payload);
 
   logger.info("Save slot updated", {
     requestId: request.id,
-    slotId: slot.id,
-    level: slot.level,
-    enemiesRemaining: slot.sessionSummary.enemiesRemaining
+    slotId: updatedSlot.id,
+    level: updatedSlot.level,
+    enemiesRemaining: updatedSlot.sessionSummary.enemiesRemaining,
+    ownerUserId: updatedSlot.ownerUserId,
+    persistence: "repository"
   });
-  response.json({ ok: true, data: slot });
+  response.json({ ok: true, data: updatedSlot });
 }

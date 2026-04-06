@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { subscribeToRuntimeUpdates } from "../game/runtime/runtimeBridge";
+import {
+  subscribeToRuntimeUpdates,
+  subscribeToSceneUpdates,
+  subscribeToTransitionUpdates
+} from "../game/runtime/runtimeBridge";
 
 const defaultRuntime = {
   player: {
@@ -18,9 +22,29 @@ const defaultRuntime = {
   },
   cooldowns: [],
   combatFeed: [],
+  castState: {
+    phase: "idle",
+    label: "No active cast",
+    progress: 0
+  },
+  activeEffects: [],
+  levelUp: {
+    available: false,
+    options: []
+  },
   encounter: {
     enemiesRemaining: 0,
     status: "Awaiting runtime"
+  },
+  transition: {
+    active: false,
+    label: "",
+    detail: ""
+  },
+  controls: [],
+  scene: {
+    scene: "boot",
+    label: "Boot"
   }
 };
 
@@ -28,6 +52,28 @@ export function useGameRuntime() {
   const [runtime, setRuntime] = useState(defaultRuntime);
 
   useEffect(() => subscribeToRuntimeUpdates(setRuntime), []);
+
+  useEffect(
+    () =>
+      subscribeToSceneUpdates((scene) => {
+        setRuntime((current) => ({
+          ...current,
+          scene
+        }));
+      }),
+    []
+  );
+
+  useEffect(
+    () =>
+      subscribeToTransitionUpdates((transition) => {
+        setRuntime((current) => ({
+          ...current,
+          transition
+        }));
+      }),
+    []
+  );
 
   return runtime;
 }

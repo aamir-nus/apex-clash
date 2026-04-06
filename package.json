@@ -9,6 +9,8 @@
   "scripts": {
     "dev:web": "npm run dev -w web",
     "dev:server": "npm run dev -w server",
+    "test:auth-profile-contract": "node scripts/auth_profile_contract_check.mjs",
+    "test:backend-contract": "node scripts/backend_contract_check.mjs",
     "validate:content": "node scripts/validate-content.mjs",
     "test:server": "npm run test -w server",
     "test:smoke": "npm run validate:content && npm run test:server && npm run lint && npm run build",

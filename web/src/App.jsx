@@ -1,7 +1,14 @@
 import { lazy, Suspense, useState } from "react";
+import { AuthPanel } from "./components/AuthPanel";
 import { GameHud } from "./components/GameHud";
+import { InventoryPanel } from "./components/InventoryPanel";
+import { LevelUpPanel } from "./components/LevelUpPanel";
+import { MovesetPanel } from "./components/MovesetPanel";
 import { SavePanel } from "./components/SavePanel";
+import { SceneTransitionOverlay } from "./components/SceneTransitionOverlay";
+import { useAuthSession } from "./hooks/useAuthSession";
 import { useGameAudio } from "./hooks/useGameAudio";
+import { usePlayerProfile } from "./hooks/usePlayerProfile";
 import { useGameRuntime } from "./hooks/useGameRuntime";
 import { useSaveSlots } from "./hooks/useSaveSlots";
 import { useBootstrapContent } from "./hooks/useBootstrapContent";
@@ -25,53 +32,42 @@ const experiencePillars = [
   "Short, punchy sound cues for hits, pickups, and danger states"
 ];
 
-const launcherCards = [
-  {
-    title: "HUD First",
-    detail: "Menus, stats, combat prompts, and inventory need to feel console-grade in browser."
-  },
-  {
-    title: "8-bit Identity",
-    detail: "Pixel-inspired panels, deliberate color coding, and later sprite/audio kits must feel cohesive."
-  },
-  {
-    title: "Fast Feedback",
-    detail: "Every click, dodge, hit, loot pickup, and death state needs immediate visual and audio response."
-  }
-];
-
 function App() {
   const { content, status, error } = useBootstrapContent();
   const [selectedArchetype, setSelectedArchetype] = useState("close_combat");
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [saveStatus, setSaveStatus] = useState("");
+  const auth = useAuthSession();
   const runtime = useGameRuntime();
+  const playerProfile = usePlayerProfile(auth.session.token, selectedArchetype);
   const {
     slots,
     status: saveApiStatus,
     error: saveError,
     selectedSlotId,
     setSelectedSlotId,
+    activeSave,
     createSlot,
     saveCurrentRun
-  } = useSaveSlots(selectedArchetype, runtime);
+  } = useSaveSlots(selectedArchetype, runtime, auth.session.token);
 
   useGameAudio(soundEnabled);
 
   const selectedDefinition = content?.classes?.find(
     (entry) => entry.id === selectedArchetype
   );
+  const effectiveStats = playerProfile.profile?.computedStats ?? selectedDefinition?.baseStats ?? {};
+  const compatibleItems = playerProfile.profile?.inventoryItems ?? [];
+  const equippedItems = playerProfile.profile?.equippedItems ?? [];
+  const availableSkills = playerProfile.profile?.availableSkills ?? [];
+  const equippedSkillIds = playerProfile.profile?.equippedSkills?.map((skill) => skill.id) ?? [];
 
   return (
     <main className="app-shell">
-      <section className="hero-panel">
-        <div className="hero-copy">
+      <section className="hero-panel compact">
+        <div className="hero-copy compact">
           <p className="eyebrow">Browser-first MERN + Phaser vertical slice</p>
           <h1>Apex Clash</h1>
-          <p className="hero-text">
-            Single-player occult action RPG with top-down PvE combat, build
-            progression, and data-driven content.
-          </p>
           <div className="pill-list">
             {experiencePillars.map((pillar) => (
               <span key={pillar} className="pill">
@@ -80,29 +76,29 @@ function App() {
             ))}
           </div>
         </div>
-        <div className="status-card">
+        <div className="status-card compact">
           <h2>Current slice</h2>
           <ul>
-            <li>Combat sandbox scene in Phaser</li>
-            <li>Shared content bootstrap from Express</li>
-            <li>Class selection driving runtime stats</li>
-            <li>Frontend UX now treated as a core milestone, not polish</li>
+            <li>Hub to region to combat loop</li>
+            <li>Live HUD + save panel</li>
+            <li>Player auth layer + loadout panel</li>
           </ul>
         </div>
       </section>
 
-      <section className="launcher-strip">
-        {launcherCards.map((entry) => (
-          <article key={entry.title} className="launcher-card">
-            <p className="launcher-kicker">{entry.title}</p>
-            <p>{entry.detail}</p>
-          </article>
-        ))}
-      </section>
+      <AuthPanel auth={auth} />
 
       <section className="dashboard-grid">
-        <aside className="panel">
-          <h2>Archetypes</h2>
+        <section className="panel game-stage">
+          <div className="stage-header">
+            <div>
+              <h2>Play Surface</h2>
+              <p className="stage-subtitle">Focus the game and move immediately.</p>
+            </div>
+            <div className="archetype-inline">
+              <span className="inline-label">Build</span>
+            </div>
+          </div>
           <div className="archetype-list">
             {(content?.classes ?? []).map((entry) => (
               <button
@@ -116,10 +112,6 @@ function App() {
               </button>
             ))}
           </div>
-        </aside>
-
-        <section className="panel">
-          <h2>Sandbox</h2>
           <div className="sandbox-meta">
             <div>
               <strong>Boot status</strong>
@@ -142,9 +134,13 @@ function App() {
             <GameCanvas
               content={content}
               selectedArchetype={selectedArchetype}
+              playerProfile={playerProfile.profile}
+              activeSave={activeSave}
               ready={status === "ready"}
             />
           </Suspense>
+          <SceneTransitionOverlay transition={runtime.transition} />
+          <LevelUpPanel runtime={runtime} />
           <GameHud
             runtime={runtime}
             soundEnabled={soundEnabled}
@@ -157,7 +153,7 @@ function App() {
           <section className="panel">
             <h2>Build Summary</h2>
             <div className="stat-block">
-              {Object.entries(selectedDefinition?.baseStats ?? {}).map(([key, value]) => (
+              {Object.entries(effectiveStats).map(([key, value]) => (
                 <div key={key} className="stat-row">
                   <span>{key}</span>
                   <strong>{value}</strong>
@@ -165,10 +161,10 @@ function App() {
               ))}
             </div>
             <div className="note-block">
-              <strong>Next build target</strong>
+              <strong>Current push</strong>
               <p>
-                Expand this sandbox into a hub-to-dungeon loop, then wire save
-                slots, leveling, and inventory against the existing API shell.
+                Tighten exploration feel, add real dungeon layouts, then move
+                save persistence to Mongo.
               </p>
             </div>
             <div className="ux-list">
@@ -177,9 +173,22 @@ function App() {
                 <li>Readable HUD at laptop and desktop sizes</li>
                 <li>Distinct color and sound language for combat feedback</li>
                 <li>Input hints always visible during early progression</li>
+                <li>Players can see auth, moveset, and gear state clearly</li>
               </ul>
             </div>
           </section>
+          <MovesetPanel
+            skills={availableSkills}
+            equippedSkillIds={equippedSkillIds}
+            locked={!auth.isAuthenticated}
+            onEquipSkills={(skillIds) => playerProfile.equipSkills(skillIds)}
+          />
+          <InventoryPanel
+            items={compatibleItems}
+            equippedItems={equippedItems}
+            locked={!auth.isAuthenticated}
+            onEquip={(item) => playerProfile.equipItem(item.id)}
+          />
           <SavePanel
             slots={slots}
             status={saveApiStatus}

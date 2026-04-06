@@ -11,9 +11,17 @@ function readContentFile(fileName) {
   return JSON.parse(fs.readFileSync(absolutePath, "utf-8"));
 }
 
+export function getClassDefinitions() {
+  return readContentFile("classes.json");
+}
+
+export function getClassDefinition(archetypeId) {
+  return getClassDefinitions().find((entry) => entry.id === archetypeId) ?? null;
+}
+
 export function getBootstrapContent() {
   return {
-    classes: readContentFile("classes.json"),
+    classes: getClassDefinitions(),
     enemies: readContentFile("enemies.json"),
     items: readContentFile("items.json"),
     regions: readContentFile("regions.json"),

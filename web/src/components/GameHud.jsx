@@ -23,11 +23,21 @@ export function GameHud({ runtime, soundEnabled, onToggleSound }) {
         <div>
           <p className="hud-kicker">Live Session</p>
           <h3>{runtime.player.archetype}</h3>
+          <small className="scene-label">Scene: {runtime.scene.label}</small>
         </div>
         <button className="sound-toggle" onClick={onToggleSound} type="button">
           Sound: {soundEnabled ? "On" : "Off"}
         </button>
       </div>
+
+      <section className="controls-strip">
+        {runtime.controls.map((control) => (
+          <div key={`${control.key}-${control.label}`} className="control-chip">
+            <strong>{control.key}</strong>
+            <span>{control.label}</span>
+          </div>
+        ))}
+      </section>
 
       <div className="hud-grid">
         <section className="hud-panel">

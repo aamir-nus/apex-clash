@@ -16,13 +16,16 @@ async function request(path, options = {}) {
   return payload.data;
 }
 
-export function fetchSaveSlots() {
-  return request("/save-slots");
+export function fetchSaveSlots(token) {
+  return request("/save-slots", {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined
+  });
 }
 
-export function createSaveSlot(archetypeId) {
+export function createSaveSlot(archetypeId, token) {
   return request("/save-slots", {
     method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     body: JSON.stringify({
       archetypeId,
       label: "Browser Slice"
@@ -30,9 +33,16 @@ export function createSaveSlot(archetypeId) {
   });
 }
 
-export function updateSaveSlot(slotId, data) {
+export function fetchSaveSlot(slotId, token) {
+  return request(`/save/${slotId}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined
+  });
+}
+
+export function updateSaveSlot(slotId, data, token) {
   return request(`/save/${slotId}`, {
     method: "PUT",
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     body: JSON.stringify(data)
   });
 }
