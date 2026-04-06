@@ -137,3 +137,13 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+.env
+.DS_STORE
+.claude/
+
+*.md
+!README.md
+docs/**/*.md
+CLAUDE.md
+CODING_PRACTICES.md
