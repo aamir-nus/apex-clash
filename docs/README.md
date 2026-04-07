@@ -1,14 +1,22 @@
 # Docs Index
 
-Versioned product docs live in version folders so the plan can evolve without overwriting older scopes.
+This repo keeps only the stable public docs surface in git.
 
 ## Structure
 
-- [v1](./v1/PRD.md): initial scaffold and combat-sandbox scope
 - [api](./API.md): backend contract docs
 - [common issues](./COMMON_ISSUES.md): setup, runtime, and debugging shortcuts
 - [roadmap](./ROADMAP.md): version ladder across all phases
 
-Internal tasklists and agent-facing execution notes are intentionally not part of the tracked public docs surface.
+Only these docs are meant to be pushed:
 
-Longer-form version planning docs may exist locally during active development, but only the stable public references above are kept in the tracked docs surface.
+- `README.md`
+- `docs/API.md`
+- workflow docs such as `docs/README.md`, `docs/COMMON_ISSUES.md`, and `docs/ROADMAP.md`
+
+Versioned planning notes and internal tasklists may still exist locally during development, but they are not part of the tracked public docs surface.
+
+Practical rule:
+
+- keep internal design notes and tasklists locally if needed
+- do not stage or push any markdown outside the allowlist above

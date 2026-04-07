@@ -36,10 +36,10 @@ export function updatePlayerSessionState(token, sessionUpdate) {
   });
 }
 
-export function claimPlayerReward(token, rewardSource) {
+export function claimPlayerReward(token, rewardSource, rewardContext = {}) {
   return request("/player/rewards/claim", token, {
     method: "POST",
-    body: JSON.stringify({ rewardSource })
+    body: JSON.stringify({ rewardSource, ...rewardContext })
   });
 }
 

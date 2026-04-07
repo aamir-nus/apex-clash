@@ -5,9 +5,9 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY server/package.json server/package.json
 COPY web/package.json web/package.json
-RUN npm ci --workspace web
+RUN npm ci --workspace web && npm cache clean --force
 
-COPY . .
+COPY web ./web
 
 ARG VITE_API_BASE_URL=http://localhost:4000
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL

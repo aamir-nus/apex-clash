@@ -148,9 +148,6 @@ vite.config.ts.timestamp-*
 !docs/API.md
 !docs/COMMON_ISSUES.md
 !docs/ROADMAP.md
-!docs/v1/PRD.md
-!docs/v1/TECHNICAL_DESIGN.md
-!docs/v2/API.md
 docs/tasklists/
 CLAUDE.md
 CODING_PRACTICES.md

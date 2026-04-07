@@ -3,7 +3,8 @@ import {
   emitRuntimeUpdate,
   emitSceneUpdate,
   emitSoundEvent,
-  emitTransitionUpdate
+  emitTransitionUpdate,
+  subscribeToControlCommands
 } from "../runtime/runtimeBridge";
 
 const arena = {
@@ -31,12 +32,20 @@ export class RegionScene extends Phaser.Scene {
     this.discoveryFeed = [];
     this.nextFeedId = 1;
     this.explorationBonus = null;
+    this.currentRegionId = "shatter_block";
+    this.isTransitioning = false;
+    this.firstRunTutorial = false;
+    this.unsubscribeControlCommands = null;
   }
 
   create() {
     this.content = this.registry.get("content") ?? {};
     this.selectedArchetype = this.registry.get("selectedArchetype") ?? "close_combat";
     this.playerProfile = this.registry.get("playerProfile") ?? null;
+    this.firstRunTutorial = this.registry.get("firstRunTutorial") ?? false;
+    this.currentRegionId = this.registry.get("currentRegionId") ?? this.playerProfile?.currentRegionId ?? "shatter_block";
+    this.isTransitioning = false;
+    this.input.keyboard.resetKeys();
     this.combatSnapshot = this.registry.get("combatSnapshot") ?? null;
     this.explorationBonus = this.registry.get("explorationBonus") ?? null;
     const loadedSessionSummary = this.registry.get("loadedSessionSummary") ?? null;
@@ -49,17 +58,72 @@ export class RegionScene extends Phaser.Scene {
       this.explorationBonus = loadedSessionState.explorationBonus;
       this.registry.set("explorationBonus", this.explorationBonus);
     }
+    this.registry.set("loadedSessionSummary", null);
     this.enterKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.returnKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H);
     this.cursors = this.input.keyboard.createCursorKeys();
     this.actionKeys = this.input.keyboard.addKeys("W,A,S,D");
 
-    this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, 0x101f14);
-    this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, 0x183223, 1).setStrokeStyle(2, 0x8ec07c);
-    this.add.rectangle(660, 270, 140, 140, 0x244b33, 0.55).setStrokeStyle(2, 0xb8f29b);
-    this.add.rectangle(280, 270, 180, 200, 0x13283a, 0.18).setStrokeStyle(1, 0x31556f);
+    const regionTheme =
+      this.currentRegionId === "veil_shrine"
+        ? {
+            bg: 0x161220,
+            frame: 0x2d2342,
+            frameStroke: 0xe2b6ff,
+            gateFill: 0x3f2b5b,
+            gateStroke: 0xf0d2ff,
+            accentFill: 0x1b2e28,
+            accentStroke: 0x6fd1b1,
+            title: "Veil Shrine",
+            copy:
+              "Move with WASD or arrows.\nWalk into the violet gate area and press E to enter the shrine depth.\nPress H to return to the hub."
+          }
+        : this.currentRegionId === "cinder_ward"
+          ? {
+              bg: 0x22130f,
+              frame: 0x3f2318,
+              frameStroke: 0xffb36b,
+              gateFill: 0x5b2d1d,
+              gateStroke: 0xffd4a3,
+              accentFill: 0x3b1d18,
+              accentStroke: 0xff8a5b,
+              title: "Cinder Ward",
+              copy:
+                "Move with WASD or arrows.\nWalk into the ember gate area and press E to enter the furnace descent.\nPress H to return to the hub."
+            }
+        : {
+            bg: 0x101f14,
+            frame: 0x183223,
+            frameStroke: 0x8ec07c,
+            gateFill: 0x244b33,
+            gateStroke: 0xb8f29b,
+            accentFill: 0x13283a,
+            accentStroke: 0x31556f,
+            title: "Shatter Block",
+            copy:
+              "Move with WASD or arrows.\nWalk into the green gate area and press E to enter the dungeon.\nPress H to return to the hub."
+          };
 
-    this.add.text(100, 90, "Shatter Block", {
+    this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, regionTheme.bg);
+    this.add.circle(210, 112, 26, regionTheme.frameStroke, 0.08).setStrokeStyle(2, regionTheme.frameStroke, 0.24);
+    this.add.circle(760, 418, 42, regionTheme.gateStroke, 0.05).setStrokeStyle(2, regionTheme.gateStroke, 0.22);
+    this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, regionTheme.frame, 1).setStrokeStyle(2, regionTheme.frameStroke);
+    this.add.rectangle(660, 270, 140, 140, regionTheme.gateFill, 0.55).setStrokeStyle(2, regionTheme.gateStroke);
+    this.add.rectangle(280, 270, 180, 200, regionTheme.accentFill, 0.18).setStrokeStyle(1, regionTheme.accentStroke);
+    this.add.rectangle(652, 176, 66, 18, regionTheme.gateStroke, 0.22).setStrokeStyle(1, 0xf6f1df, 0.3);
+    this.add.text(624, 166, "Gate", {
+      color: "#f6f1df",
+      fontFamily: "monospace",
+      fontSize: "14px"
+    });
+    this.add.rectangle(282, 168, 74, 18, regionTheme.accentStroke, 0.16).setStrokeStyle(1, 0xf6f1df, 0.2);
+    this.add.text(246, 158, "Boon zone", {
+      color: "#f6f1df",
+      fontFamily: "monospace",
+      fontSize: "14px"
+    });
+
+    this.add.text(100, 90, regionTheme.title, {
       color: "#f6f1df",
       fontFamily: "monospace",
       fontSize: "28px"
@@ -68,7 +132,9 @@ export class RegionScene extends Phaser.Scene {
     this.add.text(
       100,
       140,
-      "Move with WASD or arrows.\nWalk into the green gate area and press E to enter the dungeon.\nPress H to return to the hub.",
+      this.firstRunTutorial
+        ? `${regionTheme.copy}\n\nFirst run: claim a point of interest before taking the gate.`
+        : regionTheme.copy,
       {
         color: "#d9e7d2",
         fontFamily: "monospace",
@@ -109,6 +175,27 @@ export class RegionScene extends Phaser.Scene {
 
     this.refreshSummary();
     this.emitRegionRuntime();
+    this.unsubscribeControlCommands = subscribeToControlCommands((command) => {
+      if (command?.scene !== "region" || this.isTransitioning) {
+        return;
+      }
+
+      if (command.type === "claim-boon") {
+        this.claimFirstAvailablePointOfInterest();
+      }
+
+      if (command.type === "enter-dungeon") {
+        this.enterDungeon();
+      }
+
+      if (command.type === "return-hub") {
+        this.returnToHub();
+      }
+    });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.unsubscribeControlCommands?.();
+      this.unsubscribeControlCommands = null;
+    });
     emitSceneUpdate({
       scene: "region",
       label: "Region"
@@ -117,7 +204,7 @@ export class RegionScene extends Phaser.Scene {
 
   refreshSummary() {
     const definition = (this.content.classes ?? []).find((entry) => entry.id === this.selectedArchetype);
-    const region = (this.content.regions ?? []).find((entry) => entry.id === "shatter_block");
+    const region = (this.content.regions ?? []).find((entry) => entry.id === this.currentRegionId);
     const instinctLabel =
       this.selectedArchetype === "heavenly_restriction" ? "Tool Intuition" : "Explore Radius";
     const combatStyle = this.combatSnapshot?.style ?? "unread";
@@ -245,7 +332,14 @@ export class RegionScene extends Phaser.Scene {
     const stats = this.playerProfile?.computedStats ?? definition?.baseStats ?? {};
     const bonusText = this.explorationBonus?.label ?? "No exploration boon";
     const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
+    const gateLabel =
+      this.currentRegionId === "veil_shrine"
+        ? "sanctum descent"
+        : this.currentRegionId === "cinder_ward"
+          ? "furnace descent"
+          : "dungeon ingress";
     emitRuntimeUpdate({
+      regionId: this.currentRegionId,
       player: {
         hp: stats.hp ?? 0,
         maxHp: stats.hp ?? 0,
@@ -267,15 +361,30 @@ export class RegionScene extends Phaser.Scene {
       ],
       cooldowns: [],
       resumeSource,
+      objective: {
+        title: this.firstRunTutorial ? "Secure your first boon" : "Probe the route",
+        detail: this.explorationBonus
+          ? `Carry ${this.explorationBonus.label} into the ${gateLabel}.`
+          : this.firstRunTutorial
+            ? `Scan the marked boon zone first, then push into the ${gateLabel}.`
+            : `Search the area, secure a boon, and enter the ${gateLabel}.`,
+        step: this.explorationBonus
+          ? "Move to the gate and press E"
+          : this.firstRunTutorial
+            ? "Claim a point of interest, then take the gate"
+            : "Claim a point of interest, then head to the gate"
+      },
       activeEffects: this.explorationBonus
         ? [{ id: "region-boon", label: this.explorationBonus.label, detail: "Recovered from prior sweep", tone: "boon" }]
         : [],
       sessionState: {
         explorationBonus: this.explorationBonus,
-        combatSnapshot: this.combatSnapshot
+        combatSnapshot: this.combatSnapshot,
+        unlockedRegionIds: this.playerProfile?.unlockedRegionIds ?? ["shatter_block"]
       },
       combatFeed: [
         { id: 1, message: `Exploration boon: ${bonusText}` },
+        { id: 2, message: `Route pressure: ${gateLabel}` },
         ...this.discoveryFeed
       ],
       encounter: {
@@ -301,7 +410,87 @@ export class RegionScene extends Phaser.Scene {
     this.emitRegionRuntime();
   }
 
+  claimFirstAvailablePointOfInterest() {
+    const point = this.poiZones.find((entry) => !entry.claimed);
+    if (!point) {
+      return;
+    }
+
+    this.player.setPosition(point.x, point.y);
+    this.claimPointOfInterest(point);
+  }
+
+  enterDungeon() {
+    if (this.isTransitioning) {
+      return;
+    }
+
+    this.isTransitioning = true;
+    this.player.setPosition(this.gateZone.x, this.gateZone.y);
+    this.registry.set(
+      "currentRegionId",
+      this.currentRegionId === "veil_shrine"
+        ? "veil_dungeon"
+        : this.currentRegionId === "cinder_ward"
+          ? "cinder_dungeon"
+          : "shatter_dungeon"
+    );
+    emitSoundEvent({ type: "skill_cast" });
+    emitTransitionUpdate({
+      active: true,
+      label: "Dungeon ingress",
+      detail:
+        this.currentRegionId === "veil_shrine"
+          ? "Dropping into the Veil Depth..."
+          : this.currentRegionId === "cinder_ward"
+            ? "Dropping into the furnace descent..."
+            : "Dropping into the Shatter Dungeon..."
+    });
+    this.time.delayedCall(220, () => {
+      emitSceneUpdate({
+        scene: "dungeon",
+        label: "Dungeon"
+      });
+      emitTransitionUpdate({
+        active: false,
+        label: "",
+        detail: ""
+      });
+      this.scene.start("DungeonScene");
+    });
+  }
+
+  returnToHub() {
+    if (this.isTransitioning) {
+      return;
+    }
+
+    this.isTransitioning = true;
+    this.registry.set("currentRegionId", "hub_blacksite");
+    emitTransitionUpdate({
+      active: true,
+      label: "Returning to hub",
+      detail: "Pulling back to Blacksite..."
+    });
+    this.time.delayedCall(220, () => {
+      emitSceneUpdate({
+        scene: "hub",
+        label: "Hub"
+      });
+      emitTransitionUpdate({
+        active: false,
+        label: "",
+        detail: ""
+      });
+      this.scene.start("HubScene");
+    });
+  }
+
   update() {
+    if (this.isTransitioning) {
+      return;
+    }
+
     const nextArchetype = this.registry.get("selectedArchetype") ?? this.selectedArchetype;
     if (nextArchetype !== this.selectedArchetype) {
       this.selectedArchetype = nextArchetype;
@@ -364,7 +553,12 @@ export class RegionScene extends Phaser.Scene {
     if (nearestPoint) {
       this.poiPrompt = nearestPoint.prompt;
     } else if (insideGate) {
-      this.poiPrompt = "Press E to enter the dungeon";
+      this.poiPrompt =
+        this.currentRegionId === "veil_shrine"
+          ? "Press E to enter the sanctum descent"
+          : this.currentRegionId === "cinder_ward"
+            ? "Press E to enter the furnace descent"
+            : "Press E to enter the dungeon";
     } else {
       this.poiPrompt = "Explore the block, read the nodes, then approach the gate";
     }
@@ -377,45 +571,12 @@ export class RegionScene extends Phaser.Scene {
     }
 
     if (insideGate && Phaser.Input.Keyboard.JustDown(this.enterKey)) {
-      emitSoundEvent({ type: "skill_cast" });
-      emitTransitionUpdate({
-        active: true,
-        label: "Dungeon ingress",
-        detail: "Dropping into the Shatter Dungeon..."
-      });
-      this.time.delayedCall(220, () => {
-        emitSceneUpdate({
-          scene: "dungeon",
-          label: "Dungeon"
-        });
-        emitTransitionUpdate({
-          active: false,
-          label: "",
-          detail: ""
-        });
-        this.scene.start("DungeonScene");
-      });
+      this.enterDungeon();
       return;
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.returnKey)) {
-      emitTransitionUpdate({
-        active: true,
-        label: "Returning to hub",
-        detail: "Pulling back to Blacksite..."
-      });
-      this.time.delayedCall(220, () => {
-        emitSceneUpdate({
-          scene: "hub",
-          label: "Hub"
-        });
-        emitTransitionUpdate({
-          active: false,
-          label: "",
-          detail: ""
-        });
-        this.scene.start("HubScene");
-      });
+      this.returnToHub();
     }
   }
 }

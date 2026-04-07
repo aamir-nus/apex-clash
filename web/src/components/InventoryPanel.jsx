@@ -1,4 +1,7 @@
 export function InventoryPanel({ items, equippedItems, latestReward, onEquip, locked }) {
+  const canQuickEquipReward =
+    latestReward && latestReward.type !== "scroll" && Boolean(latestReward.equipSlot);
+
   return (
     <section className="panel">
       <h2>Inventory</h2>
@@ -9,9 +12,23 @@ export function InventoryPanel({ items, equippedItems, latestReward, onEquip, lo
           <span>
             {latestReward.type} · {latestReward.rarity}
           </span>
-          <button className="mini-button" disabled={locked} onClick={() => onEquip(latestReward)} type="button">
-            Quick equip
-          </button>
+          {latestReward.bonusRewards?.length ? (
+            <small>
+              Bonus loot: {latestReward.bonusRewards.map((item) => item.name).join(", ")}
+            </small>
+          ) : null}
+          {canQuickEquipReward ? (
+            <button
+              className="mini-button"
+              disabled={locked}
+              onClick={() => onEquip(latestReward)}
+              type="button"
+            >
+              Quick equip
+            </button>
+          ) : (
+            <small>Unlocked scrolls are managed in the moveset panel.</small>
+          )}
         </div>
       ) : null}
       <div className="inventory-equipped">
@@ -27,13 +44,13 @@ export function InventoryPanel({ items, equippedItems, latestReward, onEquip, lo
           <button
             key={item.id}
             className="slot-card"
-            disabled={locked}
+            disabled={locked || !item.equipSlot}
             onClick={() => onEquip(item)}
             type="button"
           >
             <strong>{item.name}</strong>
             <span>{item.type}</span>
-            <small>{item.rarity}</small>
+            <small>{item.equipSlot ? item.rarity : `${item.rarity} · stash`}</small>
           </button>
         ))}
       </div>

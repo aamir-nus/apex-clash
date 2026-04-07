@@ -38,6 +38,12 @@ export class CombatSandboxScene extends Phaser.Scene {
     this.activeCast = null;
     this.enemyTelegraphs = null;
     this.floatingTexts = null;
+    this.precisionWindowUntil = 0;
+    this.burnoutUntil = 0;
+    this.surgeMeter = 0;
+    this.surgeActiveUntil = 0;
+    this.domainCharge = 0;
+    this.domainActiveUntil = 0;
   }
 
   create() {
@@ -77,6 +83,13 @@ export class CombatSandboxScene extends Phaser.Scene {
       enemy.aggroRange = 240;
       enemy.enemyType =
         spawn.tint === 0xc96bff ? "Shrieker" : spawn.tint === 0xf25f5c ? "Biter" : "Crusher";
+      enemy.behaviorRole =
+        enemy.enemyType === "Shrieker" ? "skirmisher" : enemy.enemyType === "Biter" ? "rushdown" : "bruiser";
+      enemy.basePoise = enemy.enemyType === "Crusher" ? 36 : enemy.enemyType === "Biter" ? 22 : 16;
+      enemy.poise = enemy.basePoise;
+      enemy.staggeredUntil = 0;
+      enemy.retreatUntil = 0;
+      enemy.phaseShifted = false;
       this.startEnemyIdleTween(enemy);
     });
 
@@ -90,10 +103,11 @@ export class CombatSandboxScene extends Phaser.Scene {
       { id: "basic", key: "J", label: "Basic Strike", duration: 0.45, remaining: 0 },
       { id: "skill_1", key: "Q", label: "Skill 1", duration: 4, remaining: 0 },
       { id: "skill_2", key: "E", label: "Skill 2", duration: 6, remaining: 0 },
+      { id: "domain", key: "R", label: "Domain Surge", duration: 18, remaining: 0 },
       { id: "dodge", key: "SPACE", label: "Dodge", duration: 1.2, remaining: 0 }
     ];
 
-    this.skillKeys = this.input.keyboard.addKeys("J,Q,E");
+    this.skillKeys = this.input.keyboard.addKeys("J,Q,E,R");
     this.applyProfile(this.playerProfile, this.selectedArchetype);
     this.startPlayerIdleTween();
     this.pushFeed("Sandbox live. Use WASD, J, Q, E, SPACE.");
@@ -105,21 +119,52 @@ export class CombatSandboxScene extends Phaser.Scene {
     this.emitRuntime();
   }
 
-  applyProfile(profile, fallbackArchetypeId) {
-    this.playerProfile = profile ?? null;
+  buildResolvedPlayerState(profile, fallbackArchetypeId, { preserveResources = false } = {}) {
     const archetypeId = profile?.classType ?? fallbackArchetypeId ?? "close_combat";
+    const definition = (this.content.classes ?? []).find((entry) => entry.id === archetypeId);
+    const profileStats = profile?.computedStats ?? {};
+    const explorationBonus = this.registry.get("explorationBonus") ?? this.explorationBonus;
+    const baseHp = (profileStats.hp ?? definition?.baseStats?.hp ?? 100) + (explorationBonus?.hpBonus ?? 0);
+    const baseCe = (profileStats.ce ?? definition?.baseStats?.ce ?? 60) + (explorationBonus?.ceBonus ?? 0);
+    const previousState = this.playerState;
+    const hpRatio =
+      preserveResources && previousState?.maxHp ? previousState.hp / previousState.maxHp : 1;
+    const ceRatio =
+      preserveResources && previousState?.maxCe ? previousState.ce / previousState.maxCe : 1;
+
+    return {
+      hp: Math.max(1, Math.round(baseHp * hpRatio)),
+      maxHp: baseHp,
+      ce: Math.max(0, Math.round(baseCe * ceRatio)),
+      maxCe: baseCe,
+      level: profile?.level ?? previousState?.level ?? 1,
+      xp: profile?.xp ?? previousState?.xp ?? 0,
+      xpToNextLevel: profile?.xpToNextLevel ?? previousState?.xpToNextLevel ?? 30,
+      attack:
+        (profileStats.attack ?? definition?.baseStats?.attack ?? 10) +
+        (explorationBonus?.attackBonus ?? 0),
+      defense:
+        (profileStats.defense ?? definition?.baseStats?.defense ?? 8) +
+        (explorationBonus?.defenseBonus ?? 0),
+      speed:
+        (profileStats.speed ?? definition?.baseStats?.speed ?? 10) +
+        (explorationBonus?.speedBonus ?? 0),
+      pendingStatPoints: profile?.pendingStatPoints ?? previousState?.pendingStatPoints ?? 0,
+      archetype: definition?.name ?? "Unknown Build",
+      combatStyle: definition?.combatStyle ?? "No style loaded",
+      classType: archetypeId,
+      heavenlyRestriction: archetypeId === "heavenly_restriction"
+    };
+  }
+
+  syncLoadoutState(profile, fallbackArchetypeId, { preserveResources = false } = {}) {
+    const archetypeId = profile?.classType ?? fallbackArchetypeId ?? this.selectedArchetype;
     this.selectedArchetype = archetypeId;
     this.registry.set("selectedArchetype", archetypeId);
     this.registry.set("playerProfile", profile ?? null);
-
-    const definition = (this.content.classes ?? []).find((entry) => entry.id === archetypeId);
-    const profileStats = profile?.computedStats ?? {};
-    const resolvedSpeed = profileStats.speed ?? definition?.baseStats?.speed ?? 10;
-    const moveSpeed = 90 + resolvedSpeed * 4;
-
-    if (this.player?.body) {
-      this.player.body.maxSpeed = moveSpeed;
-    }
+    this.playerState = this.buildResolvedPlayerState(profile, archetypeId, {
+      preserveResources
+    });
 
     const equippedSkills = profile?.equippedSkills ?? [];
     const skillOne = equippedSkills[0];
@@ -144,25 +189,14 @@ export class CombatSandboxScene extends Phaser.Scene {
       return entry;
     });
 
-    const explorationBonus = this.registry.get("explorationBonus") ?? this.explorationBonus;
-    const baseHp = profileStats.hp ?? definition?.baseStats?.hp ?? 100;
-    const baseCe = profileStats.ce ?? definition?.baseStats?.ce ?? 60;
-    this.playerState = {
-      hp: baseHp + (explorationBonus?.hpBonus ?? 0),
-      maxHp: baseHp + (explorationBonus?.hpBonus ?? 0),
-      ce: baseCe + (explorationBonus?.ceBonus ?? 0),
-      maxCe: baseCe + (explorationBonus?.ceBonus ?? 0),
-      level: profile?.level ?? 1,
-      xp: 0,
-      xpToNextLevel: 30,
-      attack: (profileStats.attack ?? definition?.baseStats?.attack ?? 10) + (explorationBonus?.attackBonus ?? 0),
-      defense:
-        (profileStats.defense ?? definition?.baseStats?.defense ?? 8) + (explorationBonus?.defenseBonus ?? 0),
-      speed: (profileStats.speed ?? definition?.baseStats?.speed ?? 10) + (explorationBonus?.speedBonus ?? 0),
-      pendingStatPoints: 0,
-      archetype: definition?.name ?? "Unknown Build",
-      combatStyle: definition?.combatStyle ?? "No style loaded"
-    };
+    if (this.player?.body) {
+      this.player.body.maxSpeed = 90 + this.playerState.speed * 4;
+    }
+  }
+
+  applyProfile(profile, fallbackArchetypeId) {
+    this.playerProfile = profile ?? null;
+    this.syncLoadoutState(profile, fallbackArchetypeId);
 
     this.combatSnapshot = {
       basicsUsed: 0,
@@ -175,13 +209,84 @@ export class CombatSandboxScene extends Phaser.Scene {
     this.playerAnimationState = "idle";
     this.stateLockUntil = 0;
     this.activeCast = null;
+    this.precisionWindowUntil = 0;
+    this.burnoutUntil = 0;
+    this.surgeMeter = 0;
+    this.surgeActiveUntil = 0;
+    this.domainCharge = 0;
+    this.domainActiveUntil = 0;
 
     this.resetArena();
-    if (explorationBonus?.label) {
-      this.pushFeed(`Exploration boon active: ${explorationBonus.label}.`);
+    const activeExplorationBonus = this.registry.get("explorationBonus") ?? this.explorationBonus;
+    if (activeExplorationBonus?.label) {
+      this.pushFeed(`Exploration boon active: ${activeExplorationBonus.label}.`);
     }
     this.pushFeed(`${this.playerState.archetype} ready: ${this.playerState.combatStyle}.`);
     this.emitRuntime();
+  }
+
+  hasPrecisionWindow() {
+    return this.time.now <= this.precisionWindowUntil;
+  }
+
+  isBurnedOut() {
+    return !this.playerState?.heavenlyRestriction && this.time.now < this.burnoutUntil;
+  }
+
+  isSurgeActive() {
+    return this.playerState?.heavenlyRestriction && this.time.now < this.surgeActiveUntil;
+  }
+
+  isDomainActive() {
+    return this.time.now < this.domainActiveUntil;
+  }
+
+  openPrecisionWindow(durationMs = 450) {
+    this.precisionWindowUntil = Math.max(this.precisionWindowUntil, this.time.now + durationMs);
+  }
+
+  addSurgeMeter(amount) {
+    if (!this.playerState?.heavenlyRestriction) {
+      return;
+    }
+
+    this.surgeMeter = Math.min(100, this.surgeMeter + amount);
+    if (this.surgeMeter >= 100 && !this.isSurgeActive()) {
+      this.surgeMeter = 0;
+      this.surgeActiveUntil = this.time.now + 3200;
+      this.pushFeed("Predator surge awakened. Commit to close-range pressure.");
+      emitSoundEvent({ type: "enemy_down" });
+    }
+  }
+
+  addDomainCharge(amount) {
+    this.domainCharge = Math.min(100, this.domainCharge + amount);
+  }
+
+  enterBurnout() {
+    if (this.playerState?.heavenlyRestriction || this.isBurnedOut()) {
+      return;
+    }
+
+    this.burnoutUntil = this.time.now + 2800;
+    this.pushFeed("Technique burnout. CE control collapsed for a moment.");
+    emitSoundEvent({ type: "danger" });
+  }
+
+  getAbilityCost(abilityId) {
+    if (abilityId === "domain") {
+      return this.playerState?.heavenlyRestriction ? 0 : 24;
+    }
+    if (abilityId === "dodge") {
+      return this.playerState?.heavenlyRestriction ? 0 : 6;
+    }
+    if (abilityId === "basic") {
+      return 0;
+    }
+    if (this.playerState?.heavenlyRestriction) {
+      return abilityId === "skill_2" ? 4 : 0;
+    }
+    return 10;
   }
 
   syncProfile(profile) {
@@ -190,20 +295,10 @@ export class CombatSandboxScene extends Phaser.Scene {
     }
 
     this.playerProfile = profile;
-    this.registry.set("playerProfile", profile);
-    const stats = profile.computedStats ?? {};
-    this.playerState.level = profile.level ?? this.playerState.level;
-    this.playerState.xp = profile.xp ?? this.playerState.xp;
-    this.playerState.xpToNextLevel = profile.xpToNextLevel ?? this.playerState.xpToNextLevel;
-    this.playerState.pendingStatPoints =
-      profile.pendingStatPoints ?? this.playerState.pendingStatPoints;
-    this.playerState.maxHp = stats.hp ?? this.playerState.maxHp;
-    this.playerState.hp = Math.min(this.playerState.hp, this.playerState.maxHp);
-    this.playerState.maxCe = stats.ce ?? this.playerState.maxCe;
-    this.playerState.ce = Math.min(this.playerState.ce, this.playerState.maxCe);
-    this.playerState.attack = stats.attack ?? this.playerState.attack;
-    this.playerState.defense = stats.defense ?? this.playerState.defense;
-    this.playerState.speed = stats.speed ?? this.playerState.speed;
+    this.syncLoadoutState(profile, profile.classType ?? this.selectedArchetype, {
+      preserveResources: true
+    });
+    this.pushFeed("Loadout sync applied to live combat state.");
     this.emitRuntime();
   }
 
@@ -219,6 +314,14 @@ export class CombatSandboxScene extends Phaser.Scene {
       enemy.maxHealth = enemy.health;
       enemy.attackCooldown = 0.5 + index * 0.2;
       enemy.attackState = "idle";
+      enemy.poise = enemy.basePoise;
+      enemy.staggeredUntil = 0;
+      enemy.retreatUntil = 0;
+      enemy.phaseShifted = false;
+      enemy.attackDamage =
+        enemy.enemyType === "Shrieker" ? 8 : enemy.enemyType === "Biter" ? 10 : 12;
+      enemy.attackWindupMs =
+        enemy.enemyType === "Shrieker" ? 520 : enemy.enemyType === "Biter" ? 440 : 620;
       enemy.body.setVelocity(0, 0);
       enemy.telegraphShape?.destroy();
       enemy.telegraphShape = null;
@@ -308,6 +411,17 @@ export class CombatSandboxScene extends Phaser.Scene {
   }
 
   getAbilityConfig(abilityId) {
+    if (abilityId === "domain") {
+      return {
+        windupMs: 220,
+        recoveryMs: 120,
+        baseDamage: 22,
+        range: 220,
+        telegraphColor: 0xf28482,
+        castType: "burst"
+      };
+    }
+
     if (abilityId === "basic") {
       return {
         windupMs: 80,
@@ -379,6 +493,21 @@ export class CombatSandboxScene extends Phaser.Scene {
       return;
     }
 
+    if (config.castType === "burst") {
+      const ring = this.add.circle(this.player.x, this.player.y, 36, config.telegraphColor, 0.12);
+      ring.setStrokeStyle(3, config.telegraphColor, 0.9);
+      this.tweens.add({
+        targets: ring,
+        scaleX: 3.1,
+        scaleY: 3.1,
+        alpha: 0,
+        duration: config.windupMs,
+        ease: "Quad.easeOut",
+        onComplete: () => ring.destroy()
+      });
+      return;
+    }
+
     const circle = this.add.circle(target.x, target.y, config.castType === "dash" ? 24 : 18, config.telegraphColor, 0.2);
     circle.setStrokeStyle(2, config.telegraphColor, 0.9);
     this.tweens.add({
@@ -399,12 +528,57 @@ export class CombatSandboxScene extends Phaser.Scene {
       return;
     }
 
-    const damage = config.baseDamage + this.playerState.attack;
+    const precisionHit = this.hasPrecisionWindow();
+    if (
+      target.attackState === "windup" &&
+      target.counterReady &&
+      abilityId !== "domain" &&
+      abilityId !== "skill_2" &&
+      !precisionHit
+    ) {
+      this.playerState.hp = Math.max(1, this.playerState.hp - 8);
+      this.playerState.ce = Math.max(0, this.playerState.ce - 8);
+      this.pushFeed(`${target.enemyType} countered the reckless commit.`);
+      this.spawnFloatingText(this.player.x + 10, this.player.y - 18, "countered", "#ff8f70");
+      emitSoundEvent({ type: "danger" });
+      this.emitRuntime();
+      return;
+    }
+
+    const surgeMultiplier = this.isSurgeActive() ? 1.25 : 1;
+    const burnoutMultiplier = this.isBurnedOut() ? 0.7 : 1;
+    const precisionMultiplier = precisionHit ? 1.6 : 1;
+    const domainMultiplier = this.isDomainActive() ? 1.35 : 1;
+    const damage = Math.floor((config.baseDamage + this.playerState.attack) * surgeMultiplier * burnoutMultiplier * precisionMultiplier * domainMultiplier);
+    const staggerDamage =
+      (abilityId === "basic" ? 8 : abilityId === "skill_1" ? 14 : abilityId === "domain" ? 18 : 10) +
+      (precisionHit ? 8 : 0);
     target.health -= damage;
-    this.pushFeed(`${cooldown.label} hit for ${damage}.`);
+    target.poise = Math.max(0, (target.poise ?? 0) - staggerDamage);
+    target.counterReady = false;
+    this.pushFeed(
+      precisionHit
+        ? `${cooldown.label} landed in the precision window for ${damage}.`
+        : `${cooldown.label} hit for ${damage}.`
+    );
     emitSoundEvent({ type: target.health <= 0 ? "enemy_down" : "skill_cast" });
     this.flashTarget(target, 0xffffff);
-    this.spawnFloatingText(target.x + 6, target.y - 12, `${damage}`, "#ffd98b");
+    this.spawnFloatingText(
+      target.x + 6,
+      target.y - 12,
+      `${damage}${precisionHit ? " !" : ""}`,
+      precisionHit ? "#ffe066" : "#ffd98b"
+    );
+
+    if (precisionHit) {
+      if (this.playerState.heavenlyRestriction) {
+        this.addSurgeMeter(35);
+      } else {
+        this.playerState.ce = Math.min(this.playerState.maxCe, this.playerState.ce + 8);
+      }
+      this.addDomainCharge(12);
+      this.precisionWindowUntil = 0;
+    }
 
     if (config.castType === "projectile") {
       this.animateProjectile(target, config.telegraphColor);
@@ -415,8 +589,19 @@ export class CombatSandboxScene extends Phaser.Scene {
 
     this.animateEnemyHit(target, target.health <= 0);
 
+    if (target.active && target.health > 0 && target.poise === 0) {
+      target.attackState = "staggered";
+      target.staggeredUntil = this.time.now + 900;
+      target.body.setVelocity(0, 0);
+      this.pushFeed(`${target.enemyType} is staggered. Commit to the punish window.`);
+      emitSoundEvent({ type: "enemy_down" });
+      this.spawnFloatingText(target.x + 8, target.y - 26, "stagger", "#9bf6ff");
+    }
+
     if (target.health <= 0) {
       this.combatSnapshot.kills += 1;
+      this.addSurgeMeter(18);
+      this.addDomainCharge(18);
       target.active = false;
       target.body.enable = false;
       this.animateEnemyDefeat(target);
@@ -602,6 +787,74 @@ export class CombatSandboxScene extends Phaser.Scene {
         tone: "danger"
       });
     }
+    if (this.hasPrecisionWindow()) {
+      activeEffects.push({
+        id: "precision-window",
+        label: "Precision window",
+        detail: "Follow up now for burst damage and flow gain",
+        tone: "boon"
+      });
+    }
+    if (this.isBurnedOut()) {
+      activeEffects.push({
+        id: "technique-burnout",
+        label: "Technique burnout",
+        detail: "CE control is unstable and skill output is reduced",
+        tone: "danger"
+      });
+    }
+    if (this.playerState?.heavenlyRestriction) {
+      activeEffects.push({
+        id: "predator-rhythm",
+        label: this.isSurgeActive() ? "Predator surge" : "Predator rhythm",
+        detail: this.isSurgeActive()
+          ? "Weapon pressure and movement are amplified"
+          : `Build momentum through close combat (${Math.round(this.surgeMeter)}%)`,
+        tone: this.isSurgeActive() ? "boon" : "neutral"
+      });
+    }
+    if (this.isDomainActive()) {
+      activeEffects.push({
+        id: "domain-surge",
+        label: "Domain surge",
+        detail: "Technique pressure is amplified and curses are suppressed",
+        tone: "boon"
+      });
+    } else {
+      activeEffects.push({
+        id: "domain-charge",
+        label: "Domain charge",
+        detail: `${Math.round(this.domainCharge)}%`,
+        tone: this.domainCharge >= 100 ? "boon" : "neutral"
+      });
+    }
+    const staggeredEnemies = this.enemies
+      .getChildren()
+      .filter((enemy) => enemy.active && enemy.attackState === "staggered").length;
+    if (staggeredEnemies > 0) {
+      activeEffects.push({
+        id: "enemy-stagger",
+        label: "Curse stagger",
+        detail: `${staggeredEnemies} curse${staggeredEnemies > 1 ? "s" : ""} open to punish`,
+        tone: "boon"
+      });
+    }
+    if (this.enemies.getChildren().some((enemy) => enemy.active && enemy.phaseShifted)) {
+      activeEffects.push({
+        id: "elite-phase",
+        label: "Phase shift",
+        detail: "A heavy curse has entered an unstable state",
+        tone: "danger"
+      });
+    }
+    if (this.enemies.getChildren().some((enemy) => enemy.active && enemy.counterReady)) {
+      activeEffects.push({
+        id: "enemy-counter",
+        label: "Counter-ready curse",
+        detail: "A windup can punish reckless melee commits",
+        tone: "danger"
+      });
+    }
 
     const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
 
@@ -611,6 +864,7 @@ export class CombatSandboxScene extends Phaser.Scene {
         { key: "WASD", label: "Move" },
         { key: "J", label: "Basic strike" },
         { key: "Q / E", label: "Skills" },
+        { key: "R", label: "Domain surge" },
         { key: "SPACE", label: "Dodge" },
         { key: "H", label: "Back to region" }
       ],
@@ -621,11 +875,28 @@ export class CombatSandboxScene extends Phaser.Scene {
         remaining: entry.remaining
       })),
       resumeSource,
+      objective: {
+        title: this.getEnemiesRemaining() > 0 ? "Win the encounter" : "Prepare for the next wave",
+        detail:
+          this.getEnemiesRemaining() > 0
+            ? "Exploit precision windows, avoid counters, and build toward Domain Surge."
+            : "Reset positioning or return to the region with your combat read.",
+        step:
+          this.getEnemiesRemaining() > 0
+            ? "Use J / Q / E / R with timing discipline"
+            : "Press H to leave or wait for the next curse wave"
+      },
       castState: this.getCastRuntimeState(),
       activeEffects,
       sessionState: {
         explorationBonus: this.explorationBonus,
-        combatSnapshot: this.combatSnapshot
+        combatSnapshot: this.combatSnapshot,
+        precisionWindow: this.hasPrecisionWindow(),
+        burnoutActive: this.isBurnedOut(),
+        surgeMeter: this.surgeMeter,
+        surgeActive: this.isSurgeActive(),
+        domainCharge: this.domainCharge,
+        domainActive: this.isDomainActive()
       },
       levelUp: {
         available: this.playerState.pendingStatPoints > 0,
@@ -660,6 +931,9 @@ export class CombatSandboxScene extends Phaser.Scene {
     const incomingDamage = Math.max(3, baseEnemyDamage - Math.floor(this.playerState.defense / 4));
     this.playerState.hp = Math.max(0, this.playerState.hp - incomingDamage);
     this.combatSnapshot.damageTaken += incomingDamage;
+    this.openPrecisionWindow(380);
+    this.addSurgeMeter(12);
+    this.addDomainCharge(6);
     this.pushFeed(
       `You took ${incomingDamage} damage from ${
         enemy.enemyType ? `a ${enemy.enemyType.toLowerCase()}` : "a curse"
@@ -730,7 +1004,15 @@ export class CombatSandboxScene extends Phaser.Scene {
       return false;
     }
 
-    if (abilityId !== "basic" && this.playerState.ce < 10) {
+    const ceCost = this.getAbilityCost(abilityId);
+    if (abilityId !== "basic" && this.isBurnedOut()) {
+      this.pushFeed("Technique burnout is active. Reposition or use basics.");
+      emitSoundEvent({ type: "low_resource" });
+      this.emitRuntime();
+      return false;
+    }
+
+    if (abilityId !== "basic" && this.playerState.ce < ceCost) {
       this.pushFeed("Not enough CE. Use basic attacks or wait for regen.");
       emitSoundEvent({ type: "low_resource" });
       this.emitRuntime();
@@ -739,9 +1021,47 @@ export class CombatSandboxScene extends Phaser.Scene {
 
     cooldown.remaining = cooldown.duration;
 
-    if (abilityId === "dodge") {
+    if (abilityId === "domain") {
+      if (this.domainCharge < 100) {
+        this.pushFeed("Domain surge not ready yet.");
+        cooldown.remaining = 0;
+        this.emitRuntime();
+        return false;
+      }
+
+      this.domainCharge = 0;
+      this.domainActiveUntil = this.time.now + 3400;
+      this.playerState.ce = Math.max(0, this.playerState.ce - ceCost);
+      this.combatSnapshot.skillsUsed += 1;
+      this.pushFeed("Domain surge deployed. Pressure the curses now.");
+      emitSoundEvent({ type: "enemy_down" });
+      const target = this.getPrimaryEnemyTarget(9999);
+      const config = this.getAbilityConfig("domain");
+      this.activeCast = {
+        abilityId,
+        label: cooldown.label,
+        startedAt: this.time.now,
+        targetId: target?.name ?? "domain",
+        releaseAt: this.time.now + config.windupMs,
+        recoveryUntil: this.time.now + config.windupMs + config.recoveryMs
+      };
+      this.setPlayerAnimationState("domain", config.windupMs + config.recoveryMs);
+      this.spawnCastTelegraph(target ?? this.player, config);
+      this.time.delayedCall(config.windupMs, () => {
+        this.enemies.getChildren().forEach((enemy) => {
+          if (enemy.active) {
+            this.resolveAbilityHit("domain", cooldown, enemy, config);
+          }
+        });
+        this.time.delayedCall(config.recoveryMs, () => {
+          this.activeCast = null;
+        });
+      });
+    } else if (abilityId === "dodge") {
       this.combatSnapshot.dodgesUsed += 1;
-      this.playerState.ce = Math.max(0, this.playerState.ce - 6);
+      this.playerState.ce = Math.max(0, this.playerState.ce - ceCost);
+      this.openPrecisionWindow(520);
+      this.addSurgeMeter(16);
       this.pushFeed("Dodge primed. Reposition through pressure.");
       emitSoundEvent({ type: "dodge" });
       this.setPlayerAnimationState("dodge", 160);
@@ -752,9 +1072,15 @@ export class CombatSandboxScene extends Phaser.Scene {
 
       if (abilityId !== "basic") {
         this.combatSnapshot.skillsUsed += 1;
-        this.playerState.ce = Math.max(0, this.playerState.ce - 10);
+        this.playerState.ce = Math.max(0, this.playerState.ce - ceCost);
       } else {
         this.combatSnapshot.basicsUsed += 1;
+        this.openPrecisionWindow(320);
+        this.addSurgeMeter(10);
+      }
+
+      if (!this.playerState.heavenlyRestriction && this.playerState.ce <= Math.max(6, this.playerState.maxCe * 0.12)) {
+        this.enterBurnout();
       }
 
       if (!target || !config) {
@@ -799,7 +1125,14 @@ export class CombatSandboxScene extends Phaser.Scene {
     });
     this.processEnemyBehavior(deltaSeconds);
 
-    this.playerState.ce = Math.min(this.playerState.maxCe, this.playerState.ce + deltaSeconds * 3);
+    const ceRegenRate = this.playerState.heavenlyRestriction
+      ? 1.4
+      : this.isDomainActive()
+        ? 4.2
+        : this.isBurnedOut()
+          ? 0.6
+          : 3;
+    this.playerState.ce = Math.min(this.playerState.maxCe, this.playerState.ce + deltaSeconds * ceRegenRate);
 
     const canCast = this.time.now >= this.stateLockUntil || this.playerAnimationState === "idle";
 
@@ -812,12 +1145,16 @@ export class CombatSandboxScene extends Phaser.Scene {
     if (canCast && Phaser.Input.Keyboard.JustDown(this.skillKeys.E)) {
       this.triggerAbility("skill_2");
     }
+    if (canCast && Phaser.Input.Keyboard.JustDown(this.skillKeys.R)) {
+      this.triggerAbility("domain");
+    }
 
     const dodgeTriggered = canCast && Phaser.Input.Keyboard.JustDown(keys.SPACE) && this.triggerAbility("dodge");
     const dodgeMultiplier = dodgeTriggered ? 2.2 : 1;
     const baseSpeed = this.playerState.speed ? 90 + this.playerState.speed * 4 : 140;
+    const surgeMultiplier = this.isSurgeActive() ? 1.18 : 1;
     const castSlowMultiplier = this.activeCast ? 0.3 : 1;
-    const velocity = baseSpeed * dodgeMultiplier * castSlowMultiplier;
+    const velocity = baseSpeed * dodgeMultiplier * castSlowMultiplier * surgeMultiplier;
 
     this.player.body.setVelocity(0, 0);
 
@@ -896,6 +1233,8 @@ export class CombatSandboxScene extends Phaser.Scene {
 
     if (snapshot.damageTaken >= 18) {
       style = "pressured";
+    } else if (this.playerState?.heavenlyRestriction && snapshot.basicsUsed >= snapshot.skillsUsed) {
+      style = "predatory";
     } else if (snapshot.skillsUsed > snapshot.basicsUsed + 1) {
       style = "technical";
     } else if (snapshot.kills >= 2 || snapshot.basicsUsed >= snapshot.skillsUsed) {
@@ -915,15 +1254,53 @@ export class CombatSandboxScene extends Phaser.Scene {
       }
 
       enemy.attackCooldown = Math.max(0, (enemy.attackCooldown ?? 0) - deltaSeconds);
+      if (enemy.enemyType === "Crusher" && !enemy.phaseShifted && enemy.health <= enemy.maxHealth * 0.5) {
+        enemy.phaseShifted = true;
+        enemy.attackDamage += 4;
+        enemy.attackWindupMs = 420;
+        enemy.basePoise += 10;
+        enemy.poise = Math.max(enemy.poise, enemy.basePoise);
+        this.pushFeed("Crusher phase shift. Its guard thickens and the slam speeds up.");
+        emitSoundEvent({ type: "danger" });
+      }
 
       if (enemy.attackState === "windup") {
         enemy.body.setVelocity(0, 0);
         return;
       }
 
+      if (enemy.attackState === "staggered") {
+        enemy.body.setVelocity(0, 0);
+        if (this.time.now >= enemy.staggeredUntil) {
+          enemy.attackState = "idle";
+          enemy.poise = enemy.basePoise;
+          this.pushFeed(`${enemy.enemyType} recovered its footing.`);
+        }
+        return;
+      }
+
       const distance = Phaser.Math.Distance.Between(this.player.x, this.player.y, enemy.x, enemy.y);
       if (distance <= enemy.aggroRange) {
-        this.physics.moveToObject(enemy, this.player, distance <= enemy.attackRange ? 0 : 58);
+        if (enemy.behaviorRole === "skirmisher" && distance < 108 && this.time.now > enemy.retreatUntil) {
+          enemy.retreatUntil = this.time.now + 260;
+        }
+
+        if (enemy.behaviorRole === "skirmisher" && this.time.now < enemy.retreatUntil) {
+          const retreatAngle = Phaser.Math.Angle.Between(this.player.x, this.player.y, enemy.x, enemy.y);
+          enemy.body.setVelocity(Math.cos(retreatAngle) * 76, Math.sin(retreatAngle) * 76);
+        } else if (
+          enemy.behaviorRole === "bruiser" &&
+          (this.hasPrecisionWindow() || this.isSurgeActive())
+        ) {
+          this.physics.moveToObject(enemy, this.player, distance <= enemy.attackRange ? 24 : 68);
+        } else if (
+          enemy.behaviorRole === "rushdown" &&
+          (this.isBurnedOut() || this.playerState.hp <= this.playerState.maxHp * 0.45)
+        ) {
+          this.physics.moveToObject(enemy, this.player, 88);
+        } else {
+          this.physics.moveToObject(enemy, this.player, distance <= enemy.attackRange ? 0 : 58);
+        }
       } else {
         enemy.body.setVelocity(0, 0);
       }
@@ -936,9 +1313,13 @@ export class CombatSandboxScene extends Phaser.Scene {
 
   startEnemyAttackTelegraph(enemy) {
     enemy.attackState = "windup";
-    enemy.attackCooldown = 1.4;
+    enemy.attackCooldown =
+      enemy.behaviorRole === "rushdown" && (this.isBurnedOut() || this.playerState.hp <= this.playerState.maxHp * 0.45)
+        ? 1.0
+        : 1.4;
     enemy.idleTween?.pause();
     enemy.body.setVelocity(0, 0);
+    enemy.counterReady = enemy.enemyType !== "Shrieker";
 
     const telegraph =
       enemy.enemyType === "Shrieker"
@@ -958,6 +1339,11 @@ export class CombatSandboxScene extends Phaser.Scene {
         enemy.telegraphShape = null;
       }
     });
+    this.time.delayedCall(Math.floor(enemy.attackWindupMs * 0.55), () => {
+      if (enemy.active && enemy.attackState === "windup") {
+        enemy.counterReady = false;
+      }
+    });
 
     this.pushFeed(`${enemy.enemyType} is winding up.`);
     this.time.delayedCall(enemy.attackWindupMs, () => this.resolveEnemyAttack(enemy));
@@ -970,6 +1356,7 @@ export class CombatSandboxScene extends Phaser.Scene {
 
     const distance = Phaser.Math.Distance.Between(this.player.x, this.player.y, enemy.x, enemy.y);
     enemy.attackState = "idle";
+    enemy.counterReady = false;
     enemy.idleTween?.resume();
 
     if (distance > enemy.attackRange + 18) {

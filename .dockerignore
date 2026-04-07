@@ -4,6 +4,10 @@ dist
 **/dist
 .git
 .gitignore
+docs
+.claude
+CLAUDE.md
+CODING_PRACTICES.md
 docs/tasklists
 coverage
 .nyc_output

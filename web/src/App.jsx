@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState } from "react";
+import { useEffect } from "react";
 import { AuthPanel } from "./components/AuthPanel";
 import { GameHud } from "./components/GameHud";
 import { InventoryPanel } from "./components/InventoryPanel";
@@ -12,6 +13,8 @@ import { usePlayerProfile } from "./hooks/usePlayerProfile";
 import { useGameRuntime } from "./hooks/useGameRuntime";
 import { useSaveSlots } from "./hooks/useSaveSlots";
 import { useBootstrapContent } from "./hooks/useBootstrapContent";
+import { emitControlCommand } from "./game/runtime/runtimeBridge";
+import { buildQuickBindSkillIds } from "./utils/skillBindings";
 
 const GameCanvas = lazy(() =>
   import("./components/GameCanvas").then((module) => ({
@@ -32,11 +35,87 @@ const experiencePillars = [
   "Short, punchy sound cues for hits, pickups, and danger states"
 ];
 
+function buildSceneActions(scene, regionCards, selectedRegionId, encounterStatus) {
+  if (scene === "hub") {
+    return {
+      title: "Deploy Controls",
+      detail: "Use buttons or keyboard. This path is stable for browser play and test automation.",
+      regionActions: regionCards.map((region) => ({
+        id: `select-${region.id}`,
+        label: region.name,
+        active: selectedRegionId === region.id,
+        command: {
+          scene: "hub",
+          type: "select-region",
+          regionId: region.id
+        }
+      })),
+      primaryAction: {
+        label: `Deploy To ${regionCards.find((region) => region.id === selectedRegionId)?.name ?? "Region"}`,
+        command: {
+          scene: "hub",
+          type: "deploy"
+        }
+      }
+    };
+  }
+
+  if (scene === "region") {
+    return {
+      title: "Route Actions",
+      detail: "Visible route controls mirror the same region interactions as keyboard play.",
+      regionActions: [],
+      primaryAction: null,
+      secondaryActions: [
+        { label: "Secure Boon", command: { scene: "region", type: "claim-boon" } },
+        { label: "Enter Dungeon", command: { scene: "region", type: "enter-dungeon" } },
+        { label: "Return Hub", command: { scene: "region", type: "return-hub" } }
+      ]
+    };
+  }
+
+  if (scene === "dungeon") {
+    return {
+      title: "Dungeon Actions",
+      detail: `Current state: ${encounterStatus}. Use these controls if keyboard choreography gets in the way.`,
+      regionActions: [],
+      primaryAction: null,
+      secondaryActions: [
+        { label: "Claim Relic", command: { scene: "dungeon", type: "claim-relic" } },
+        { label: "Strike Sentinel", command: { scene: "dungeon", type: "attack-miniboss" } },
+        { label: "Enter Boss Vault", command: { scene: "dungeon", type: "enter-boss-vault" } },
+        { label: "Return Region", command: { scene: "dungeon", type: "return-region" } }
+      ]
+    };
+  }
+
+  if (scene === "boss") {
+    return {
+      title: "Boss Actions",
+      detail: `Current state: ${encounterStatus}. These controls drive the same vault logic as runtime inputs.`,
+      regionActions: [],
+      primaryAction: null,
+      secondaryActions: [
+        { label: "Strike Boss", command: { scene: "boss", type: "attack-boss" } },
+        { label: "Extract", command: { scene: "boss", type: "extract" } }
+      ]
+    };
+  }
+
+  return null;
+}
+
 function App() {
   const { content, status, error } = useBootstrapContent();
   const [selectedArchetype, setSelectedArchetype] = useState("close_combat");
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [saveStatus, setSaveStatus] = useState("");
+  const [firstRunTutorial, setFirstRunTutorial] = useState(() => {
+    if (typeof window === "undefined") {
+      return true;
+    }
+    return window.localStorage.getItem("apex-clash:first-run-complete") !== "true";
+  });
   const auth = useAuthSession();
   const runtime = useGameRuntime();
   const playerProfile = usePlayerProfile(auth.session.token, selectedArchetype);
@@ -50,9 +129,22 @@ function App() {
     activeSave,
     createSlot,
     saveCurrentRun
-  } = useSaveSlots(selectedArchetype, runtime, auth.session.token);
+  } = useSaveSlots(selectedArchetype, runtime, auth.session.token, playerProfile.applyProfileUpdate);
 
   useGameAudio(soundEnabled);
+
+  useEffect(() => {
+    if (!firstRunTutorial) {
+      return;
+    }
+
+    if (runtime.scene.scene === "region" || runtime.scene.scene === "combat") {
+      setFirstRunTutorial(false);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("apex-clash:first-run-complete", "true");
+      }
+    }
+  }, [firstRunTutorial, runtime.scene.scene]);
 
   const selectedDefinition = content?.classes?.find(
     (entry) => entry.id === selectedArchetype
@@ -62,6 +154,19 @@ function App() {
   const equippedItems = playerProfile.profile?.equippedItems ?? [];
   const availableSkills = playerProfile.profile?.availableSkills ?? [];
   const equippedSkillIds = playerProfile.profile?.equippedSkills?.map((skill) => skill.id) ?? [];
+  const unlockedRegionIds = [
+    ...new Set([
+      ...(playerProfile.profile?.unlockedRegionIds ?? ["shatter_block"]),
+      ...(runtime.sessionState?.unlockedRegionIds ?? [])
+    ])
+  ];
+  const regionCards = (content?.regions ?? []).filter((region) => unlockedRegionIds.includes(region.id));
+  const sceneActions = buildSceneActions(
+    runtime.scene.scene,
+    regionCards,
+    runtime.selectedRegionId,
+    runtime.encounter.status
+  );
 
   return (
     <main className="app-shell">
@@ -137,9 +242,55 @@ function App() {
               selectedArchetype={selectedArchetype}
               playerProfile={playerProfile.profile}
               activeSave={activeSave}
+              firstRunTutorial={firstRunTutorial}
               ready={status === "ready"}
             />
           </Suspense>
+          {sceneActions ? (
+            <div className="hub-command-deck">
+              <div className="hub-command-copy">
+                <strong>{sceneActions.title}</strong>
+                <span>{sceneActions.detail}</span>
+              </div>
+              {sceneActions.regionActions?.length ? (
+                <div className="hub-region-actions">
+                  {sceneActions.regionActions.map((action) => (
+                    <button
+                      key={action.id}
+                      className={action.active ? "hub-action active" : "hub-action"}
+                      onClick={() => emitControlCommand(action.command)}
+                      type="button"
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              {sceneActions.secondaryActions?.length ? (
+                <div className="hub-region-actions">
+                  {sceneActions.secondaryActions.map((action) => (
+                    <button
+                      key={action.label}
+                      className="hub-action"
+                      onClick={() => emitControlCommand(action.command)}
+                      type="button"
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              {sceneActions.primaryAction ? (
+                <button
+                  className="deploy-action"
+                  onClick={() => emitControlCommand(sceneActions.primaryAction.command)}
+                  type="button"
+                >
+                  {sceneActions.primaryAction.label}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
           <SceneTransitionOverlay transition={runtime.transition} />
           <LevelUpPanel
             runtime={runtime}
@@ -148,6 +299,8 @@ function App() {
           <GameHud
             runtime={runtime}
             latestReward={playerProfile.latestReward}
+            loadoutFeedback={playerProfile.loadoutFeedback}
+            profile={playerProfile.profile}
             soundEnabled={soundEnabled}
             onToggleSound={() => setSoundEnabled((current) => !current)}
           />
@@ -168,8 +321,8 @@ function App() {
             <div className="note-block">
               <strong>Current push</strong>
               <p>
-                Tighten exploration feel, add real dungeon layouts, then move
-                save persistence to Mongo.
+                Expand into multi-region progression, verify Mongo in real runs,
+                and replace placeholder combat loops with authored encounters.
               </p>
             </div>
             <div className="ux-list">
@@ -185,8 +338,20 @@ function App() {
           <MovesetPanel
             skills={availableSkills}
             equippedSkillIds={equippedSkillIds}
+            latestReward={playerProfile.latestReward}
             locked={!auth.isAuthenticated}
             onEquipSkills={(skillIds) => playerProfile.equipSkills(skillIds)}
+            onQuickBindReward={() => {
+              if (playerProfile.latestReward?.type !== "scroll") {
+                return;
+              }
+
+              const nextSkillIds = buildQuickBindSkillIds(
+                equippedSkillIds,
+                playerProfile.latestReward.id
+              );
+              playerProfile.equipSkills(nextSkillIds);
+            }}
           />
           <InventoryPanel
             items={compatibleItems}

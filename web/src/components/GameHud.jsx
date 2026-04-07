@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import { BINDABLE_SKILL_KEYS } from "../utils/skillBindings";
+
 function StatBar({ label, value, max, tone }) {
   const width = max > 0 ? `${Math.max(0, Math.min(100, (value / max) * 100))}%` : "0%";
 
@@ -16,7 +19,63 @@ function StatBar({ label, value, max, tone }) {
   );
 }
 
-export function GameHud({ runtime, latestReward, soundEnabled, onToggleSound }) {
+function CastMeter({ castState }) {
+  const width = `${Math.max(0, Math.min(100, (castState?.progress ?? 0) * 100))}%`;
+  return (
+    <section className="hud-panel">
+      <p className="hud-kicker">Cast State</p>
+      <div className="cast-meter-card">
+        <div className="cast-meter-copy">
+          <strong>{castState?.label ?? "No active cast"}</strong>
+          <span>{castState?.phase ?? "idle"}</span>
+        </div>
+        <div className="cast-meter-track">
+          <div className="cast-meter-fill" style={{ width }} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function formatDelta(delta) {
+  return `${delta > 0 ? "+" : ""}${delta}`;
+}
+
+export function GameHud({
+  runtime,
+  latestReward,
+  loadoutFeedback,
+  profile,
+  soundEnabled,
+  onToggleSound
+}) {
+  const [activeFeedbackId, setActiveFeedbackId] = useState(null);
+  const equippedItems = profile?.equippedItems ?? [];
+  const equippedSkills = profile?.equippedSkills ?? [];
+  const skillBindings = BINDABLE_SKILL_KEYS;
+  const feedbackFresh = loadoutFeedback?.createdAt === activeFeedbackId;
+  const highlightedCooldownKeys = new Set(
+    feedbackFresh && loadoutFeedback?.type === "skills"
+      ? (loadoutFeedback.skillBindings ?? []).map((entry) => entry.key)
+      : []
+  );
+
+  useEffect(() => {
+    if (!loadoutFeedback?.createdAt) {
+      setActiveFeedbackId(null);
+      return undefined;
+    }
+
+    setActiveFeedbackId(loadoutFeedback.createdAt);
+    const timeoutId = window.setTimeout(() => {
+      setActiveFeedbackId((current) =>
+        current === loadoutFeedback.createdAt ? null : current
+      );
+    }, 6000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [loadoutFeedback]);
+
   return (
     <div className="game-hud">
       <div className="hud-topline">
@@ -49,6 +108,36 @@ export function GameHud({ runtime, latestReward, soundEnabled, onToggleSound }) 
         </section>
       ) : null}
 
+      {runtime.objective ? (
+        <section className="objective-banner">
+          <div>
+            <strong>{runtime.objective.title}</strong>
+            <span>{runtime.objective.detail}</span>
+          </div>
+          {runtime.objective.step ? <small>{runtime.objective.step}</small> : null}
+        </section>
+      ) : null}
+
+      {loadoutFeedback && feedbackFresh ? (
+        <section className="loadout-banner">
+          <div>
+            <strong>{loadoutFeedback.title}</strong>
+            <span>{loadoutFeedback.detail}</span>
+          </div>
+          {loadoutFeedback.statDelta?.length ? (
+            <div className="loadout-deltas">
+              {loadoutFeedback.statDelta.map((entry) => (
+                <span key={`${entry.key}-${entry.delta}`} className="delta-chip">
+                  {entry.key.toUpperCase()} {formatDelta(entry.delta)}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <small>No stat delta, runtime bindings updated.</small>
+          )}
+        </section>
+      ) : null}
+
       <div className="hud-grid">
         <section className="hud-panel">
           <StatBar label="HP" value={runtime.player.hp} max={runtime.player.maxHp} tone="hp" />
@@ -62,11 +151,88 @@ export function GameHud({ runtime, latestReward, soundEnabled, onToggleSound }) 
           </div>
         </section>
 
+        <CastMeter castState={runtime.castState} />
+
+        <section className="hud-panel">
+          <p className="hud-kicker">Loadout Sync</p>
+          <div className="loadout-summary">
+            {equippedItems.length ? (
+              equippedItems.map((item) => (
+                <div key={item.id} className="loadout-chip">
+                  <strong>{item.equipSlot}</strong>
+                  <span>{item.name}</span>
+                </div>
+              ))
+            ) : (
+              <div className="loadout-chip">
+                <strong>gear</strong>
+                <span>Login to sync persistent loadout</span>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="hud-panel">
+          <p className="hud-kicker">Bound Skills</p>
+          <div className="loadout-summary">
+            {equippedSkills.length ? (
+              equippedSkills.map((skill, index) => (
+                <div key={skill.id} className="loadout-chip skill-chip">
+                  <strong>{skillBindings[index] ?? `S${index + 1}`}</strong>
+                  <span>{skill.name}</span>
+                  <small>
+                    {skill.castType} · CD {skill.cooldown}s · Cost {skill.cost}
+                  </small>
+                  {feedbackFresh && highlightedCooldownKeys.has(skillBindings[index] ?? `S${index + 1}`) ? (
+                    <small className="rebound-label">Fresh bind</small>
+                  ) : null}
+                </div>
+              ))
+            ) : (
+              <div className="loadout-chip skill-chip">
+                <strong>skills</strong>
+                <span>Bind techniques from the moveset panel</span>
+              </div>
+            )}
+            <div className="loadout-chip skill-chip reserved-chip">
+              <strong>R</strong>
+              <span>Domain Surge</span>
+              <small>Reserved runtime slot</small>
+            </div>
+          </div>
+        </section>
+
+        <section className="hud-panel">
+          <p className="hud-kicker">Combat State</p>
+          <div className="effect-grid">
+            {runtime.activeEffects.length ? (
+              runtime.activeEffects.map((effect) => (
+                <div key={effect.id} className={`effect-chip ${effect.tone ?? "neutral"}`}>
+                  <strong>{effect.label}</strong>
+                  <span>{effect.detail}</span>
+                </div>
+              ))
+            ) : (
+              <div className="effect-chip neutral">
+                <strong>Stable</strong>
+                <span>No active combat modifiers</span>
+              </div>
+            )}
+          </div>
+        </section>
+
         <section className="hud-panel">
           <p className="hud-kicker">Cooldowns</p>
           <div className="cooldown-row">
             {runtime.cooldowns.map((cooldown) => (
-              <div key={cooldown.id} className="cooldown-card">
+              <div
+                key={cooldown.id}
+                className={
+                  highlightedCooldownKeys.has(cooldown.key)
+                    ? "cooldown-card rebound"
+                    : "cooldown-card"
+                }
+              >
                 <strong>{cooldown.key}</strong>
                 <span>{cooldown.label}</span>
                 <small>{cooldown.remaining > 0 ? `${cooldown.remaining.toFixed(1)}s` : "Ready"}</small>

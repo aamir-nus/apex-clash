@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createSaveSlot, fetchSaveSlot, fetchSaveSlots, updateSaveSlot } from "../api/saveApi";
 import { updatePlayerSessionState } from "../api/playerApi";
 
-export function useSaveSlots(selectedArchetype, runtime, authToken) {
+export function useSaveSlots(selectedArchetype, runtime, authToken, onProfileSynced) {
   const [slots, setSlots] = useState([]);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
@@ -16,14 +16,7 @@ export function useSaveSlots(selectedArchetype, runtime, authToken) {
   });
 
   const savePayload = useMemo(() => {
-    const regionId =
-      runtime.scene.scene === "boss"
-        ? "boss_vault"
-        : runtime.scene.scene === "dungeon"
-          ? "shatter_dungeon"
-          : runtime.scene.scene === "region"
-            ? "shatter_block"
-            : "hub_blacksite";
+    const regionId = runtime.regionId ?? "hub_blacksite";
 
     return {
       archetypeId: selectedArchetype,
@@ -168,6 +161,7 @@ export function useSaveSlots(selectedArchetype, runtime, authToken) {
       try {
         const updatedProfile = await updatePlayerSessionState(authToken, {
           regionId: savePayload.regionId,
+          unlockedRegionIds: savePayload.sessionSummary.sessionState?.unlockedRegionIds ?? [],
           sessionState: savePayload.sessionSummary.sessionState
         });
         if (backgroundRequestIdRef.current !== requestId) {
@@ -175,6 +169,7 @@ export function useSaveSlots(selectedArchetype, runtime, authToken) {
         }
 
         lastSyncedSignatureRef.current = nextSignature;
+        onProfileSynced?.(updatedProfile);
         setError("");
         setBackgroundSync({
           state: "synced",
@@ -200,7 +195,7 @@ export function useSaveSlots(selectedArchetype, runtime, authToken) {
     }, 700);
 
     return () => window.clearTimeout(timer);
-  }, [authToken, runtime.scene.scene, savePayload, selectedSlotId, status]);
+  }, [authToken, onProfileSynced, runtime.scene.scene, savePayload, selectedSlotId, status]);
 
   return {
     slots,

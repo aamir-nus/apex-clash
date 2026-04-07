@@ -1,11 +1,18 @@
 import { createGuestSession } from "../server/src/controllers/authController.js";
 import { getContentBootstrap } from "../server/src/controllers/contentController.js";
 import {
+  claimPlayerDungeonReward,
+  equipPlayerLoadoutSkills,
+  getPlayerProfile,
+  updatePlayerSession
+} from "../server/src/controllers/playerController.js";
+import {
   createSaveSlot,
   getSaveSlot,
   listSaveSlots,
   updateSaveSlot
 } from "../server/src/controllers/saveController.js";
+import { loginUserSession, registerUserSession } from "../server/src/controllers/authController.js";
 
 function createMockResponse() {
   return {
@@ -55,6 +62,18 @@ const requests = [
   })
 ];
 
+const registerResponse = await runRequest("POST /auth/register", registerUserSession, {
+  id: "req-backend-register",
+  body: { username: "backendcontract", password: "secret12" }
+});
+
+const loginResponse = await runRequest("POST /auth/login", loginUserSession, {
+  id: "req-backend-login",
+  body: { username: "backendcontract", password: "secret12" }
+});
+
+const rewardAuthUser = loginResponse.payload?.data?.user;
+
 const createdSlotId = requests[4].payload?.data?.id;
 
 requests.push(
@@ -89,6 +108,83 @@ requests.push(
   })
 );
 
+requests.push(registerResponse);
+requests.push(loginResponse);
+
+requests.push(
+  await runRequest("GET /player/profile", getPlayerProfile, {
+    id: "req-backend-profile",
+    authUser: rewardAuthUser
+  })
+);
+
+requests.push(
+  await runRequest("PUT /player/loadout/skills", equipPlayerLoadoutSkills, {
+    id: "req-backend-equip-skills",
+    authUser: rewardAuthUser,
+    body: {
+      skillIds: ["cleave_step", "iron_maelstrom", "cleave_step"]
+    }
+  })
+);
+
+requests.push(
+  await runRequest("POST /player/rewards/claim shatter miniboss", claimPlayerDungeonReward, {
+    id: "req-backend-shatter-miniboss",
+    authUser: rewardAuthUser,
+    body: {
+      rewardSource: "dungeon_miniboss",
+      regionId: "shatter_dungeon"
+    }
+  })
+);
+
+requests.push(
+  await runRequest("POST /player/rewards/claim veil miniboss", claimPlayerDungeonReward, {
+    id: "req-backend-veil-miniboss",
+    authUser: rewardAuthUser,
+    body: {
+      rewardSource: "veil_miniboss",
+      regionId: "hub_blacksite"
+    }
+  })
+);
+
+requests.push(
+  await runRequest("POST /player/rewards/claim cinder miniboss", claimPlayerDungeonReward, {
+    id: "req-backend-cinder-miniboss",
+    authUser: rewardAuthUser,
+    body: {
+      rewardSource: "cinder_miniboss",
+      regionId: "cinder_dungeon"
+    }
+  })
+);
+
+requests.push(
+  await runRequest("PUT /player/session-state veil boss uncleared", updatePlayerSession, {
+    id: "req-backend-veil-boss-uncleared",
+    authUser: rewardAuthUser,
+    body: {
+      regionId: "veil_boss_vault",
+      sessionState: {
+        clearedBossRegionId: "shatter_boss_vault"
+      }
+    }
+  })
+);
+
+requests.push(
+  await runRequest("POST /player/rewards/claim veil boss scroll", claimPlayerDungeonReward, {
+    id: "req-backend-veil-scroll",
+    authUser: rewardAuthUser,
+    body: {
+      rewardSource: "veil_boss_scroll",
+      regionId: "veil_boss_vault"
+    }
+  })
+);
+
 console.log = originalLog;
 console.warn = originalWarn;
 console.error = originalError;
@@ -114,6 +210,42 @@ const analysis = requests.map((entry) => {
       !("stats" in entry.payload.data)
         ? "OK"
         : "BUG";
+  }
+
+  if (entry.label === "POST /auth/login") {
+    expectation = entry.payload?.data?.token ? "OK" : "BUG";
+  }
+
+  if (entry.label === "GET /player/profile") {
+    expectation = entry.payload?.data?.equippedSkills?.length === 2 ? "OK" : "BUG";
+  }
+
+  if (entry.label === "PUT /player/loadout/skills") {
+    expectation =
+      entry.payload?.data?.equippedSkills?.map((skill) => skill.id).join(",") ===
+      "cleave_step,iron_maelstrom"
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim veil miniboss") {
+    expectation =
+      entry.statusCode === 400 && entry.payload?.error === "Invalid reward context" ? "OK" : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim shatter miniboss") {
+    expectation =
+      entry.statusCode === 400 && entry.payload?.error === "Invalid reward context" ? "OK" : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim cinder miniboss") {
+    expectation =
+      entry.statusCode === 400 && entry.payload?.error === "Invalid reward context" ? "OK" : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim veil boss scroll") {
+    expectation =
+      entry.statusCode === 400 && entry.payload?.error === "Invalid reward context" ? "OK" : "BUG";
   }
 
   return {

@@ -77,6 +77,7 @@ export async function equipPlayerLoadoutSkills(request, response) {
   if (result.error) {
     logger.warn("Rejected skill equip", {
       requestId: request.id,
+      skillIds: request.body?.skillIds,
       userId: request.authUser.id
     });
     response.status(400).json({ ok: false, error: result.error });
@@ -133,11 +134,17 @@ export async function claimPlayerDungeonReward(request, response) {
     return;
   }
 
-  const result = await claimPlayerReward(request.authUser.id, request.body?.rewardSource);
+  const result = await claimPlayerReward(
+    request.authUser.id,
+    request.body?.rewardSource,
+    request.body?.regionId,
+    request.body?.sessionState ?? null
+  );
   if (result.error) {
     logger.warn("Rejected reward claim", {
       requestId: request.id,
       rewardSource: request.body?.rewardSource,
+      regionId: request.body?.regionId,
       userId: request.authUser.id
     });
     response.status(400).json({ ok: false, error: result.error });

@@ -7,82 +7,13 @@
 - `v3`: content-complete browser release candidate
 - `final`: expanded target-state game
 
-This document defines what each version should look like so future sessions can build against a stable target.
-
-Detailed version docs:
-
-- [v1](./v1/PRD.md)
-- `v2`: active vertical-slice planning is maintained alongside the tracked API and roadmap docs
-- `v3`: content-complete browser release candidate target
-- `final`: expanded target-state game target
-
-## v1
-
-### Purpose
-
-Prove the core stack and the combat feel.
-
-### Expected Shape
-
-- browser-first React + Phaser runtime
-- Express API scaffold
-- JSON-driven class, enemy, item, region, and skill content
-- single combat sandbox scene
-- live HUD, cooldowns, combat feed, and first-pass sound cues
-- XP, level-up, and save-slot payload scaffolding
-
-### Exit Criteria
-
-- combat loop is responsive
-- archetypes feel distinct at a basic stat and input level
-- smoke-test gate passes reliably
-- backend logs are readable and useful during iteration
-- auth/profile/save contracts are explicit enough to hand off into `v2`
-
-## v2
-
-### Purpose
-
-Turn the sandbox into a real playable vertical slice aligned to the `occult_action_rpg_prd_and_design_v_2` spec.
-
-### Expected Shape
-
-- one hub scene
-- one playable region
-- three dungeon layouts total within the first region slice
-- one miniboss and one boss encounter
-- authored map data instead of placeholder arena-only layout
-- first usable inventory and skill progression screens
-- Mongo-backed save persistence replacing in-memory save slots
-- repository-backed persistence boundary for save and profile state
-- sprite, tileset, and sound-effect pipeline in place
-- browser HUD refined for actual play sessions rather than sandbox inspection
-- first loot, scroll, and region unlock loop from hub to combat content and back
-
-### Systems Required
-
-- region transition flow
-- enemy waves and encounter scripting
-- loot drops and pickups
-- level-up rewards with meaningful stat or skill decisions
-- save/load loop from browser UI
-- better request and gameplay logging for slice debugging
-- one coherent hub menu flow for launching runs, viewing saves, and checking progression
-- data-driven region, dungeon, enemy, and reward definitions matching the v2 PRD
-
-### Exit Criteria
-
-- player can start from hub, clear content, and return with progression intact
-- one session feels like a small but real game loop
-- no critical persistence or navigation bugs
-- Dockerized stack is usable for local slice verification
-- the vertical slice clearly demonstrates the intended browser UX, audio feedback, and content pipeline
+This document defines the tracked workflow target. Current build focus is `v3`.
 
 ## v3
 
 ### Purpose
 
-Reach the content-complete browser release candidate defined by the v2 design doc's initial shipping scope.
+Reach the content-complete browser release candidate.
 
 ### Expected Shape
 
@@ -112,7 +43,23 @@ Reach the content-complete browser release candidate defined by the v2 design do
 - the build is stable enough for external playtesting
 - progression, boss flow, and save integrity are reliable
 - browser packaging is clean enough that Electron can remain a later wrapper instead of a blocker
-- the v1 content scope from the design doc is represented at a shippable quality bar
+- the release-candidate content scope is represented at a shippable quality bar
+
+## Current Work Focus
+
+Near-term `v3` work should bias toward:
+
+1. live Mongo persistence verification in real gameplay flows
+2. expanding from the current 3 authored region routes into broader dungeon content
+3. broader scroll, consumable, material, and progression reward loops
+4. sprite, tileset, and sound pipeline adoption
+5. manual browser regression checks for resume, rewards, saves, transitions, combat flow, and live loadout-to-fight sync
+
+Current verified browser baseline:
+- auth/login works with seeded admin
+- hub -> region deploy is browser-control stable
+- first full Shatter route is clearable in the headless browser gate
+- save-slot create, resume toggle, and manual sync all pass in the headless browser gate
 
 ## Final
 

@@ -20,6 +20,16 @@
     "range": 2
   },
   {
+    "id": "rupture_arc",
+    "name": "Rupture Arc",
+    "classRestrictions": ["close_combat"],
+    "damageType": "physical",
+    "cost": 22,
+    "cooldown": 11,
+    "castType": "dash_attack",
+    "range": 2
+  },
+  {
     "id": "shard_arc",
     "name": "Shard Arc",
     "classRestrictions": ["mid_range", "long_range"],
@@ -40,6 +50,16 @@
     "range": 2
   },
   {
+    "id": "mirror_break",
+    "name": "Mirror Break",
+    "classRestrictions": ["mid_range"],
+    "damageType": "cursed",
+    "cost": 20,
+    "cooldown": 10,
+    "castType": "aoe_burst",
+    "range": 3
+  },
+  {
     "id": "starfall_lance",
     "name": "Starfall Lance",
     "classRestrictions": ["long_range"],
@@ -48,6 +68,16 @@
     "cooldown": 9,
     "castType": "projectile",
     "range": 7
+  },
+  {
+    "id": "void_pulse",
+    "name": "Void Pulse",
+    "classRestrictions": ["long_range"],
+    "damageType": "cursed",
+    "cost": 28,
+    "cooldown": 12,
+    "castType": "aoe_burst",
+    "range": 6
   },
   {
     "id": "predator_sense",
@@ -68,5 +98,15 @@
     "cooldown": 6,
     "castType": "dash_attack",
     "range": 2
+  },
+  {
+    "id": "reaper_drive",
+    "name": "Reaper Drive",
+    "classRestrictions": ["heavenly_restriction"],
+    "damageType": "physical",
+    "cost": 0,
+    "cooldown": 11,
+    "castType": "dash_attack",
+    "range": 3
   }
 ]

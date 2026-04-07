@@ -5,9 +5,11 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY web/package.json web/package.json
 COPY server/package.json server/package.json
-RUN npm ci --workspace server
+RUN npm ci --workspace server && npm cache clean --force
 
-COPY . .
+COPY server ./server
+COPY shared ./shared
+COPY .env.example ./.env.example
 
 EXPOSE 4000
 

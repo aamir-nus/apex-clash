@@ -1,22 +1,41 @@
 import { useEffect, useRef, useState } from "react";
 import { createGame } from "../game/config/createGame";
 
-export function GameCanvas({ content, selectedArchetype, playerProfile, activeSave, ready }) {
+export function GameCanvas({ content, selectedArchetype, playerProfile, activeSave, firstRunTutorial, ready }) {
   const containerRef = useRef(null);
   const gameRef = useRef(null);
+  const runtimeConfigRef = useRef({
+    content,
+    selectedArchetype,
+    playerProfile,
+    activeSave,
+    firstRunTutorial
+  });
   const [focused, setFocused] = useState(false);
+
+  useEffect(() => {
+    runtimeConfigRef.current = {
+      content,
+      selectedArchetype,
+      playerProfile,
+      activeSave,
+      firstRunTutorial
+    };
+  }, [activeSave, content, firstRunTutorial, playerProfile, selectedArchetype]);
 
   useEffect(() => {
     if (!ready || !containerRef.current || gameRef.current) {
       return undefined;
     }
 
+    const initialRuntimeConfig = runtimeConfigRef.current;
     gameRef.current = createGame({
       parent: containerRef.current,
-      content,
-      selectedArchetype,
-      playerProfile,
-      activeSave
+      content: initialRuntimeConfig.content,
+      selectedArchetype: initialRuntimeConfig.selectedArchetype,
+      playerProfile: initialRuntimeConfig.playerProfile,
+      activeSave: initialRuntimeConfig.activeSave,
+      firstRunTutorial: initialRuntimeConfig.firstRunTutorial
     });
 
     return () => {
@@ -25,7 +44,7 @@ export function GameCanvas({ content, selectedArchetype, playerProfile, activeSa
         gameRef.current = null;
       }
     };
-  }, [content, ready, selectedArchetype, playerProfile, activeSave]);
+  }, [content, ready]);
 
   useEffect(() => {
     if (ready && containerRef.current) {
@@ -39,15 +58,25 @@ export function GameCanvas({ content, selectedArchetype, playerProfile, activeSa
       gameRef.current.registry.set("selectedArchetype", selectedArchetype);
       gameRef.current.registry.set("playerProfile", playerProfile ?? null);
       gameRef.current.registry.set("activeSave", activeSave ?? null);
+      gameRef.current.registry.set("firstRunTutorial", firstRunTutorial);
     }
 
-    const sandboxScene = gameRef.current?.scene?.getScene("CombatSandboxScene");
-    if (sandboxScene?.syncProfile) {
-      sandboxScene.syncProfile(playerProfile);
-    } else if (sandboxScene?.applyProfile) {
-      sandboxScene.applyProfile(playerProfile, selectedArchetype);
-    }
-  }, [activeSave, playerProfile, selectedArchetype]);
+    ["CombatSandboxScene", "DungeonScene", "BossScene"].forEach((sceneKey) => {
+      const activeScene = gameRef.current?.scene?.getScene(sceneKey);
+      if (!activeScene) {
+        return;
+      }
+
+      if (activeScene.syncProfile) {
+        activeScene.syncProfile(playerProfile);
+        return;
+      }
+
+      if (activeScene.applyProfile) {
+        activeScene.applyProfile(playerProfile, selectedArchetype);
+      }
+    });
+  }, [activeSave, firstRunTutorial, playerProfile, selectedArchetype]);
 
   return (
     <div className={focused ? "game-shell focused" : "game-shell"}>

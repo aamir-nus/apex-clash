@@ -126,5 +126,147 @@
       "attack": 2,
       "defense": 2
     }
+  },
+  {
+    "id": "cataclysm_locket",
+    "name": "Cataclysm Locket",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["close_combat"],
+    "statModifiers": {
+      "attack": 3,
+      "poise": 2,
+      "crit": 1
+    }
+  },
+  {
+    "id": "glass_veil_knot",
+    "name": "Glass Veil Knot",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["mid_range"],
+    "statModifiers": {
+      "technique": 3,
+      "speed": 2,
+      "ce": 4
+    }
+  },
+  {
+    "id": "astral_prism",
+    "name": "Astral Prism",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["long_range"],
+    "statModifiers": {
+      "technique": 4,
+      "crit": 3
+    }
+  },
+  {
+    "id": "gravebinder_strap",
+    "name": "Gravebinder Strap",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 3,
+      "speed": 2,
+      "defense": 1
+    }
+  },
+  {
+    "id": "furnace_heart",
+    "name": "Furnace Heart",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["close_combat"],
+    "statModifiers": {
+      "attack": 4,
+      "speed": 1,
+      "poise": 2
+    }
+  },
+  {
+    "id": "ember_knot",
+    "name": "Ember Knot",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["mid_range"],
+    "statModifiers": {
+      "attack": 2,
+      "technique": 3,
+      "speed": 2
+    }
+  },
+  {
+    "id": "flare_prism",
+    "name": "Flare Prism",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["long_range"],
+    "statModifiers": {
+      "attack": 2,
+      "technique": 4,
+      "crit": 2
+    }
+  },
+  {
+    "id": "ash_runner_wrap",
+    "name": "Ash Runner Wrap",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 3,
+      "defense": 2,
+      "speed": 2
+    }
+  },
+  {
+    "id": "field_tonic",
+    "name": "Field Tonic",
+    "type": "consumable",
+    "rarity": "common",
+    "statModifiers": {
+      "hp": 12
+    }
+  },
+  {
+    "id": "cursed_resin",
+    "name": "Cursed Resin",
+    "type": "material",
+    "rarity": "common",
+    "statModifiers": {}
+  },
+  {
+    "id": "veil_shard",
+    "name": "Veil Shard",
+    "type": "material",
+    "rarity": "rare",
+    "statModifiers": {}
+  },
+  {
+    "id": "ember_tonic",
+    "name": "Ember Tonic",
+    "type": "consumable",
+    "rarity": "rare",
+    "statModifiers": {
+      "ce": 10
+    }
+  },
+  {
+    "id": "furnace_core",
+    "name": "Furnace Core",
+    "type": "material",
+    "rarity": "rare",
+    "statModifiers": {}
   }
 ]

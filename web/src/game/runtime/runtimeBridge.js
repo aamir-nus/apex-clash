@@ -4,6 +4,8 @@ const sceneEventName = "apex-clash:scene-update";
 const transitionEventName = "apex-clash:transition-update";
 const progressionRewardEventName = "apex-clash:progression-reward";
 const inventoryRewardEventName = "apex-clash:inventory-reward";
+const combatFeedEventName = "apex-clash:combat-feed-event";
+const controlCommandEventName = "apex-clash:control-command";
 
 export function emitRuntimeUpdate(detail) {
   window.dispatchEvent(new CustomEvent(runtimeEventName, { detail }));
@@ -63,4 +65,24 @@ export function subscribeToInventoryRewards(handler) {
   const listener = (event) => handler(event.detail);
   window.addEventListener(inventoryRewardEventName, listener);
   return () => window.removeEventListener(inventoryRewardEventName, listener);
+}
+
+export function emitCombatFeedEvent(detail) {
+  window.dispatchEvent(new CustomEvent(combatFeedEventName, { detail }));
+}
+
+export function subscribeToCombatFeedEvents(handler) {
+  const listener = (event) => handler(event.detail);
+  window.addEventListener(combatFeedEventName, listener);
+  return () => window.removeEventListener(combatFeedEventName, listener);
+}
+
+export function emitControlCommand(detail) {
+  window.dispatchEvent(new CustomEvent(controlCommandEventName, { detail }));
+}
+
+export function subscribeToControlCommands(handler) {
+  const listener = (event) => handler(event.detail);
+  window.addEventListener(controlCommandEventName, listener);
+  return () => window.removeEventListener(controlCommandEventName, listener);
 }

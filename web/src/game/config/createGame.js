@@ -6,7 +6,14 @@ import { DungeonScene } from "../scenes/DungeonScene";
 import { HubScene } from "../scenes/HubScene";
 import { RegionScene } from "../scenes/RegionScene";
 
-export function createGame({ parent, content, selectedArchetype, playerProfile, activeSave }) {
+export function createGame({
+  parent,
+  content,
+  selectedArchetype,
+  playerProfile,
+  activeSave,
+  firstRunTutorial
+}) {
   return new Phaser.Game({
     type: Phaser.AUTO,
     parent,
@@ -25,7 +32,13 @@ export function createGame({ parent, content, selectedArchetype, playerProfile, 
       }
     },
     scene: [
-      new BootScene({ content, selectedArchetype, playerProfile, activeSave }),
+      new BootScene({
+        content,
+        selectedArchetype,
+        playerProfile,
+        activeSave,
+        firstRunTutorial
+      }),
       HubScene,
       RegionScene,
       DungeonScene,

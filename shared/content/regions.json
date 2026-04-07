@@ -16,5 +16,11 @@
     "name": "Veil Shrine",
     "type": "region",
     "recommendedLevel": 6
+  },
+  {
+    "id": "cinder_ward",
+    "name": "Cinder Ward",
+    "type": "region",
+    "recommendedLevel": 10
   }
 ]

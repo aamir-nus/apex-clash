@@ -147,6 +147,20 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   assert.equal(profileResponse.statusCode, 200);
   assert.equal(profileResponse.payload.data.classType, "close_combat");
 
+  const invalidDungeonRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "dungeon_miniboss",
+        regionId: "shatter_dungeon"
+      }
+    },
+    invalidDungeonRewardResponse
+  );
+  assert.equal(invalidDungeonRewardResponse.statusCode, 400);
+  assert.equal(invalidDungeonRewardResponse.payload.error, "Invalid reward context");
+
   const classResponse = createMockResponse();
   await updatePlayerClass(
     {
@@ -190,6 +204,20 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   );
   assert.deepEqual(
     persistedProfileResponse.payload.data.equippedSkills.map((skill) => skill.id),
+    ["predator_sense", "bone_breaker"]
+  );
+
+  const cappedSkillResponse = createMockResponse();
+  await equipPlayerLoadoutSkills(
+    {
+      ...request,
+      body: { skillIds: ["predator_sense", "bone_breaker", "predator_sense"] }
+    },
+    cappedSkillResponse
+  );
+  assert.equal(cappedSkillResponse.statusCode, 200);
+  assert.deepEqual(
+    cappedSkillResponse.payload.data.equippedSkills.map((skill) => skill.id),
     ["predator_sense", "bone_breaker"]
   );
 
@@ -238,12 +266,14 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         regionId: "shatter_dungeon",
+        unlockedRegionIds: ["shatter_block", "veil_shrine"],
         sessionState: {
           explorationBonus: {
             label: "Technique resonance",
             ceBonus: 18
           },
-          dungeonRelicClaimed: true
+          dungeonRelicClaimed: true,
+          dungeonRelicClaimedRegionId: "shatter_dungeon"
         }
       }
     },
@@ -251,7 +281,9 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   );
   assert.equal(sessionResponse.statusCode, 200);
   assert.equal(sessionResponse.payload.data.currentRegionId, "shatter_dungeon");
+  assert.deepEqual(sessionResponse.payload.data.unlockedRegionIds, ["shatter_block", "veil_shrine"]);
   assert.equal(sessionResponse.payload.data.sessionState.dungeonRelicClaimed, true);
+  assert.equal(sessionResponse.payload.data.sessionState.dungeonRelicClaimedRegionId, "shatter_dungeon");
 
   const mergedSessionResponse = createMockResponse();
   await updatePlayerSession(
@@ -274,17 +306,27 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     {
       ...request,
       body: {
-        rewardSource: "dungeon_miniboss"
+        rewardSource: "dungeon_miniboss",
+        regionId: "shatter_dungeon"
       }
     },
     inventoryRewardResponse
   );
   assert.equal(inventoryRewardResponse.statusCode, 200);
   assert.equal(Boolean(inventoryRewardResponse.payload.data.reward?.id), true);
+  assert.equal(inventoryRewardResponse.payload.data.bonusRewards.length, 2);
   assert.equal(
     inventoryRewardResponse.payload.data.profile.inventoryItems.some(
       (item) => item.id === inventoryRewardResponse.payload.data.reward.id
     ),
+    true
+  );
+  assert.equal(
+    inventoryRewardResponse.payload.data.profile.inventoryItems.some((item) => item.id === "field_tonic"),
+    true
+  );
+  assert.equal(
+    inventoryRewardResponse.payload.data.profile.inventoryItems.some((item) => item.id === "cursed_resin"),
     true
   );
 
@@ -293,7 +335,8 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     {
       ...request,
       body: {
-        rewardSource: "dungeon_miniboss"
+        rewardSource: "dungeon_miniboss",
+        regionId: "shatter_dungeon"
       }
     },
     duplicateRewardResponse
@@ -303,6 +346,288 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   assert.equal(
     duplicateRewardResponse.payload.data.profile.inventoryItems.filter(
       (item) => item.id === inventoryRewardResponse.payload.data.reward.id
+    ).length,
+    1
+  );
+
+  const invalidVeilRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "veil_miniboss",
+        regionId: "shatter_dungeon"
+      }
+    },
+    invalidVeilRewardResponse
+  );
+  assert.equal(invalidVeilRewardResponse.statusCode, 400);
+  assert.equal(invalidVeilRewardResponse.payload.error, "Invalid reward context");
+
+  const veilSessionResponse = createMockResponse();
+  await updatePlayerSession(
+    {
+      ...request,
+      body: {
+        regionId: "veil_dungeon",
+        sessionState: {
+          dungeonRelicClaimedRegionId: "shatter_dungeon"
+        }
+      }
+    },
+    veilSessionResponse
+  );
+  assert.equal(veilSessionResponse.statusCode, 200);
+
+  const invalidVeilRelicMismatchResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "veil_miniboss",
+        regionId: "veil_dungeon"
+      }
+    },
+    invalidVeilRelicMismatchResponse
+  );
+  assert.equal(invalidVeilRelicMismatchResponse.statusCode, 400);
+  assert.equal(invalidVeilRelicMismatchResponse.payload.error, "Invalid reward context");
+
+  const clearedVeilRelicSessionResponse = createMockResponse();
+  await updatePlayerSession(
+    {
+      ...request,
+      body: {
+        regionId: "veil_dungeon",
+        sessionState: {
+          dungeonRelicClaimed: true,
+          dungeonRelicClaimedRegionId: "veil_dungeon"
+        }
+      }
+    },
+    clearedVeilRelicSessionResponse
+  );
+  assert.equal(clearedVeilRelicSessionResponse.statusCode, 200);
+
+  const veilMinibossRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "veil_miniboss",
+        regionId: "veil_dungeon"
+      }
+    },
+    veilMinibossRewardResponse
+  );
+  assert.equal(veilMinibossRewardResponse.statusCode, 200);
+  assert.equal(veilMinibossRewardResponse.payload.data.reward.rarity, "epic");
+  assert.equal(
+    veilMinibossRewardResponse.payload.data.profile.inventoryItems.some(
+      (item) => item.id === veilMinibossRewardResponse.payload.data.reward.id
+    ),
+    true
+  );
+
+  const duplicateVeilMinibossRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "veil_miniboss",
+        regionId: "veil_dungeon"
+      }
+    },
+    duplicateVeilMinibossRewardResponse
+  );
+  assert.equal(duplicateVeilMinibossRewardResponse.statusCode, 200);
+  assert.equal(duplicateVeilMinibossRewardResponse.payload.data.reward, null);
+  assert.equal(
+    duplicateVeilMinibossRewardResponse.payload.data.profile.inventoryItems.filter(
+      (item) => item.id === veilMinibossRewardResponse.payload.data.reward.id
+    ).length,
+    1
+  );
+
+  const cinderSessionResponse = createMockResponse();
+  await updatePlayerSession(
+    {
+      ...request,
+      body: {
+        regionId: "cinder_dungeon",
+        sessionState: {
+          dungeonRelicClaimedRegionId: "veil_dungeon"
+        }
+      }
+    },
+    cinderSessionResponse
+  );
+  assert.equal(cinderSessionResponse.statusCode, 200);
+
+  const invalidCinderRelicMismatchResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "cinder_miniboss",
+        regionId: "cinder_dungeon"
+      }
+    },
+    invalidCinderRelicMismatchResponse
+  );
+  assert.equal(invalidCinderRelicMismatchResponse.statusCode, 400);
+  assert.equal(invalidCinderRelicMismatchResponse.payload.error, "Invalid reward context");
+
+  const clearedCinderRelicSessionResponse = createMockResponse();
+  await updatePlayerSession(
+    {
+      ...request,
+      body: {
+        regionId: "cinder_dungeon",
+        sessionState: {
+          dungeonRelicClaimed: true,
+          dungeonRelicClaimedRegionId: "cinder_dungeon"
+        }
+      }
+    },
+    clearedCinderRelicSessionResponse
+  );
+  assert.equal(clearedCinderRelicSessionResponse.statusCode, 200);
+
+  const cinderMinibossRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "cinder_miniboss",
+        regionId: "cinder_dungeon"
+      }
+    },
+    cinderMinibossRewardResponse
+  );
+  assert.equal(cinderMinibossRewardResponse.statusCode, 200);
+  assert.equal(cinderMinibossRewardResponse.payload.data.reward.rarity, "epic");
+  assert.equal(cinderMinibossRewardResponse.payload.data.bonusRewards.length, 2);
+  assert.equal(
+    cinderMinibossRewardResponse.payload.data.profile.inventoryItems.some(
+      (item) => item.id === cinderMinibossRewardResponse.payload.data.reward.id
+    ),
+    true
+  );
+  assert.equal(
+    cinderMinibossRewardResponse.payload.data.profile.inventoryItems.some((item) => item.id === "ember_tonic"),
+    true
+  );
+  assert.equal(
+    cinderMinibossRewardResponse.payload.data.profile.inventoryItems.some((item) => item.id === "furnace_core"),
+    true
+  );
+
+  const duplicateCinderMinibossRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "cinder_miniboss",
+        regionId: "cinder_dungeon"
+      }
+    },
+    duplicateCinderMinibossRewardResponse
+  );
+  assert.equal(duplicateCinderMinibossRewardResponse.statusCode, 200);
+  assert.equal(duplicateCinderMinibossRewardResponse.payload.data.reward, null);
+  assert.equal(
+    duplicateCinderMinibossRewardResponse.payload.data.profile.inventoryItems.filter(
+      (item) => item.id === cinderMinibossRewardResponse.payload.data.reward.id
+    ).length,
+    1
+  );
+
+  const veilBossSessionResponse = createMockResponse();
+  await updatePlayerSession(
+    {
+      ...request,
+      body: {
+        regionId: "veil_boss_vault",
+        sessionState: {
+          clearedBossRegionId: "shatter_boss_vault"
+        }
+      }
+    },
+    veilBossSessionResponse
+  );
+  assert.equal(veilBossSessionResponse.statusCode, 200);
+
+  const invalidScrollRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "veil_boss_scroll",
+        regionId: "veil_boss_vault"
+      }
+    },
+    invalidScrollRewardResponse
+  );
+  assert.equal(invalidScrollRewardResponse.statusCode, 400);
+  assert.equal(invalidScrollRewardResponse.payload.error, "Invalid reward context");
+
+  const clearedVeilBossSessionResponse = createMockResponse();
+  await updatePlayerSession(
+    {
+      ...request,
+      body: {
+        regionId: "veil_boss_vault",
+        sessionState: {
+          clearedBossRegionId: "veil_boss_vault"
+        }
+      }
+    },
+    clearedVeilBossSessionResponse
+  );
+  assert.equal(clearedVeilBossSessionResponse.statusCode, 200);
+
+  const scrollRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "veil_boss_scroll",
+        regionId: "veil_boss_vault"
+      }
+    },
+    scrollRewardResponse
+  );
+  assert.equal(scrollRewardResponse.statusCode, 200);
+  assert.equal(scrollRewardResponse.payload.data.reward.type, "scroll");
+  assert.equal(scrollRewardResponse.payload.data.bonusRewards.length <= 1, true);
+  assert.equal(
+    scrollRewardResponse.payload.data.profile.availableSkills.some(
+      (skill) => skill.id === scrollRewardResponse.payload.data.reward.id
+    ),
+    true
+  );
+  assert.equal(
+    scrollRewardResponse.payload.data.profile.inventoryItems.some((item) => item.id === "veil_shard"),
+    true
+  );
+
+  const duplicateScrollRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "veil_boss_scroll",
+        regionId: "veil_boss_vault"
+      }
+    },
+    duplicateScrollRewardResponse
+  );
+  assert.equal(duplicateScrollRewardResponse.statusCode, 200);
+  assert.equal(duplicateScrollRewardResponse.payload.data.reward, null);
+  assert.equal(
+    duplicateScrollRewardResponse.payload.data.profile.availableSkills.filter(
+      (skill) => skill.id === scrollRewardResponse.payload.data.reward.id
     ).length,
     1
   );
@@ -427,5 +752,97 @@ test("error handler logs request context", () => {
     assert.match(output[0], /"requestId":"req-test"/);
   } finally {
     console.error = originalError;
+  }
+});
+
+test("player controller logs invalid reward claim context", async () => {
+  const output = [];
+  const originalWarn = console.warn;
+  console.warn = (line) => output.push(line);
+
+  try {
+    const registerResponse = createMockResponse();
+    await registerUserSession(
+      {
+        id: "req-register-log-player",
+        body: { username: "logrewarduser", password: "secret12" }
+      },
+      registerResponse
+    );
+
+    const loginResponse = createMockResponse();
+    await loginUserSession(
+      {
+        id: "req-login-log-player",
+        body: { username: "logrewarduser", password: "secret12" }
+      },
+      loginResponse
+    );
+
+    const response = createMockResponse();
+    await claimPlayerDungeonReward(
+      {
+        id: "req-log-invalid-reward",
+        authUser: loginResponse.payload.data.user,
+        body: {
+          rewardSource: "veil_miniboss",
+          regionId: "hub_blacksite"
+        }
+      },
+      response
+    );
+
+    assert.equal(response.statusCode, 400);
+    assert.match(output[0], /Rejected reward claim/);
+    assert.match(output[0], /"requestId":"req-log-invalid-reward"/);
+    assert.match(output[0], /"rewardSource":"veil_miniboss"/);
+    assert.match(output[0], /"regionId":"hub_blacksite"/);
+  } finally {
+    console.warn = originalWarn;
+  }
+});
+
+test("player controller logs invalid skill equip context", async () => {
+  const output = [];
+  const originalWarn = console.warn;
+  console.warn = (line) => output.push(line);
+
+  try {
+    const registerResponse = createMockResponse();
+    await registerUserSession(
+      {
+        id: "req-register-log-skill",
+        body: { username: "logskilluser", password: "secret12" }
+      },
+      registerResponse
+    );
+
+    const loginResponse = createMockResponse();
+    await loginUserSession(
+      {
+        id: "req-login-log-skill",
+        body: { username: "logskilluser", password: "secret12" }
+      },
+      loginResponse
+    );
+
+    const response = createMockResponse();
+    await equipPlayerLoadoutSkills(
+      {
+        id: "req-log-invalid-skill",
+        authUser: loginResponse.payload.data.user,
+        body: {
+          skillIds: ["void_pulse"]
+        }
+      },
+      response
+    );
+
+    assert.equal(response.statusCode, 400);
+    assert.match(output[0], /Rejected skill equip/);
+    assert.match(output[0], /"requestId":"req-log-invalid-skill"/);
+    assert.match(output[0], /"skillIds":\["void_pulse"\]/);
+  } finally {
+    console.warn = originalWarn;
   }
 });

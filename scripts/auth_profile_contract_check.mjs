@@ -128,7 +128,7 @@ results.push(
     id: "req-equip-skills-contract",
     authUser,
     body: {
-      skillIds: ["shard_arc", "starfall_lance"]
+      skillIds: ["shard_arc", "starfall_lance", "shard_arc"]
     }
   })
 );
@@ -148,17 +148,30 @@ results.push(
 );
 
 results.push(
+  await runStep("POST /player/rewards/claim first invalid context", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-0-invalid",
+    authUser,
+    body: {
+      rewardSource: "dungeon_miniboss",
+      regionId: "shatter_dungeon"
+    }
+  })
+);
+
+results.push(
   await runStep("PUT /player/session-state", updatePlayerSession, {
     id: "req-session-state-contract",
     authUser,
     body: {
       regionId: "shatter_dungeon",
+      unlockedRegionIds: ["shatter_block", "veil_shrine"],
       sessionState: {
         explorationBonus: {
           label: "Technique resonance",
           ceBonus: 18
         },
-        dungeonRelicClaimed: true
+        dungeonRelicClaimed: true,
+        dungeonRelicClaimedRegionId: "shatter_dungeon"
       }
     }
   })
@@ -169,7 +182,8 @@ results.push(
     id: "req-reward-claim-contract-1",
     authUser,
     body: {
-      rewardSource: "dungeon_miniboss"
+      rewardSource: "dungeon_miniboss",
+      regionId: "shatter_dungeon"
     }
   })
 );
@@ -179,7 +193,198 @@ results.push(
     id: "req-reward-claim-contract-2",
     authUser,
     body: {
-      rewardSource: "dungeon_miniboss"
+      rewardSource: "dungeon_miniboss",
+      regionId: "shatter_dungeon"
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim veil miniboss invalid context", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-veil-miniboss-invalid",
+    authUser,
+    body: {
+      rewardSource: "veil_miniboss",
+      regionId: "shatter_dungeon"
+    }
+  })
+);
+
+results.push(
+  await runStep("PUT /player/session-state veil dungeon", updatePlayerSession, {
+    id: "req-session-state-veil-dungeon",
+    authUser,
+    body: {
+      regionId: "veil_dungeon",
+      sessionState: {
+        dungeonRelicClaimedRegionId: "shatter_dungeon"
+      }
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim veil miniboss relic mismatch", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-veil-miniboss-mismatch",
+    authUser,
+    body: {
+      rewardSource: "veil_miniboss",
+      regionId: "veil_dungeon"
+    }
+  })
+);
+
+results.push(
+  await runStep("PUT /player/session-state veil dungeon cleared", updatePlayerSession, {
+    id: "req-session-state-veil-dungeon-cleared",
+    authUser,
+    body: {
+      regionId: "veil_dungeon",
+      sessionState: {
+        dungeonRelicClaimed: true,
+        dungeonRelicClaimedRegionId: "veil_dungeon"
+      }
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim veil miniboss", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-veil-miniboss",
+    authUser,
+    body: {
+      rewardSource: "veil_miniboss",
+      regionId: "veil_dungeon"
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim veil miniboss duplicate", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-veil-miniboss-duplicate",
+    authUser,
+    body: {
+      rewardSource: "veil_miniboss",
+      regionId: "veil_dungeon"
+    }
+  })
+);
+
+results.push(
+  await runStep("PUT /player/session-state cinder dungeon mismatch", updatePlayerSession, {
+    id: "req-session-state-cinder-dungeon-mismatch",
+    authUser,
+    body: {
+      regionId: "cinder_dungeon",
+      sessionState: {
+        dungeonRelicClaimedRegionId: "veil_dungeon"
+      }
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim cinder miniboss relic mismatch", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-cinder-miniboss-mismatch",
+    authUser,
+    body: {
+      rewardSource: "cinder_miniboss",
+      regionId: "cinder_dungeon"
+    }
+  })
+);
+
+results.push(
+  await runStep("PUT /player/session-state cinder dungeon cleared", updatePlayerSession, {
+    id: "req-session-state-cinder-dungeon-cleared",
+    authUser,
+    body: {
+      regionId: "cinder_dungeon",
+      sessionState: {
+        dungeonRelicClaimed: true,
+        dungeonRelicClaimedRegionId: "cinder_dungeon"
+      }
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim cinder miniboss", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-cinder-miniboss",
+    authUser,
+    body: {
+      rewardSource: "cinder_miniboss",
+      regionId: "cinder_dungeon"
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim cinder miniboss duplicate", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-cinder-miniboss-duplicate",
+    authUser,
+    body: {
+      rewardSource: "cinder_miniboss",
+      regionId: "cinder_dungeon"
+    }
+  })
+);
+
+results.push(
+  await runStep("PUT /player/session-state veil boss", updatePlayerSession, {
+    id: "req-session-state-veil-boss",
+    authUser,
+    body: {
+      regionId: "veil_boss_vault",
+      sessionState: {
+        clearedBossRegionId: "shatter_boss_vault"
+      }
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim veil boss scroll invalid context", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-3-invalid",
+    authUser,
+    body: {
+      rewardSource: "veil_boss_scroll",
+      regionId: "veil_boss_vault"
+    }
+  })
+);
+
+results.push(
+  await runStep("PUT /player/session-state veil boss cleared", updatePlayerSession, {
+    id: "req-session-state-veil-boss-cleared",
+    authUser,
+    body: {
+      regionId: "veil_boss_vault",
+      sessionState: {
+        clearedBossRegionId: "veil_boss_vault"
+      }
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim veil boss scroll", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-3",
+    authUser,
+    body: {
+      rewardSource: "veil_boss_scroll",
+      regionId: "veil_boss_vault"
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim veil boss scroll duplicate", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-4",
+    authUser,
+    body: {
+      rewardSource: "veil_boss_scroll",
+      regionId: "veil_boss_vault"
     }
   })
 );
@@ -232,9 +437,53 @@ const assertions = results.map((entry) => {
     expectation = entry.payload?.data?.classType === "long_range" ? "OK" : "BUG";
   }
 
+  if (entry.label === "POST /player/rewards/claim cinder miniboss relic mismatch") {
+    expectation =
+      entry.statusCode === 400 && entry.payload?.error === "Invalid reward context" ? "OK" : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim cinder miniboss") {
+    expectation =
+      entry.statusCode === 200 &&
+      entry.payload?.data?.reward?.rarity === "epic" &&
+      entry.payload?.data?.bonusRewards?.length === 2
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim cinder miniboss duplicate") {
+    expectation = entry.statusCode === 200 && entry.payload?.data?.reward === null ? "OK" : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim first") {
+    expectation =
+      entry.statusCode === 200 &&
+      Boolean(entry.payload?.data?.reward?.id) &&
+      entry.payload?.data?.bonusRewards?.length === 2
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim veil boss scroll") {
+    expectation =
+      entry.statusCode === 200 &&
+      entry.payload?.data?.reward?.type === "scroll" &&
+      (entry.payload?.data?.bonusRewards?.length ?? 0) <= 1
+        ? "OK"
+        : "BUG";
+  }
+
   if (entry.label === "PUT /player/loadout/item") {
     expectation =
       entry.payload?.data?.equippedItems?.some((item) => item.id === "ritual_focus") ? "OK" : "BUG";
+  }
+
+  if (entry.label === "PUT /player/loadout/skills") {
+    expectation =
+      entry.payload?.data?.equippedSkills?.map((skill) => skill.id).join(",") ===
+      "shard_arc,starfall_lance"
+        ? "OK"
+        : "BUG";
   }
 
   if (entry.label === "GET /save-slots authorized before create") {
@@ -251,7 +500,46 @@ const assertions = results.map((entry) => {
   if (entry.label === "PUT /player/session-state") {
     expectation =
       entry.payload?.data?.currentRegionId === "shatter_dungeon" &&
-      entry.payload?.data?.sessionState?.dungeonRelicClaimed === true
+      Array.isArray(entry.payload?.data?.unlockedRegionIds) &&
+      entry.payload.data.unlockedRegionIds.includes("veil_shrine") &&
+      entry.payload?.data?.sessionState?.dungeonRelicClaimed === true &&
+      entry.payload?.data?.sessionState?.dungeonRelicClaimedRegionId === "shatter_dungeon"
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim first invalid context") {
+    expectation = entry.statusCode === 400 ? "OK" : "BUG";
+  }
+
+  if (entry.label === "PUT /player/session-state veil dungeon") {
+    expectation =
+      entry.payload?.data?.currentRegionId === "veil_dungeon" &&
+      entry.payload?.data?.sessionState?.dungeonRelicClaimedRegionId === "shatter_dungeon"
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "PUT /player/session-state veil dungeon cleared") {
+    expectation =
+      entry.payload?.data?.currentRegionId === "veil_dungeon" &&
+      entry.payload?.data?.sessionState?.dungeonRelicClaimedRegionId === "veil_dungeon"
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "PUT /player/session-state veil boss") {
+    expectation =
+      entry.payload?.data?.currentRegionId === "veil_boss_vault" &&
+      entry.payload?.data?.sessionState?.clearedBossRegionId === "shatter_boss_vault"
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "PUT /player/session-state veil boss cleared") {
+    expectation =
+      entry.payload?.data?.currentRegionId === "veil_boss_vault" &&
+      entry.payload?.data?.sessionState?.clearedBossRegionId === "veil_boss_vault"
         ? "OK"
         : "BUG";
   }
@@ -264,6 +552,54 @@ const assertions = results.map((entry) => {
     expectation =
       entry.payload?.data?.reward === null &&
       entry.payload?.data?.profile?.inventoryItems?.length > 0
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim veil miniboss") {
+    expectation =
+      entry.payload?.data?.reward?.rarity === "epic" &&
+      entry.payload?.data?.profile?.inventoryItems?.some(
+        (item) => item.id === entry.payload?.data?.reward?.id
+      )
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim veil miniboss invalid context") {
+    expectation = entry.statusCode === 400 ? "OK" : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim veil miniboss relic mismatch") {
+    expectation = entry.statusCode === 400 ? "OK" : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim veil miniboss duplicate") {
+    expectation =
+      entry.payload?.data?.reward === null &&
+      entry.payload?.data?.profile?.inventoryItems?.some((item) => item.id === "astral_prism")
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim veil boss scroll") {
+    expectation =
+      entry.payload?.data?.reward?.type === "scroll" &&
+      entry.payload?.data?.profile?.availableSkills?.some(
+        (skill) => skill.id === entry.payload?.data?.reward?.id
+      )
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim veil boss scroll invalid context") {
+    expectation = entry.statusCode === 400 ? "OK" : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim veil boss scroll duplicate") {
+    expectation =
+      entry.payload?.data?.reward === null &&
+      entry.payload?.data?.profile?.availableSkills?.some((skill) => skill.id === "void_pulse")
         ? "OK"
         : "BUG";
   }

@@ -1,11 +1,11 @@
 import Phaser from "phaser";
 
 function getSceneFromRegionId(regionId) {
-  return regionId === "boss_vault"
+  return regionId === "shatter_boss_vault" || regionId === "veil_boss_vault" || regionId === "cinder_boss_vault"
     ? "BossScene"
-    : regionId === "shatter_dungeon"
+    : regionId === "shatter_dungeon" || regionId === "veil_dungeon" || regionId === "cinder_dungeon"
       ? "DungeonScene"
-      : regionId === "shatter_block"
+      : regionId === "shatter_block" || regionId === "veil_shrine" || regionId === "cinder_ward"
         ? "RegionScene"
         : "HubScene";
 }
@@ -43,6 +43,8 @@ export class BootScene extends Phaser.Scene {
     this.registry.set("selectedArchetype", this.runtimeConfig.selectedArchetype);
     this.registry.set("playerProfile", this.runtimeConfig.playerProfile ?? null);
     this.registry.set("activeSave", this.runtimeConfig.activeSave ?? null);
+    this.registry.set("firstRunTutorial", this.runtimeConfig.firstRunTutorial ?? false);
+    this.registry.set("currentRegionId", "hub_blacksite");
     this.registry.set("resumeSource", "fresh-start");
 
     const activeSave = this.runtimeConfig.activeSave ?? null;
@@ -51,6 +53,7 @@ export class BootScene extends Phaser.Scene {
       this.registry.set("selectedArchetype", activeSave.archetypeId ?? this.runtimeConfig.selectedArchetype);
       this.registry.set("loadedPlayerState", activeSave.playerState ?? null);
       this.registry.set("loadedSessionSummary", activeSave.sessionSummary ?? null);
+      this.registry.set("currentRegionId", activeSave.regionId ?? "hub_blacksite");
       this.scene.start(getSceneFromRegionId(activeSave.regionId));
       return;
     }
@@ -68,6 +71,7 @@ export class BootScene extends Phaser.Scene {
         "loadedPlayerState",
         buildLoadedPlayerState(profile, this.runtimeConfig.selectedArchetype)
       );
+      this.registry.set("currentRegionId", currentRegionId);
       this.registry.set("loadedSessionSummary", {
         enemiesRemaining: 0,
         combatFeed: [],

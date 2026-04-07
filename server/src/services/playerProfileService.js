@@ -55,7 +55,104 @@ function getRewardItemId(classType, rewardSource) {
     }
   }
 
+  if (rewardSource === "veil_miniboss") {
+    switch (classType) {
+      case "mid_range":
+        return "glass_veil_knot";
+      case "long_range":
+        return "astral_prism";
+      case "heavenly_restriction":
+        return "gravebinder_strap";
+      case "close_combat":
+      default:
+        return "cataclysm_locket";
+    }
+  }
+
+  if (rewardSource === "cinder_miniboss") {
+    switch (classType) {
+      case "mid_range":
+        return "ember_knot";
+      case "long_range":
+        return "flare_prism";
+      case "heavenly_restriction":
+        return "ash_runner_wrap";
+      case "close_combat":
+      default:
+        return "furnace_heart";
+    }
+  }
+
   return null;
+}
+
+function getRewardSkillId(classType, rewardSource) {
+  if (rewardSource === "veil_boss_scroll") {
+    switch (classType) {
+      case "mid_range":
+        return "mirror_break";
+      case "long_range":
+        return "void_pulse";
+      case "heavenly_restriction":
+        return "reaper_drive";
+      case "close_combat":
+      default:
+        return "rupture_arc";
+    }
+  }
+
+  return null;
+}
+
+function getBonusRewardItemIds(rewardSource) {
+  switch (rewardSource) {
+    case "dungeon_miniboss":
+      return ["field_tonic", "cursed_resin"];
+    case "veil_miniboss":
+      return ["field_tonic", "veil_shard"];
+    case "cinder_miniboss":
+      return ["ember_tonic", "furnace_core"];
+    case "veil_boss_scroll":
+      return ["veil_shard"];
+    default:
+      return [];
+  }
+}
+
+function isRewardContextValid(rewardSource, regionId, profile) {
+  const effectiveRegionId = regionId ?? profile.currentRegionId;
+  const allowedRegionIdsByReward = {
+    dungeon_miniboss: ["shatter_dungeon"],
+    veil_miniboss: ["veil_dungeon"],
+    cinder_miniboss: ["cinder_dungeon"],
+    veil_boss_scroll: ["veil_boss_vault"]
+  };
+
+  const allowedRegionIds = allowedRegionIdsByReward[rewardSource];
+  if (!allowedRegionIds) {
+    return false;
+  }
+
+  if (!allowedRegionIds.includes(effectiveRegionId)) {
+    return false;
+  }
+
+  if (
+    rewardSource === "dungeon_miniboss" ||
+    rewardSource === "veil_miniboss" ||
+    rewardSource === "cinder_miniboss"
+  ) {
+    return (
+      profile.sessionState?.dungeonRelicClaimed === true &&
+      profile.sessionState?.dungeonRelicClaimedRegionId === effectiveRegionId
+    );
+  }
+
+  if (rewardSource === "veil_boss_scroll") {
+    return profile.sessionState?.clearedBossRegionId === effectiveRegionId;
+  }
+
+  return true;
 }
 
 function computeStats(classType, equippedItemIds, statAllocations = {}) {
@@ -101,14 +198,13 @@ function buildProfile(userId, classType = "close_combat") {
     defense: 0,
     speed: 0
   };
-  const unlockedSkillIds = getSkillDefinitions()
-    .filter((skill) => !skill.classRestrictions?.length || skill.classRestrictions.includes(classType))
-    .map((skill) => skill.id);
+  const unlockedSkillIds = getStarterSkills(classType);
 
   return {
     userId,
     classType,
     currentRegionId: "hub_blacksite",
+    unlockedRegionIds: ["shatter_block"],
     level: 1,
     xp: 0,
     xpToNextLevel: 30,
@@ -136,6 +232,7 @@ function serializeProfile(profile) {
     userId: profile.userId,
     classType: profile.classType,
     currentRegionId: profile.currentRegionId,
+    unlockedRegionIds: profile.unlockedRegionIds ?? ["shatter_block"],
     level: profile.level,
     xp: profile.xp,
     xpToNextLevel: profile.xpToNextLevel,
@@ -185,6 +282,10 @@ export async function equipPlayerItem(userId, itemId) {
     return { error: "Item not available" };
   }
 
+  if (!item.equipSlot) {
+    return { error: "Item not equippable" };
+  }
+
   if (item.classRestrictions?.length && !item.classRestrictions.includes(profile.classType)) {
     return { error: "Item incompatible with classType" };
   }
@@ -201,13 +302,16 @@ export async function equipPlayerItem(userId, itemId) {
 
 export async function equipPlayerSkills(userId, skillIds) {
   const profile = (await getPlayerProfileRecord(userId)) ?? buildProfile(userId);
+  const normalizedSkillIds = [...new Set(skillIds)].slice(0, 2);
 
-  const allowed = skillIds.every((skillId) => profile.unlockedSkillIds.includes(skillId));
+  const allowed = normalizedSkillIds.every((skillId) =>
+    profile.unlockedSkillIds.includes(skillId)
+  );
   if (!allowed) {
     return { error: "Skill not unlocked" };
   }
 
-  profile.equippedSkillIds = skillIds.slice(0, 4);
+  profile.equippedSkillIds = normalizedSkillIds;
   const storedProfile = await upsertPlayerProfileRecord(profile);
   return { profile: serializeProfile(storedProfile) };
 }
@@ -276,6 +380,12 @@ export async function updatePlayerSessionState(userId, sessionUpdate = {}) {
   const profile = (await getPlayerProfileRecord(userId)) ?? buildProfile(userId);
 
   profile.currentRegionId = sessionUpdate.regionId ?? profile.currentRegionId;
+  profile.unlockedRegionIds = [
+    ...new Set([
+      ...(profile.unlockedRegionIds ?? ["shatter_block"]),
+      ...(sessionUpdate.unlockedRegionIds ?? [])
+    ])
+  ];
   profile.sessionState = {
     ...(profile.sessionState ?? {}),
     ...(sessionUpdate.sessionState ?? {})
@@ -285,22 +395,69 @@ export async function updatePlayerSessionState(userId, sessionUpdate = {}) {
   return { profile: serializeProfile(storedProfile) };
 }
 
-export async function claimPlayerReward(userId, rewardSource) {
+export async function claimPlayerReward(userId, rewardSource, regionId, sessionState = null) {
   const profile = (await getPlayerProfileRecord(userId)) ?? buildProfile(userId);
+  if (sessionState && typeof sessionState === "object") {
+    profile.currentRegionId = regionId ?? profile.currentRegionId;
+    profile.sessionState = {
+      ...(profile.sessionState ?? {}),
+      ...sessionState
+    };
+  }
   const rewardItemId = getRewardItemId(profile.classType, rewardSource);
+  const rewardSkillId = getRewardSkillId(profile.classType, rewardSource);
+  const bonusRewardItemIds = getBonusRewardItemIds(rewardSource);
 
-  if (!rewardItemId) {
+  if (!rewardItemId && !rewardSkillId && bonusRewardItemIds.length === 0) {
     return { error: "Invalid reward source" };
   }
 
-  const hasReward = profile.inventoryItemIds.includes(rewardItemId);
-  if (!hasReward) {
-    profile.inventoryItemIds = [...profile.inventoryItemIds, rewardItemId];
+  if (!isRewardContextValid(rewardSource, regionId, profile)) {
+    return { error: "Invalid reward context" };
   }
 
+  if (rewardItemId) {
+    const hasReward = profile.inventoryItemIds.includes(rewardItemId);
+    if (!hasReward) {
+      profile.inventoryItemIds = [...profile.inventoryItemIds, rewardItemId];
+    }
+    const grantedBonusItemIds = [];
+    for (const bonusItemId of bonusRewardItemIds) {
+      if (!profile.inventoryItemIds.includes(bonusItemId)) {
+        profile.inventoryItemIds = [...profile.inventoryItemIds, bonusItemId];
+        grantedBonusItemIds.push(bonusItemId);
+      }
+    }
+
+    const storedProfile = await upsertPlayerProfileRecord(profile);
+    return {
+      profile: serializeProfile(storedProfile),
+      reward: hasReward ? null : getItemDefinitions().find((item) => item.id === rewardItemId) ?? null,
+      bonusRewards: getItemDefinitions().filter((item) => grantedBonusItemIds.includes(item.id))
+    };
+  }
+
+  const hasSkillReward = profile.unlockedSkillIds.includes(rewardSkillId);
+  if (!hasSkillReward) {
+    profile.unlockedSkillIds = [...profile.unlockedSkillIds, rewardSkillId];
+  }
+  const grantedBonusItemIds = [];
+  for (const bonusItemId of bonusRewardItemIds) {
+    if (!profile.inventoryItemIds.includes(bonusItemId)) {
+      profile.inventoryItemIds = [...profile.inventoryItemIds, bonusItemId];
+      grantedBonusItemIds.push(bonusItemId);
+    }
+  }
   const storedProfile = await upsertPlayerProfileRecord(profile);
   return {
     profile: serializeProfile(storedProfile),
-    reward: hasReward ? null : getItemDefinitions().find((item) => item.id === rewardItemId) ?? null
+    reward: hasSkillReward
+      ? null
+      : {
+          ...(getSkillDefinitions().find((skill) => skill.id === rewardSkillId) ?? null),
+          type: "scroll",
+          rarity: "epic"
+        },
+    bonusRewards: getItemDefinitions().filter((item) => grantedBonusItemIds.includes(item.id))
   };
 }
