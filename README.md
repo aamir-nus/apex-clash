@@ -15,6 +15,8 @@ Working now:
 - inventory and moveset changes now sync into active combat, dungeon, and boss scenes without needing a scene restart
 - active technique bindings use a 2-slot model: `Q` and `E`, with `R` reserved for `Domain Surge`
 - 3 authored region routes in the current slice: Shatter Block, Veil Shrine, and Cinder Ward
+- the first full Shatter route is proven end to end in the browser gate: boon -> dungeon -> miniboss -> boss -> extract -> unlock
+- the Veil continuation route is also proven end to end in the browser gate: deploy -> boon -> dungeon -> miniboss -> boss -> scroll reward -> quick bind -> extract
 - Veil miniboss rewards are distinct from the Shatter route
 - Cinder miniboss rewards are distinct from both Shatter and Veil
 - route rewards can now include consumables and materials, not just equippable charms
@@ -24,6 +26,7 @@ Working now:
 
 In progress:
 - broader authored content and reward pacing beyond the current 3-route slice
+- Cinder route browser hardening to the same bar as Shatter and Veil
 - live Mongo-backed persistence verification in gameplay flows
 - sprite and audio production pipeline
 - browser bundle hardening beyond current chunk splitting
@@ -85,7 +88,7 @@ npm run test:smoke
 `test:experience-audit` reports gameplay/UX coverage metrics for class count, region count, item and skill breadth, objective coverage, tutorial coverage, live loadout sync coverage, and smoke-suite composition.
 `test:debug-audit` verifies that request, error, reward-rejection, save, and background sync debug hooks are still present with the expected context fields.
 `test:ui-flow-audit` verifies the player-facing browser flow surfaces for transitions, onboarding, save/resume visibility, reward banners, and bind confirmation.
-`test:browser-flow` launches the built browser app headlessly, logs in with the seeded dev admin, validates first-run onboarding, clears the first full route through boon -> dungeon -> miniboss -> boss -> extract, verifies route unlock visibility, creates a save slot, toggles resume mode, and verifies manual sync.
+`test:browser-flow` now proves the first full Shatter route, the Veil continuation route, Veil scroll reward -> quick bind, extract, save-slot create, resume-mode toggle, and manual sync.
 
 Latest verified browser-flow timings:
 - login: `249ms`
@@ -99,6 +102,15 @@ Latest verified browser-flow timings:
 - extract to hub: `404ms`
 - save slot create: `172ms`
 - manual sync: `148ms`
+
+Latest multi-route verified timings:
+- login: `466ms`
+- Shatter miniboss clear: `1515ms`
+- Shatter boss clear: `3144ms`
+- Veil miniboss clear: `5848ms`
+- Veil boss clear: `10962ms`
+- quick bind reward: `68ms`
+- manual sync: `152ms`
 
 ## Game Flow
 
@@ -156,8 +168,10 @@ It is a hardened vertical slice on the path to `v3`, with:
 - 3-route dungeon progression
 - persistent item rewards
 - live loadout-to-combat stat sync across the active gameplay scenes
+- two browser-proven full routes with real extract, unlock, reward, and bind behavior
 
 Still missing for a spec-faithful `v3`:
+- stable third-route browser-proven progression
 - more authored dungeons and bosses
 - broader loot, consumables, and materials
 - Mongo-backed gameplay verification

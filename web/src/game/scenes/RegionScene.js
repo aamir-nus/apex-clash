@@ -339,6 +339,10 @@ export class RegionScene extends Phaser.Scene {
           ? "furnace descent"
           : "dungeon ingress";
     emitRuntimeUpdate({
+      scene: {
+        scene: "region",
+        label: "Region"
+      },
       regionId: this.currentRegionId,
       player: {
         hp: stats.hp ?? 0,
@@ -466,6 +470,16 @@ export class RegionScene extends Phaser.Scene {
     }
 
     this.isTransitioning = true;
+    this.registry.set("explorationBonus", null);
+    this.registry.set("combatSnapshot", null);
+    this.registry.set("loadedPlayerState", null);
+    this.registry.set("loadedSessionSummary", {
+      enemiesRemaining: 0,
+      combatFeed: [],
+      sessionState: {
+        unlockedRegionIds: this.playerProfile?.unlockedRegionIds ?? ["shatter_block"]
+      }
+    });
     this.registry.set("currentRegionId", "hub_blacksite");
     emitTransitionUpdate({
       active: true,

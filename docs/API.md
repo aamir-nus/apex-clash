@@ -98,6 +98,7 @@ Before calling the build `v3`-ready, these API expectations need to hold:
 - equipped weapon, charm, and bound skills must affect active combat state without a scene reload
 - no regression in resume source, reward claim, or save-slot ownership behavior
 - Dockerized web and API flows remain bootable and inspectable
+- route-local runtime state must not bleed across redeploys or unlocked-route transitions
 - the current authored routes remain contract-valid: `dungeon_miniboss` for `shatter_dungeon`
 - the current authored routes remain contract-valid: `veil_miniboss` for `veil_dungeon`
 - the current authored routes remain contract-valid: `cinder_miniboss` for `cinder_dungeon`
@@ -120,4 +121,6 @@ Current public regression gates:
 The experience audit keeps the build aligned with the intended gameplay slice, not just backend response shapes. It checks current content breadth, Q/E skill-slot truth, first-run tutorial coverage, objective coverage, live profile sync coverage, and smoke-suite composition.
 The debug audit keeps our troubleshooting surface honest. It checks request/error logs, reward and skill-equip rejection logs, save-slot mutation logs, and the client-side background sync error context.
 The UI flow audit checks the player-visible browser path: transition overlay messaging, onboarding visibility, save/resume visibility, reward banners, and reward-to-bind confirmation surfaces.
-The browser flow check launches the built app with the API, logs in, validates the first-run objective, drives the hub-to-region transition through the visible deploy controls, clears the first full route through boon, dungeon, miniboss, boss, and extract, verifies the unlocked next route, creates a save slot, and verifies resume-mode and manual-sync behavior.
+The browser flow check currently proves the first authored route through boon, dungeon, miniboss, boss, and extract, verifies unlocked-route visibility, creates a save slot, and verifies resume-mode and manual-sync behavior.
+The browser flow check now also proves the unlocked-route continuation path: unlock -> Veil route -> Veil boss scroll reward -> quick bind -> extract.
+The next browser-hardening target is the Cinder continuation path and broader multi-route content pacing.

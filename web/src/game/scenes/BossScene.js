@@ -187,6 +187,10 @@ export class BossScene extends Phaser.Scene {
           ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"]), "veil_shrine", "cinder_ward"])]
           : this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"];
     emitRuntimeUpdate({
+      scene: {
+        scene: "boss",
+        label: "Boss Vault"
+      },
       regionId: this.currentRegionId,
       player: this.playerState,
       controls: [
@@ -430,6 +434,8 @@ export class BossScene extends Phaser.Scene {
         : this.currentRegionId === "veil_boss_vault"
           ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"]), "veil_shrine", "cinder_ward"])]
           : this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"];
+    this.registry.set("explorationBonus", null);
+    this.registry.set("combatSnapshot", null);
     this.registry.set("loadedPlayerState", {
       ...this.playerState,
       xp: this.playerState.xp + 30,

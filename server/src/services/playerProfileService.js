@@ -119,6 +119,75 @@ function getBonusRewardItemIds(rewardSource) {
   }
 }
 
+const ROUTE_STATE_KEYS = [
+  "explorationBonus",
+  "combatSnapshot",
+  "dungeonRelicClaimed",
+  "dungeonRelicClaimedRegionId",
+  "dungeonMinibossDefeated",
+  "dungeonMinibossHp",
+  "sanctumShield",
+  "sanctumWindowOpen",
+  "cinderWindowOpen",
+  "bossHp",
+  "bossCleared",
+  "bossRewardClaimed",
+  "clearedBossRegionId",
+  "signatureActive"
+];
+
+const DUNGEON_AND_BOSS_STATE_KEYS = [
+  "dungeonRelicClaimed",
+  "dungeonRelicClaimedRegionId",
+  "dungeonMinibossDefeated",
+  "dungeonMinibossHp",
+  "sanctumShield",
+  "sanctumWindowOpen",
+  "cinderWindowOpen",
+  "bossHp",
+  "bossCleared",
+  "bossRewardClaimed",
+  "clearedBossRegionId",
+  "signatureActive"
+];
+
+const BOSS_STATE_KEYS = [
+  "bossHp",
+  "bossCleared",
+  "bossRewardClaimed",
+  "clearedBossRegionId",
+  "signatureActive"
+];
+
+function pruneSessionStateForRegion(existingSessionState = {}, regionId) {
+  const nextSessionState = { ...(existingSessionState ?? {}) };
+  const keysToRemove =
+    regionId === "hub_blacksite"
+      ? ROUTE_STATE_KEYS
+      : regionId.endsWith("_block") || regionId.endsWith("_shrine") || regionId.endsWith("_ward")
+        ? DUNGEON_AND_BOSS_STATE_KEYS
+        : regionId.endsWith("_dungeon")
+          ? BOSS_STATE_KEYS
+          : [];
+
+  keysToRemove.forEach((key) => {
+    delete nextSessionState[key];
+  });
+
+  return nextSessionState;
+}
+
+function mergeSessionState(existingSessionState = {}, incomingSessionState = {}, regionId = null) {
+  const baseSessionState = regionId
+    ? pruneSessionStateForRegion(existingSessionState, regionId)
+    : { ...(existingSessionState ?? {}) };
+
+  return {
+    ...baseSessionState,
+    ...(incomingSessionState ?? {})
+  };
+}
+
 function isRewardContextValid(rewardSource, regionId, profile) {
   const effectiveRegionId = regionId ?? profile.currentRegionId;
   const allowedRegionIdsByReward = {
@@ -386,10 +455,11 @@ export async function updatePlayerSessionState(userId, sessionUpdate = {}) {
       ...(sessionUpdate.unlockedRegionIds ?? [])
     ])
   ];
-  profile.sessionState = {
-    ...(profile.sessionState ?? {}),
-    ...(sessionUpdate.sessionState ?? {})
-  };
+  profile.sessionState = mergeSessionState(
+    profile.sessionState,
+    sessionUpdate.sessionState ?? {},
+    sessionUpdate.regionId ?? null
+  );
 
   const storedProfile = await upsertPlayerProfileRecord(profile);
   return { profile: serializeProfile(storedProfile) };
@@ -399,10 +469,11 @@ export async function claimPlayerReward(userId, rewardSource, regionId, sessionS
   const profile = (await getPlayerProfileRecord(userId)) ?? buildProfile(userId);
   if (sessionState && typeof sessionState === "object") {
     profile.currentRegionId = regionId ?? profile.currentRegionId;
-    profile.sessionState = {
-      ...(profile.sessionState ?? {}),
-      ...sessionState
-    };
+    profile.sessionState = mergeSessionState(
+      profile.sessionState,
+      sessionState,
+      regionId ?? null
+    );
   }
   const rewardItemId = getRewardItemId(profile.classType, rewardSource);
   const rewardSkillId = getRewardSkillId(profile.classType, rewardSource);

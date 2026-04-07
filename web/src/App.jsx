@@ -35,15 +35,23 @@ const experiencePillars = [
   "Short, punchy sound cues for hits, pickups, and danger states"
 ];
 
+const routeToneById = {
+  shatter_block: "route-shatter",
+  veil_shrine: "route-veil",
+  cinder_ward: "route-cinder"
+};
+
 function buildSceneActions(scene, regionCards, selectedRegionId, encounterStatus) {
   if (scene === "hub") {
     return {
       title: "Deploy Controls",
       detail: "Use buttons or keyboard. This path is stable for browser play and test automation.",
+      statusLabel: "Hub routing",
       regionActions: regionCards.map((region) => ({
         id: `select-${region.id}`,
         label: region.name,
         active: selectedRegionId === region.id,
+        toneClass: routeToneById[region.id] ?? "",
         command: {
           scene: "hub",
           type: "select-region",
@@ -64,6 +72,7 @@ function buildSceneActions(scene, regionCards, selectedRegionId, encounterStatus
     return {
       title: "Route Actions",
       detail: "Visible route controls mirror the same region interactions as keyboard play.",
+      statusLabel: encounterStatus,
       regionActions: [],
       primaryAction: null,
       secondaryActions: [
@@ -78,6 +87,7 @@ function buildSceneActions(scene, regionCards, selectedRegionId, encounterStatus
     return {
       title: "Dungeon Actions",
       detail: `Current state: ${encounterStatus}. Use these controls if keyboard choreography gets in the way.`,
+      statusLabel: encounterStatus,
       regionActions: [],
       primaryAction: null,
       secondaryActions: [
@@ -93,6 +103,7 @@ function buildSceneActions(scene, regionCards, selectedRegionId, encounterStatus
     return {
       title: "Boss Actions",
       detail: `Current state: ${encounterStatus}. These controls drive the same vault logic as runtime inputs.`,
+      statusLabel: encounterStatus,
       regionActions: [],
       primaryAction: null,
       secondaryActions: [
@@ -167,6 +178,16 @@ function App() {
     runtime.selectedRegionId,
     runtime.encounter.status
   );
+  const routeTracker = (content?.regions ?? [])
+    .filter((region) => region.type === "region")
+    .map((region) => ({
+      ...region,
+      unlocked: unlockedRegionIds.includes(region.id),
+      active:
+        runtime.selectedRegionId === region.id ||
+        runtime.regionId === region.id ||
+        runtime.regionId === region.id.replace("_block", "_dungeon")
+    }));
 
   return (
     <main className="app-shell">
@@ -235,6 +256,14 @@ function App() {
               <strong>Input focus</strong>
               <span>Keyboard-first, controller-ready, browser-native</span>
             </div>
+            <div>
+              <strong>Stable route</strong>
+              <span>Shatter Block is browser-proven end to end</span>
+            </div>
+            <div>
+              <strong>Hardening target</strong>
+              <span>Veil continuation and route-state isolation</span>
+            </div>
           </div>
           <Suspense fallback={<div className="canvas-loading">Loading Phaser runtime...</div>}>
             <GameCanvas
@@ -248,16 +277,19 @@ function App() {
           </Suspense>
           {sceneActions ? (
             <div className="hub-command-deck">
-              <div className="hub-command-copy">
-                <strong>{sceneActions.title}</strong>
-                <span>{sceneActions.detail}</span>
+              <div className="hub-command-header">
+                <div className="hub-command-copy">
+                  <strong>{sceneActions.title}</strong>
+                  <span>{sceneActions.detail}</span>
+                </div>
+                <span className="route-status-pill">{sceneActions.statusLabel}</span>
               </div>
               {sceneActions.regionActions?.length ? (
                 <div className="hub-region-actions">
                   {sceneActions.regionActions.map((action) => (
                     <button
                       key={action.id}
-                      className={action.active ? "hub-action active" : "hub-action"}
+                      className={action.active ? `hub-action active ${action.toneClass ?? ""}` : `hub-action ${action.toneClass ?? ""}`}
                       onClick={() => emitControlCommand(action.command)}
                       type="button"
                     >
@@ -291,6 +323,36 @@ function App() {
               ) : null}
             </div>
           ) : null}
+          <div className="route-progress-panel">
+            <div className="panel-header compact">
+              <strong>Route Progress</strong>
+              <small>Current browser-proven path and next unlock targets</small>
+            </div>
+            <div className="route-progress-grid">
+              {routeTracker.map((route, index) => (
+                <div
+                  key={route.id}
+                  className={
+                    route.active
+                      ? `route-progress-card active ${routeToneById[route.id] ?? ""}`
+                      : route.unlocked
+                        ? `route-progress-card ${routeToneById[route.id] ?? ""}`
+                        : "route-progress-card locked"
+                  }
+                >
+                  <strong>{route.name}</strong>
+                  <span>
+                    {route.active
+                      ? "Current route"
+                      : route.unlocked
+                        ? `Unlocked route ${index + 1}`
+                        : "Locked route"}
+                  </span>
+                  <small>Recommended level {route.recommendedLevel ?? "?"}</small>
+                </div>
+              ))}
+            </div>
+          </div>
           <SceneTransitionOverlay transition={runtime.transition} />
           <LevelUpPanel
             runtime={runtime}

@@ -12,6 +12,13 @@ const arena = {
   height: 540
 };
 
+function resetRouteRuntimeState(registry) {
+  registry.set("loadedPlayerState", null);
+  registry.set("loadedSessionSummary", null);
+  registry.set("explorationBonus", null);
+  registry.set("combatSnapshot", null);
+}
+
 export class HubScene extends Phaser.Scene {
   constructor() {
     super("HubScene");
@@ -153,6 +160,10 @@ export class HubScene extends Phaser.Scene {
     const definition = (this.content.classes ?? []).find((entry) => entry.id === this.selectedArchetype);
     const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
     emitRuntimeUpdate({
+      scene: {
+        scene: "hub",
+        label: "Hub"
+      },
       regionId: "hub_blacksite",
       player: {
         hp: 0,
@@ -220,6 +231,7 @@ export class HubScene extends Phaser.Scene {
     }
 
     this.isTransitioning = true;
+    resetRouteRuntimeState(this.registry);
     emitSoundEvent({ type: "skill_cast" });
     this.registry.set("currentRegionId", this.selectedRegionId);
     emitTransitionUpdate({

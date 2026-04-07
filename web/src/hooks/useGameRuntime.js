@@ -93,11 +93,7 @@ function mergeRuntimeState(current, next) {
     combatFeed: next?.combatFeed ?? current?.combatFeed ?? defaultRuntime.combatFeed,
     activeEffects: next?.activeEffects ?? current?.activeEffects ?? defaultRuntime.activeEffects,
     controls: next?.controls ?? current?.controls ?? defaultRuntime.controls,
-    sessionState: {
-      ...defaultRuntime.sessionState,
-      ...(current?.sessionState ?? {}),
-      ...(next?.sessionState ?? {})
-    }
+    sessionState: next?.sessionState ?? current?.sessionState ?? defaultRuntime.sessionState
   };
 }
 

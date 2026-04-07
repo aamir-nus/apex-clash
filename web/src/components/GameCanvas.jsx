@@ -67,6 +67,15 @@ export function GameCanvas({ content, selectedArchetype, playerProfile, activeSa
         return;
       }
 
+      const isSceneActive =
+        activeScene.sys?.isActive?.() ??
+        activeScene.scene?.isActive?.(sceneKey) ??
+        false;
+
+      if (!isSceneActive) {
+        return;
+      }
+
       if (activeScene.syncProfile) {
         activeScene.syncProfile(playerProfile);
         return;

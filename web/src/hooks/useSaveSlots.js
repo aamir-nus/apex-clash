@@ -56,7 +56,7 @@ export function useSaveSlots(selectedArchetype, runtime, authToken, onProfileSyn
         }
 
         setSlots(data);
-        setSelectedSlotId((current) => current || data[0]?.id || "");
+        setSelectedSlotId((current) => current);
         setStatus("ready");
       } catch {
         if (!active) {

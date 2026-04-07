@@ -859,6 +859,10 @@ export class CombatSandboxScene extends Phaser.Scene {
     const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
 
     emitRuntimeUpdate({
+      scene: {
+        scene: "combat",
+        label: "Combat"
+      },
       player: this.playerState,
       controls: [
         { key: "WASD", label: "Move" },

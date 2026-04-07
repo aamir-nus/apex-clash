@@ -59,7 +59,14 @@ Current verified browser baseline:
 - auth/login works with seeded admin
 - hub -> region deploy is browser-control stable
 - first full Shatter route is clearable in the headless browser gate
+- Veil continuation route is clearable in the headless browser gate
+- Veil scroll reward -> quick bind -> extract is clearable in the headless browser gate
 - save-slot create, resume toggle, and manual sync all pass in the headless browser gate
+
+Current mechanic-hardening target:
+- Cinder route needs the same browser-proven bar as Shatter and Veil
+- broader reward pacing and authored content depth still need to reach the same UX bar
+- live Mongo-backed gameplay verification remains open
 
 ## Final
 

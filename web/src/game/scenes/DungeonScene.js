@@ -246,6 +246,10 @@ export class DungeonScene extends Phaser.Scene {
     const isVeilDungeon = this.currentRegionId === "veil_dungeon";
     const isCinderDungeon = this.currentRegionId === "cinder_dungeon";
     emitRuntimeUpdate({
+      scene: {
+        scene: "dungeon",
+        label: "Dungeon"
+      },
       regionId: this.currentRegionId,
       player: this.playerState,
       controls: [

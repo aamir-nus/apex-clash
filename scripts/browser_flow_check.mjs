@@ -18,6 +18,10 @@ const mimeTypes = {
   ".svg": "image/svg+xml"
 };
 
+function routeStatus(page, text) {
+  return page.locator(".route-status-pill", { hasText: text });
+}
+
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
@@ -104,6 +108,10 @@ async function run() {
   let context = null;
   let page = null;
   const pageLogs = [];
+  const testUser = {
+    username: `flow_${Date.now()}`,
+    password: "flowpass"
+  };
 
   try {
     await new Promise((resolve, reject) => {
@@ -130,15 +138,20 @@ async function run() {
     metrics.shellReady = true;
 
     const loginStartedAt = Date.now();
-    await page.getByPlaceholder("username").fill("admin");
-    await page.getByPlaceholder("password").fill("admin");
-    await page.getByRole("button", { name: "Login" }).click();
+    await page.getByRole("button", { name: "Need an account?" }).click();
+    await page.getByPlaceholder("username").fill(testUser.username);
+    await page.getByPlaceholder("password").fill(testUser.password);
+    await page.getByRole("button", { name: "Register", exact: true }).click();
+    await page.getByText("Registered. Log in to bind your save slots.").waitFor();
+    await page.getByPlaceholder("username").fill(testUser.username);
+    await page.getByPlaceholder("password").fill(testUser.password);
+    await page.getByRole("button", { name: "Login", exact: true }).click();
     await page.getByRole("button", { name: "Logout" }).waitFor();
     metrics.loginMs = Date.now() - loginStartedAt;
 
     await page.getByText("Live Profile Resume").waitFor();
-    await page.getByText(/Resume mode: save snapshot \(slot-/).waitFor();
-    metrics.snapshotResumeVisible = true;
+    await page.getByText("Resume mode: live profile session").waitFor();
+    metrics.liveResumeDefault = true;
 
     const transitionStartedAt = Date.now();
     await page.getByRole("button", { name: "Shatter Block", exact: true }).click();
@@ -160,14 +173,14 @@ async function run() {
 
     const relicStartedAt = Date.now();
     await page.getByRole("button", { name: "Claim Relic" }).click();
-    await page.getByText("Miniboss chamber", { exact: true }).waitFor();
+    await routeStatus(page, "Miniboss chamber").waitFor();
     await delay(250);
     metrics.claimRelicMs = Date.now() - relicStartedAt;
 
     const minibossStartedAt = Date.now();
     const minibossTimeout = Date.now() + 15000;
     while (Date.now() < minibossTimeout) {
-      const bossVaultOpen = await page.getByText("Boss vault ready").isVisible().catch(() => false);
+      const bossVaultOpen = await routeStatus(page, "Boss vault ready").isVisible().catch(() => false);
       if (bossVaultOpen) {
         break;
       }
@@ -175,7 +188,7 @@ async function run() {
       await page.getByRole("button", { name: "Strike Sentinel" }).click();
       await delay(250);
     }
-    await page.getByText("Boss vault ready", { exact: true }).waitFor();
+    await routeStatus(page, "Boss vault ready").waitFor();
     metrics.minibossClearMs = Date.now() - minibossStartedAt;
 
     const bossStartedAt = Date.now();
@@ -203,6 +216,76 @@ async function run() {
     await page.getByRole("button", { name: "Veil Shrine", exact: true }).waitFor();
     metrics.extractToHubMs = Date.now() - extractStartedAt;
 
+    const veilDeployStartedAt = Date.now();
+    await page.getByRole("button", { name: "Veil Shrine", exact: true }).click();
+    await page.getByRole("button", { name: /Deploy To Veil Shrine/ }).click();
+    await page.getByText("Scene: Region").waitFor();
+    await page.getByText("Route pressure: sanctum descent").waitFor();
+    metrics.transitionToVeilRegionMs = Date.now() - veilDeployStartedAt;
+
+    const veilBoonStartedAt = Date.now();
+    await page.getByRole("button", { name: "Secure Boon" }).click();
+    await page.getByText("Move to the gate and press E").waitFor();
+    metrics.claimVeilBoonMs = Date.now() - veilBoonStartedAt;
+
+    const veilDungeonStartedAt = Date.now();
+    await page.getByRole("button", { name: "Enter Dungeon" }).click();
+    await page.getByText("Scene: Dungeon").waitFor();
+    await page.getByText("Sigil search active").waitFor();
+    metrics.transitionToVeilDungeonMs = Date.now() - veilDungeonStartedAt;
+
+    const veilRelicStartedAt = Date.now();
+    await page.getByRole("button", { name: "Claim Relic" }).click();
+    await routeStatus(page, "Miniboss chamber").waitFor();
+    await delay(250);
+    metrics.claimVeilRelicMs = Date.now() - veilRelicStartedAt;
+
+    const veilMinibossStartedAt = Date.now();
+    const veilMinibossTimeout = Date.now() + 20000;
+    while (Date.now() < veilMinibossTimeout) {
+      const bossVaultOpen = await routeStatus(page, "Boss vault ready").isVisible().catch(() => false);
+      if (bossVaultOpen) {
+        break;
+      }
+
+      await page.getByRole("button", { name: "Strike Sentinel" }).click();
+      await delay(300);
+    }
+    await routeStatus(page, "Boss vault ready").waitFor();
+    metrics.veilMinibossClearMs = Date.now() - veilMinibossStartedAt;
+
+    const veilBossStartedAt = Date.now();
+    await page.getByRole("button", { name: "Enter Boss Vault" }).click();
+    await page.getByText("Scene: Boss Vault").waitFor();
+    await page.getByText("Sanctum curse").waitFor();
+    metrics.transitionToVeilBossMs = Date.now() - veilBossStartedAt;
+
+    const veilBossClearStartedAt = Date.now();
+    const veilBossTimeout = Date.now() + 25000;
+    while (Date.now() < veilBossTimeout) {
+      const extractReady = await page.getByText("Extract with the clear").isVisible().catch(() => false);
+      if (extractReady) {
+        break;
+      }
+
+      await page.getByRole("button", { name: "Strike Boss" }).click();
+      await delay(300);
+    }
+    await page.getByText("Extract with the clear").waitFor();
+    await page.getByText("New scroll: Rupture Arc").waitFor();
+    metrics.veilBossClearMs = Date.now() - veilBossClearStartedAt;
+
+    const quickBindStartedAt = Date.now();
+    await page.getByRole("button", { name: "Quick bind" }).click();
+    await page.locator(".loadout-chip.skill-chip", { hasText: "Rupture Arc" }).first().waitFor();
+    metrics.quickBindRewardMs = Date.now() - quickBindStartedAt;
+
+    const veilExtractStartedAt = Date.now();
+    await page.getByRole("button", { name: "Extract" }).click();
+    await page.getByText("Scene: Hub").waitFor();
+    await page.getByRole("button", { name: "Cinder Ward", exact: true }).waitFor();
+    metrics.extractFromVeilMs = Date.now() - veilExtractStartedAt;
+
     const tutorialComplete = await page.evaluate(() =>
       window.localStorage.getItem("apex-clash:first-run-complete")
     );
@@ -211,11 +294,13 @@ async function run() {
     const createSlotStartedAt = Date.now();
     await page.getByRole("button", { name: "New" }).click();
     await page.getByText("Save status: slot created").waitFor();
+    await page.getByText(/Resume mode: save snapshot \(slot-/).waitFor();
     metrics.createSlotMs = Date.now() - createSlotStartedAt;
 
     await page.getByText("Live Profile Resume").click();
     await page.getByText("Resume mode: live profile session").waitFor();
     metrics.liveResumeToggleWorks = true;
+    metrics.snapshotResumeVisible = true;
     metrics.liveResumeVisible = true;
 
     const syncStartedAt = Date.now();
@@ -225,6 +310,7 @@ async function run() {
 
     assert(metrics.shellReady, "Initial browser shell was not ready.");
     assert(metrics.liveResumeVisible, "Live profile resume state was not visible.");
+    assert(metrics.liveResumeDefault, "Live profile resume was not the default mode.");
     assert(metrics.snapshotResumeVisible, "Snapshot resume state was not visible after slot creation.");
     assert(metrics.liveResumeToggleWorks, "Resume toggle did not return to live profile mode.");
     assert(metrics.firstRunTutorialComplete, "First-run tutorial completion flag was not persisted.");
