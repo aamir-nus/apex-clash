@@ -231,6 +231,58 @@
     }
   },
   {
+    "id": "caldera_emblem",
+    "name": "Caldera Emblem",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["close_combat"],
+    "statModifiers": {
+      "attack": 4,
+      "defense": 2,
+      "poise": 3
+    }
+  },
+  {
+    "id": "phoenix_loop",
+    "name": "Phoenix Loop",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["mid_range"],
+    "statModifiers": {
+      "attack": 3,
+      "technique": 3,
+      "speed": 2
+    }
+  },
+  {
+    "id": "sunflare_prism",
+    "name": "Sunflare Prism",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["long_range"],
+    "statModifiers": {
+      "attack": 2,
+      "technique": 5,
+      "crit": 2
+    }
+  },
+  {
+    "id": "kiln_tread",
+    "name": "Kiln Tread",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 4,
+      "defense": 2,
+      "speed": 2
+    }
+  },
+  {
     "id": "field_tonic",
     "name": "Field Tonic",
     "type": "consumable",

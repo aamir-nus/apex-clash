@@ -35,6 +35,53 @@ function buildSkillBindingSummary(equippedSkills = []) {
   }));
 }
 
+function mergeById(currentEntries = [], nextEntries = []) {
+  const merged = new Map();
+  currentEntries.forEach((entry) => {
+    if (entry?.id) {
+      merged.set(entry.id, entry);
+    }
+  });
+  nextEntries.forEach((entry) => {
+    if (entry?.id) {
+      merged.set(entry.id, entry);
+    }
+  });
+  return [...merged.values()];
+}
+
+function mergeProfileState(currentProfile, nextProfile) {
+  if (!currentProfile) {
+    return nextProfile;
+  }
+
+  if (!nextProfile) {
+    return currentProfile;
+  }
+
+  return {
+    ...currentProfile,
+    ...nextProfile,
+    unlockedRegionIds: [
+      ...new Set([...(currentProfile.unlockedRegionIds ?? []), ...(nextProfile.unlockedRegionIds ?? [])])
+    ],
+    clearedRegionIds: [
+      ...new Set([...(currentProfile.clearedRegionIds ?? []), ...(nextProfile.clearedRegionIds ?? [])])
+    ],
+    inventoryItems: mergeById(currentProfile.inventoryItems, nextProfile.inventoryItems),
+    equippedItems: mergeById(currentProfile.equippedItems, nextProfile.equippedItems),
+    availableSkills: mergeById(currentProfile.availableSkills, nextProfile.availableSkills),
+    equippedSkills:
+      nextProfile.equippedSkills?.length || currentProfile.equippedSkills?.length
+        ? mergeById(currentProfile.equippedSkills, nextProfile.equippedSkills)
+        : [],
+    sessionState: {
+      ...(currentProfile.sessionState ?? {}),
+      ...(nextProfile.sessionState ?? {})
+    }
+  };
+}
+
 export function usePlayerProfile(authToken, selectedArchetype) {
   const [profile, setProfile] = useState(null);
   const [status, setStatus] = useState("idle");
@@ -199,7 +246,7 @@ export function usePlayerProfile(authToken, selectedArchetype) {
   }
 
   function applyProfileUpdate(nextProfile) {
-    setProfile(nextProfile);
+    setProfile((currentProfile) => mergeProfileState(currentProfile, nextProfile));
   }
 
   function clearLatestReward() {

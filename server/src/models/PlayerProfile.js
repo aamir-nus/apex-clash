@@ -6,6 +6,7 @@ const playerProfileSchema = new mongoose.Schema(
     classType: { type: String, required: true, default: "close_combat" },
     currentRegionId: { type: String, required: true, default: "hub_blacksite" },
     unlockedRegionIds: { type: [String], required: true, default: ["shatter_block"] },
+    clearedRegionIds: { type: [String], required: true, default: [] },
     level: { type: Number, required: true, default: 1 },
     xp: { type: Number, required: true, default: 0 },
     xpToNextLevel: { type: Number, required: true, default: 30 },

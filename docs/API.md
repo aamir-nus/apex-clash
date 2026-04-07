@@ -64,6 +64,7 @@ Player contract rules:
 - `R` is reserved for `Domain Surge` and is not part of `PUT /player/loadout/skills`
 - session-state updates merge into existing session keys
 - unlocked region progression is stored server-side on the player profile as `unlockedRegionIds`
+- cleared route progression is stored server-side on the player profile as `clearedRegionIds`
 - reward claims are idempotent and duplicate claims return `reward: null`
 - reward claims must include the correct route context via `regionId`
 - reward claims may also include `sessionState` proof and are validated atomically against that proof in the same request
@@ -75,6 +76,7 @@ Player contract rules:
 - reward claims may also return `bonusRewards` for consumables and materials
 - duplicate reward claims are idempotent for both the primary reward and any bonus rewards
 - `veil_boss_scroll` unlocks one class-specific skill and returns a `scroll` reward payload
+- `cinder_boss_core` grants one class-specific epic item reward and can also return bonus consumables/materials
 
 ### Saves
 
@@ -121,6 +123,7 @@ Current public regression gates:
 The experience audit keeps the build aligned with the intended gameplay slice, not just backend response shapes. It checks current content breadth, Q/E skill-slot truth, first-run tutorial coverage, objective coverage, live profile sync coverage, and smoke-suite composition.
 The debug audit keeps our troubleshooting surface honest. It checks request/error logs, reward and skill-equip rejection logs, save-slot mutation logs, and the client-side background sync error context.
 The UI flow audit checks the player-visible browser path: transition overlay messaging, onboarding visibility, save/resume visibility, reward banners, and reward-to-bind confirmation surfaces.
-The browser flow check currently proves the first authored route through boon, dungeon, miniboss, boss, and extract, verifies unlocked-route visibility, creates a save slot, and verifies resume-mode and manual-sync behavior.
-The browser flow check now also proves the unlocked-route continuation path: unlock -> Veil route -> Veil boss scroll reward -> quick bind -> extract.
-The next browser-hardening target is the Cinder continuation path and broader multi-route content pacing.
+The browser flow check proves the first authored route through boon, dungeon, miniboss, boss, and extract, verifies unlocked-route visibility, creates a save slot, and verifies resume-mode and manual-sync behavior.
+The browser flow check also proves the unlocked-route continuation paths: unlock -> Veil route -> Veil boss scroll reward -> quick bind -> extract -> Cinder route -> Cinder boss reward -> quick equip -> extract.
+The browser flow check now also verifies that fully completed routes stay visibly cleared in the hub after extraction.
+The next browser-hardening target is broader content pacing, Mongo-backed gameplay verification, and richer authored route depth beyond the current three-route slice.

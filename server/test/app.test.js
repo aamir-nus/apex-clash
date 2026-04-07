@@ -557,6 +557,10 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     veilBossSessionResponse
   );
   assert.equal(veilBossSessionResponse.statusCode, 200);
+  assert.equal(
+    veilBossSessionResponse.payload.data.clearedRegionIds.includes("shatter_block"),
+    true
+  );
 
   const invalidScrollRewardResponse = createMockResponse();
   await claimPlayerDungeonReward(
@@ -571,6 +575,20 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   );
   assert.equal(invalidScrollRewardResponse.statusCode, 400);
   assert.equal(invalidScrollRewardResponse.payload.error, "Invalid reward context");
+
+  const invalidCinderBossRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "cinder_boss_core",
+        regionId: "cinder_boss_vault"
+      }
+    },
+    invalidCinderBossRewardResponse
+  );
+  assert.equal(invalidCinderBossRewardResponse.statusCode, 400);
+  assert.equal(invalidCinderBossRewardResponse.payload.error, "Invalid reward context");
 
   const clearedVeilBossSessionResponse = createMockResponse();
   await updatePlayerSession(
@@ -631,6 +649,56 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     ).length,
     1
   );
+
+  const clearedCinderBossSessionResponse = createMockResponse();
+  await updatePlayerSession(
+    {
+      ...request,
+      body: {
+        regionId: "cinder_boss_vault",
+        sessionState: {
+          clearedBossRegionId: "cinder_boss_vault"
+        }
+      }
+    },
+    clearedCinderBossSessionResponse
+  );
+  assert.equal(clearedCinderBossSessionResponse.statusCode, 200);
+
+  const cinderBossRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "cinder_boss_core",
+        regionId: "cinder_boss_vault"
+      }
+    },
+    cinderBossRewardResponse
+  );
+  assert.equal(cinderBossRewardResponse.statusCode, 200);
+  assert.equal(cinderBossRewardResponse.payload.data.reward.rarity, "epic");
+  assert.equal(cinderBossRewardResponse.payload.data.bonusRewards.length <= 2, true);
+  assert.equal(
+    cinderBossRewardResponse.payload.data.profile.inventoryItems.some(
+      (item) => item.id === cinderBossRewardResponse.payload.data.reward.id
+    ),
+    true
+  );
+
+  const duplicateCinderBossRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "cinder_boss_core",
+        regionId: "cinder_boss_vault"
+      }
+    },
+    duplicateCinderBossRewardResponse
+  );
+  assert.equal(duplicateCinderBossRewardResponse.statusCode, 200);
+  assert.equal(duplicateCinderBossRewardResponse.payload.data.reward, null);
 });
 
 test("save controller stores progression-oriented player state", async () => {

@@ -137,12 +137,12 @@ export function useSaveSlots(selectedArchetype, runtime, authToken, onProfileSyn
   }
 
   useEffect(() => {
-    if (!authToken || !selectedSlotId || status !== "ready") {
+    if (!authToken || status !== "ready") {
       return undefined;
     }
 
     const nextSignature = JSON.stringify({
-      slotId: selectedSlotId,
+      sessionScope: selectedSlotId ?? "live-profile",
       payload: savePayload
     });
 
@@ -156,6 +156,7 @@ export function useSaveSlots(selectedArchetype, runtime, authToken, onProfileSyn
     });
     const requestId = backgroundRequestIdRef.current + 1;
     backgroundRequestIdRef.current = requestId;
+    const syncDelayMs = savePayload.sessionSummary.sessionState?.clearedBossRegionId ? 0 : 700;
 
     const timer = window.setTimeout(async () => {
       try {
@@ -181,7 +182,7 @@ export function useSaveSlots(selectedArchetype, runtime, authToken, onProfileSyn
         }
 
         window.console.error("Background save sync failed", {
-          slotId: selectedSlotId,
+          slotId: selectedSlotId ?? null,
           regionId: savePayload.regionId,
           scene: runtime.scene.scene,
           message: syncError?.message ?? "Unknown error"
@@ -192,7 +193,7 @@ export function useSaveSlots(selectedArchetype, runtime, authToken, onProfileSyn
           detail: `background sync failed: ${savePayload.regionId}`
         });
       }
-    }, 700);
+    }, syncDelayMs);
 
     return () => window.clearTimeout(timer);
   }, [authToken, onProfileSynced, runtime.scene.scene, savePayload, selectedSlotId, status]);

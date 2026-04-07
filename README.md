@@ -6,7 +6,7 @@ Browser-first occult action RPG built with React, Phaser, Express, and MongoDB.
 
 Current target: `v3` browser release candidate path
 
-Working now:
+Browser-proven now:
 - browser launcher and Phaser play surface
 - auth, player profile, inventory, and save slots
 - hub -> region -> dungeon -> miniboss -> boss flow
@@ -17,6 +17,7 @@ Working now:
 - 3 authored region routes in the current slice: Shatter Block, Veil Shrine, and Cinder Ward
 - the first full Shatter route is proven end to end in the browser gate: boon -> dungeon -> miniboss -> boss -> extract -> unlock
 - the Veil continuation route is also proven end to end in the browser gate: deploy -> boon -> dungeon -> miniboss -> boss -> scroll reward -> quick bind -> extract
+- the Cinder route is also proven end to end in the browser gate: deploy -> boon -> dungeon -> miniboss -> boss -> reward -> quick equip -> extract
 - Veil miniboss rewards are distinct from the Shatter route
 - Cinder miniboss rewards are distinct from both Shatter and Veil
 - route rewards can now include consumables and materials, not just equippable charms
@@ -24,9 +25,23 @@ Working now:
 - backend-owned XP, level-up choices, session sync, and reward claims
 - manual save snapshots plus profile-session resume
 
-In progress:
+Implemented but still not release-polished:
+- scene dressing is still mostly prototype-grade
+- combat readability is serviceable, not final-quality
+- launcher/HUD/inventory UX is improved, but still not ship-grade
+- reward pacing exists, but not at full content depth
+- progression exists, but not at full `v3` scale
+
+Missing for a credible `v3` release candidate:
+- more authored dungeons and bosses
+- broader loot, consumables, and materials
+- live Mongo-backed gameplay verification
+- sprite and audio production pipeline
+- stronger first-run onboarding and presentation polish
+- broader browser UX pass across all screens and flows
+
+Active work:
 - broader authored content and reward pacing beyond the current 3-route slice
-- Cinder route browser hardening to the same bar as Shatter and Veil
 - live Mongo-backed persistence verification in gameplay flows
 - sprite and audio production pipeline
 - browser bundle hardening beyond current chunk splitting
@@ -88,7 +103,7 @@ npm run test:smoke
 `test:experience-audit` reports gameplay/UX coverage metrics for class count, region count, item and skill breadth, objective coverage, tutorial coverage, live loadout sync coverage, and smoke-suite composition.
 `test:debug-audit` verifies that request, error, reward-rejection, save, and background sync debug hooks are still present with the expected context fields.
 `test:ui-flow-audit` verifies the player-facing browser flow surfaces for transitions, onboarding, save/resume visibility, reward banners, and bind confirmation.
-`test:browser-flow` now proves the first full Shatter route, the Veil continuation route, Veil scroll reward -> quick bind, extract, save-slot create, resume-mode toggle, and manual sync.
+`test:browser-flow` now proves the full Shatter, Veil, and Cinder routes, including Veil scroll quick-bind, Cinder reward quick-equip, extract, save-slot create, resume-mode toggle, manual sync, and persistent cleared-route progression in the hub.
 
 Latest verified browser-flow timings:
 - login: `249ms`
@@ -111,6 +126,15 @@ Latest multi-route verified timings:
 - Veil boss clear: `10962ms`
 - quick bind reward: `68ms`
 - manual sync: `152ms`
+
+Latest three-route verified timings:
+- login: `450ms`
+- Shatter boss clear: `3116ms`
+- Veil boss clear: `7217ms`
+- Cinder boss clear: `4897ms`
+- Veil quick bind: `77ms`
+- Cinder quick equip: `65ms`
+- manual sync: `161ms`
 
 ## Game Flow
 
@@ -162,17 +186,50 @@ docker-compose.yml  local web/api/mongo stack
 
 This is not the full product `v1` from the PRD yet.
 
-It is a hardened vertical slice on the path to `v3`, with:
+This repository milestone is `v1` in repo-version terms, not the final PRD-complete game.
+
+Compared with `v0.5`, this `v1` milestone adds:
+- three browser-proven authored routes instead of one partial route
+- backend-owned reward, progression, and loadout contracts across the full slice
+- Veil scroll unlock -> quick bind flow
+- Cinder boss reward -> quick equip flow
+- persistent unlocked and cleared route progression in the hub
+- stable browser automation for the end-to-end gameplay loop
+
+It is still a hardened vertical slice on the path to `v3`, with:
 - real backend contracts
 - resumable session state
 - 3-route dungeon progression
 - persistent item rewards
 - live loadout-to-combat stat sync across the active gameplay scenes
-- two browser-proven full routes with real extract, unlock, reward, and bind behavior
+- three browser-proven full routes with real extract, unlock, reward, bind, equip, and cleared-route tracking behavior
+- cleared routes persist on the player profile and render distinctly in the hub progression cards
+- the hub now shows an explicit Blacksite route ladder summary with clear percentage and authored-route completion state
 
 Still missing for a spec-faithful `v3`:
-- stable third-route browser-proven progression
 - more authored dungeons and bosses
 - broader loot, consumables, and materials
 - Mongo-backed gameplay verification
 - sprite/audio production pipeline
+- a real production-polish pass on scene visuals, combat readability, onboarding, and browser UX
+
+## Next Steps
+
+Immediate task breakdown:
+1. Stabilize real persistence:
+   - verify live Mongo-backed gameplay persistence in actual browser runs
+   - confirm save snapshot and live profile resume behave the same after restart
+2. Polish the proven path:
+   - improve hub, region, dungeon, and boss visual dressing
+   - tighten onboarding and first-run readability
+   - sharpen combat telegraphs, feedback, and scene clarity
+3. Expand authored content:
+   - add more dungeon layouts per region
+   - improve reward pacing and encounter variety
+   - broaden loot, consumables, and material loops
+4. Replace placeholder presentation:
+   - adopt sprite-backed actors and stronger animation states
+   - add a real sound pipeline instead of only lightweight cues
+5. Harden deployment:
+   - keep Docker and non-Docker paths green
+   - address Phaser bundle strategy once content growth justifies it

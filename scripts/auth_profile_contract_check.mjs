@@ -390,6 +390,52 @@ results.push(
 );
 
 results.push(
+  await runStep("POST /player/rewards/claim cinder boss reward invalid", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-cinder-boss-invalid",
+    authUser,
+    body: {
+      rewardSource: "cinder_boss_core",
+      regionId: "cinder_boss_vault"
+    }
+  })
+);
+
+results.push(
+  await runStep("PUT /player/session-state cinder boss cleared", updatePlayerSession, {
+    id: "req-session-state-cinder-boss-cleared",
+    authUser,
+    body: {
+      regionId: "cinder_boss_vault",
+      sessionState: {
+        clearedBossRegionId: "cinder_boss_vault"
+      }
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim cinder boss reward", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-cinder-boss",
+    authUser,
+    body: {
+      rewardSource: "cinder_boss_core",
+      regionId: "cinder_boss_vault"
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim cinder boss reward duplicate", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-cinder-boss-duplicate",
+    authUser,
+    body: {
+      rewardSource: "cinder_boss_core",
+      regionId: "cinder_boss_vault"
+    }
+  })
+);
+
+results.push(
   await runStep("GET /save-slots authorized before create", listSaveSlots, {
     authUser
   })

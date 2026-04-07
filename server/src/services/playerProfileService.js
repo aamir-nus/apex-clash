@@ -83,6 +83,20 @@ function getRewardItemId(classType, rewardSource) {
     }
   }
 
+  if (rewardSource === "cinder_boss_core") {
+    switch (classType) {
+      case "mid_range":
+        return "phoenix_loop";
+      case "long_range":
+        return "sunflare_prism";
+      case "heavenly_restriction":
+        return "kiln_tread";
+      case "close_combat":
+      default:
+        return "caldera_emblem";
+    }
+  }
+
   return null;
 }
 
@@ -114,9 +128,21 @@ function getBonusRewardItemIds(rewardSource) {
       return ["ember_tonic", "furnace_core"];
     case "veil_boss_scroll":
       return ["veil_shard"];
+    case "cinder_boss_core":
+      return ["ember_tonic", "furnace_core"];
     default:
       return [];
   }
+}
+
+function mapBossVaultToClearedRegion(regionId) {
+  return regionId === "shatter_boss_vault"
+    ? "shatter_block"
+    : regionId === "veil_boss_vault"
+      ? "veil_shrine"
+      : regionId === "cinder_boss_vault"
+        ? "cinder_ward"
+        : null;
 }
 
 const ROUTE_STATE_KEYS = [
@@ -194,7 +220,8 @@ function isRewardContextValid(rewardSource, regionId, profile) {
     dungeon_miniboss: ["shatter_dungeon"],
     veil_miniboss: ["veil_dungeon"],
     cinder_miniboss: ["cinder_dungeon"],
-    veil_boss_scroll: ["veil_boss_vault"]
+    veil_boss_scroll: ["veil_boss_vault"],
+    cinder_boss_core: ["cinder_boss_vault"]
   };
 
   const allowedRegionIds = allowedRegionIdsByReward[rewardSource];
@@ -217,7 +244,7 @@ function isRewardContextValid(rewardSource, regionId, profile) {
     );
   }
 
-  if (rewardSource === "veil_boss_scroll") {
+  if (rewardSource === "veil_boss_scroll" || rewardSource === "cinder_boss_core") {
     return profile.sessionState?.clearedBossRegionId === effectiveRegionId;
   }
 
@@ -274,6 +301,7 @@ function buildProfile(userId, classType = "close_combat") {
     classType,
     currentRegionId: "hub_blacksite",
     unlockedRegionIds: ["shatter_block"],
+    clearedRegionIds: [],
     level: 1,
     xp: 0,
     xpToNextLevel: 30,
@@ -302,6 +330,7 @@ function serializeProfile(profile) {
     classType: profile.classType,
     currentRegionId: profile.currentRegionId,
     unlockedRegionIds: profile.unlockedRegionIds ?? ["shatter_block"],
+    clearedRegionIds: profile.clearedRegionIds ?? [],
     level: profile.level,
     xp: profile.xp,
     xpToNextLevel: profile.xpToNextLevel,
@@ -447,12 +476,22 @@ export async function applyPlayerCombatReward(userId, rewardState = {}) {
 
 export async function updatePlayerSessionState(userId, sessionUpdate = {}) {
   const profile = (await getPlayerProfileRecord(userId)) ?? buildProfile(userId);
+  const derivedClearedRegionId = mapBossVaultToClearedRegion(
+    sessionUpdate.sessionState?.clearedBossRegionId ?? null
+  );
 
   profile.currentRegionId = sessionUpdate.regionId ?? profile.currentRegionId;
   profile.unlockedRegionIds = [
     ...new Set([
       ...(profile.unlockedRegionIds ?? ["shatter_block"]),
       ...(sessionUpdate.unlockedRegionIds ?? [])
+    ])
+  ];
+  profile.clearedRegionIds = [
+    ...new Set([
+      ...(profile.clearedRegionIds ?? []),
+      ...(sessionUpdate.clearedRegionIds ?? []),
+      ...(derivedClearedRegionId ? [derivedClearedRegionId] : [])
     ])
   ];
   profile.sessionState = mergeSessionState(
@@ -485,6 +524,16 @@ export async function claimPlayerReward(userId, rewardSource, regionId, sessionS
 
   if (!isRewardContextValid(rewardSource, regionId, profile)) {
     return { error: "Invalid reward context" };
+  }
+
+  if (regionId?.endsWith("_boss_vault")) {
+    const clearedRegionId = mapBossVaultToClearedRegion(regionId);
+
+    if (clearedRegionId) {
+      profile.clearedRegionIds = [
+        ...new Set([...(profile.clearedRegionIds ?? []), clearedRegionId])
+      ];
+    }
   }
 
   if (rewardItemId) {

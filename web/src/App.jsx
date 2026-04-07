@@ -41,6 +41,22 @@ const routeToneById = {
   cinder_ward: "route-cinder"
 };
 
+function isRouteCleared(regionId, clearedRegionIds, unlockedRegionIds) {
+  if (clearedRegionIds.includes(regionId)) {
+    return true;
+  }
+
+  if (regionId === "shatter_block") {
+    return unlockedRegionIds.includes("veil_shrine") || unlockedRegionIds.includes("cinder_ward");
+  }
+
+  if (regionId === "veil_shrine") {
+    return unlockedRegionIds.includes("cinder_ward");
+  }
+
+  return false;
+}
+
 function buildSceneActions(scene, regionCards, selectedRegionId, encounterStatus) {
   if (scene === "hub") {
     return {
@@ -171,6 +187,7 @@ function App() {
       ...(runtime.sessionState?.unlockedRegionIds ?? [])
     ])
   ];
+  const clearedRegionIds = playerProfile.profile?.clearedRegionIds ?? [];
   const regionCards = (content?.regions ?? []).filter((region) => unlockedRegionIds.includes(region.id));
   const sceneActions = buildSceneActions(
     runtime.scene.scene,
@@ -183,11 +200,17 @@ function App() {
     .map((region) => ({
       ...region,
       unlocked: unlockedRegionIds.includes(region.id),
+      cleared: isRouteCleared(region.id, clearedRegionIds, unlockedRegionIds),
       active:
         runtime.selectedRegionId === region.id ||
         runtime.regionId === region.id ||
         runtime.regionId === region.id.replace("_block", "_dungeon")
     }));
+  const clearedRouteCount = routeTracker.filter((route) => route.cleared).length;
+  const unlockedRouteCount = routeTracker.filter((route) => route.unlocked).length;
+  const routeCompletionPercent = routeTracker.length
+    ? Math.round((clearedRouteCount / routeTracker.length) * 100)
+    : 0;
 
   return (
     <main className="app-shell">
@@ -258,11 +281,17 @@ function App() {
             </div>
             <div>
               <strong>Stable route</strong>
-              <span>Shatter Block is browser-proven end to end</span>
+              <span>All 3 routes are browser-proven end to end</span>
             </div>
             <div>
-              <strong>Hardening target</strong>
-              <span>Veil continuation and route-state isolation</span>
+              <strong>Next target</strong>
+              <span>Mongo gameplay verification and broader authored content</span>
+            </div>
+            <div>
+              <strong>Route clear</strong>
+              <span>
+                {clearedRouteCount}/{routeTracker.length || 3} cleared · {routeCompletionPercent}%
+              </span>
             </div>
           </div>
           <Suspense fallback={<div className="canvas-loading">Loading Phaser runtime...</div>}>
@@ -326,7 +355,28 @@ function App() {
           <div className="route-progress-panel">
             <div className="panel-header compact">
               <strong>Route Progress</strong>
-              <small>Current browser-proven path and next unlock targets</small>
+              <small>
+                {clearedRouteCount === routeTracker.length && routeTracker.length
+                  ? "All authored routes cleared in the current browser run."
+                  : `${clearedRouteCount} cleared · ${unlockedRouteCount} unlocked · next route ready`}
+              </small>
+            </div>
+            <div className="route-progress-summary">
+              <div className="route-progress-meter" aria-hidden="true">
+                <span style={{ width: `${routeCompletionPercent}%` }} />
+              </div>
+              <div className="route-progress-copy">
+                <strong>
+                  {clearedRouteCount === routeTracker.length && routeTracker.length
+                    ? "Blacksite route ladder complete"
+                    : "Current browser-proven path and next unlock targets"}
+                </strong>
+                <small>
+                  {clearedRouteCount === routeTracker.length && routeTracker.length
+                    ? "Shatter, Veil, and Cinder are all represented as cleared."
+                    : "Hub cards reflect active, cleared, and unlocked route state from runtime and profile sync."}
+                </small>
+              </div>
             </div>
             <div className="route-progress-grid">
               {routeTracker.map((route, index) => (
@@ -334,19 +384,27 @@ function App() {
                   key={route.id}
                   className={
                     route.active
-                      ? `route-progress-card active ${routeToneById[route.id] ?? ""}`
+                      ? route.cleared
+                        ? `route-progress-card active cleared ${routeToneById[route.id] ?? ""}`
+                        : `route-progress-card active ${routeToneById[route.id] ?? ""}`
+                      : route.cleared
+                      ? `route-progress-card cleared ${routeToneById[route.id] ?? ""}`
                       : route.unlocked
-                        ? `route-progress-card ${routeToneById[route.id] ?? ""}`
-                        : "route-progress-card locked"
+                      ? `route-progress-card ${routeToneById[route.id] ?? ""}`
+                      : "route-progress-card locked"
                   }
                 >
                   <strong>{route.name}</strong>
                   <span>
                     {route.active
-                      ? "Current route"
+                      ? route.cleared
+                        ? "Current cleared route"
+                        : "Current route"
+                      : route.cleared
+                      ? "Cleared route"
                       : route.unlocked
-                        ? `Unlocked route ${index + 1}`
-                        : "Locked route"}
+                      ? `Unlocked route ${index + 1}`
+                      : "Locked route"}
                   </span>
                   <small>Recommended level {route.recommendedLevel ?? "?"}</small>
                 </div>

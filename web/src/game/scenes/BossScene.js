@@ -392,6 +392,7 @@ export class BossScene extends Phaser.Scene {
       this.playerState.ce = Math.max(0, this.playerState.ce - this.cinderBacklashCe);
       this.playerState.hp = Math.max(1, this.playerState.hp - this.cinderBacklashHp);
       this.bossHp = Math.max(0, this.bossHp - Math.max(4, Math.floor(damage * 0.25)));
+      this.handleBossRewardClaim();
       emitSoundEvent({ type: "danger" });
       this.emitBossRuntime();
       return;
@@ -406,20 +407,35 @@ export class BossScene extends Phaser.Scene {
     }
 
     this.bossHp = Math.max(0, this.bossHp - damage);
+    this.handleBossRewardClaim();
     emitSoundEvent({ type: this.bossHp === 0 ? "enemy_down" : "skill_cast" });
-    if (this.bossHp === 0 && !this.rewardClaimed) {
-      this.rewardClaimed = true;
-        if (this.currentRegionId === "veil_boss_vault") {
-          emitInventoryReward({
-            rewardSource: "veil_boss_scroll",
-            regionId: this.currentRegionId,
-            sessionState: {
-              clearedBossRegionId: this.currentRegionId
-            }
-          });
-        }
-    }
     this.emitBossRuntime();
+  }
+
+  handleBossRewardClaim() {
+    if (this.bossHp !== 0 || this.rewardClaimed) {
+      return;
+    }
+
+    this.rewardClaimed = true;
+    if (this.currentRegionId === "veil_boss_vault") {
+      emitInventoryReward({
+        rewardSource: "veil_boss_scroll",
+        regionId: this.currentRegionId,
+        sessionState: {
+          clearedBossRegionId: this.currentRegionId
+        }
+      });
+    }
+    if (this.currentRegionId === "cinder_boss_vault") {
+      emitInventoryReward({
+        rewardSource: "cinder_boss_core",
+        regionId: this.currentRegionId,
+        sessionState: {
+          clearedBossRegionId: this.currentRegionId
+        }
+      });
+    }
   }
 
   extractToHub() {
@@ -434,6 +450,20 @@ export class BossScene extends Phaser.Scene {
         : this.currentRegionId === "veil_boss_vault"
           ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"]), "veil_shrine", "cinder_ward"])]
           : this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"];
+    const clearedRegionId =
+      this.currentRegionId === "shatter_boss_vault"
+        ? "shatter_block"
+        : this.currentRegionId === "veil_boss_vault"
+          ? "veil_shrine"
+          : this.currentRegionId === "cinder_boss_vault"
+            ? "cinder_ward"
+            : null;
+    const clearedRegionIds = [
+      ...new Set([
+        ...(this.registry.get("playerProfile")?.clearedRegionIds ?? []),
+        ...(clearedRegionId ? [clearedRegionId] : [])
+      ])
+    ];
     this.registry.set("explorationBonus", null);
     this.registry.set("combatSnapshot", null);
     this.registry.set("loadedPlayerState", {
@@ -447,7 +477,8 @@ export class BossScene extends Phaser.Scene {
       sessionState: {
         bossCleared: true,
         clearedBossRegionId: this.currentRegionId,
-        unlockedRegionIds
+        unlockedRegionIds,
+        clearedRegionIds
       }
     });
     const profile = this.registry.get("playerProfile");
@@ -455,7 +486,8 @@ export class BossScene extends Phaser.Scene {
       this.registry.set("playerProfile", {
         ...profile,
         currentRegionId: "hub_blacksite",
-        unlockedRegionIds
+        unlockedRegionIds,
+        clearedRegionIds
       });
     }
     this.registry.set("currentRegionId", "hub_blacksite");

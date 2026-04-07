@@ -16,6 +16,8 @@ function serializeMongoProfile(document) {
     userId: document.userId,
     classType: document.classType,
     currentRegionId: document.currentRegionId,
+    unlockedRegionIds: clone(document.unlockedRegionIds),
+    clearedRegionIds: clone(document.clearedRegionIds ?? []),
     level: document.level,
     xp: document.xp,
     xpToNextLevel: document.xpToNextLevel,
@@ -52,6 +54,8 @@ export async function upsertPlayerProfileRecord(profile) {
       $set: {
         classType: profile.classType,
         currentRegionId: profile.currentRegionId,
+        unlockedRegionIds: profile.unlockedRegionIds,
+        clearedRegionIds: profile.clearedRegionIds ?? [],
         level: profile.level,
         xp: profile.xp,
         xpToNextLevel: profile.xpToNextLevel,

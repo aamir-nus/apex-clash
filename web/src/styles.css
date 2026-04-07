@@ -412,6 +412,36 @@ h1 {
   background: rgba(10, 18, 27, 0.86);
 }
 
+.route-progress-summary {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.route-progress-meter {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(148, 163, 184, 0.14);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.route-progress-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(244, 185, 66, 0.95), rgba(154, 219, 242, 0.95));
+}
+
+.route-progress-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.route-progress-copy small {
+  color: var(--muted);
+}
+
 .route-progress-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -432,6 +462,17 @@ h1 {
 .route-progress-card.active {
   box-shadow: 0 0 0 1px rgba(244, 185, 66, 0.18);
   background: linear-gradient(180deg, rgba(34, 47, 61, 0.98), rgba(18, 28, 39, 0.94));
+}
+
+.route-progress-card.cleared {
+  box-shadow: 0 0 0 1px rgba(154, 219, 242, 0.14);
+  border-color: rgba(154, 219, 242, 0.34);
+}
+
+.route-progress-card.active.cleared {
+  box-shadow: 0 0 0 1px rgba(154, 219, 242, 0.28);
+  border-color: rgba(154, 219, 242, 0.48);
+  background: linear-gradient(180deg, rgba(35, 52, 63, 0.98), rgba(18, 28, 39, 0.94));
 }
 
 .route-progress-card.locked {

@@ -286,6 +286,88 @@ async function run() {
     await page.getByRole("button", { name: "Cinder Ward", exact: true }).waitFor();
     metrics.extractFromVeilMs = Date.now() - veilExtractStartedAt;
 
+    const cinderDeployStartedAt = Date.now();
+    await page.getByRole("button", { name: "Cinder Ward", exact: true }).click();
+    await page.getByRole("button", { name: /Deploy To Cinder Ward/ }).click();
+    await page.getByText("Scene: Region").waitFor();
+    await page.getByText("Route pressure: furnace descent").waitFor();
+    metrics.transitionToCinderRegionMs = Date.now() - cinderDeployStartedAt;
+
+    const cinderBoonStartedAt = Date.now();
+    await page.getByRole("button", { name: "Secure Boon" }).click();
+    await page.getByText("Move to the gate and press E").waitFor();
+    metrics.claimCinderBoonMs = Date.now() - cinderBoonStartedAt;
+
+    const cinderDungeonStartedAt = Date.now();
+    await page.getByRole("button", { name: "Enter Dungeon" }).click();
+    await page.getByText("Scene: Dungeon").waitFor();
+    await page.getByText("Core search active").waitFor();
+    metrics.transitionToCinderDungeonMs = Date.now() - cinderDungeonStartedAt;
+
+    const cinderRelicStartedAt = Date.now();
+    await page.getByRole("button", { name: "Claim Relic" }).click();
+    await routeStatus(page, "Miniboss chamber").waitFor();
+    await delay(250);
+    metrics.claimCinderRelicMs = Date.now() - cinderRelicStartedAt;
+
+    const cinderMinibossStartedAt = Date.now();
+    const cinderMinibossTimeout = Date.now() + 20000;
+    while (Date.now() < cinderMinibossTimeout) {
+      const bossVaultOpen = await routeStatus(page, "Boss vault ready").isVisible().catch(() => false);
+      if (bossVaultOpen) {
+        break;
+      }
+
+      await page.getByRole("button", { name: "Strike Sentinel" }).click();
+      await delay(300);
+    }
+    await routeStatus(page, "Boss vault ready").waitFor();
+    metrics.cinderMinibossClearMs = Date.now() - cinderMinibossStartedAt;
+
+    const cinderBossStartedAt = Date.now();
+    await page.getByRole("button", { name: "Enter Boss Vault" }).click();
+    await page.getByText("Scene: Boss Vault").waitFor();
+    await page.getByText("Furnace curse").waitFor();
+    metrics.transitionToCinderBossMs = Date.now() - cinderBossStartedAt;
+
+    const cinderBossClearStartedAt = Date.now();
+    const cinderBossTimeout = Date.now() + 25000;
+    while (Date.now() < cinderBossTimeout) {
+      const extractReady = await page.getByText("Extract with the clear").isVisible().catch(() => false);
+      if (extractReady) {
+        break;
+      }
+
+      await page.getByRole("button", { name: "Strike Boss" }).click();
+      await delay(300);
+    }
+    await page.getByText("Extract with the clear").waitFor();
+    await page.getByText("New reward: Caldera Emblem").waitFor();
+    metrics.cinderBossClearMs = Date.now() - cinderBossClearStartedAt;
+
+    const cinderQuickEquipStartedAt = Date.now();
+    await page.getByRole("button", { name: "Quick equip" }).click();
+    await page.locator(".loadout-chip", { hasText: "Caldera Emblem" }).first().waitFor();
+    metrics.cinderQuickEquipMs = Date.now() - cinderQuickEquipStartedAt;
+
+    const cinderExtractStartedAt = Date.now();
+    await page.getByRole("button", { name: "Extract" }).click();
+    await page.getByText("Scene: Hub").waitFor();
+    metrics.extractFromCinderMs = Date.now() - cinderExtractStartedAt;
+    metrics.clearedRouteCount = await page.locator(".route-progress-card.cleared").count();
+    metrics.clearedShatterVisible = await page
+      .locator(".route-progress-card.cleared", { hasText: "Shatter Block" })
+      .isVisible()
+      .catch(() => false);
+    metrics.clearedVeilVisible = await page
+      .locator(".route-progress-card.cleared", { hasText: "Veil Shrine" })
+      .isVisible()
+      .catch(() => false);
+    metrics.clearedCinderVisible = await page
+      .locator(".route-progress-card.cleared", { hasText: "Cinder Ward" })
+      .isVisible()
+      .catch(() => false);
+
     const tutorialComplete = await page.evaluate(() =>
       window.localStorage.getItem("apex-clash:first-run-complete")
     );
@@ -314,6 +396,10 @@ async function run() {
     assert(metrics.snapshotResumeVisible, "Snapshot resume state was not visible after slot creation.");
     assert(metrics.liveResumeToggleWorks, "Resume toggle did not return to live profile mode.");
     assert(metrics.firstRunTutorialComplete, "First-run tutorial completion flag was not persisted.");
+    assert(metrics.clearedRouteCount === 3, "Expected all three routes to remain visibly cleared in the hub.");
+    assert(metrics.clearedShatterVisible, "Shatter Block was not visibly marked cleared in the hub.");
+    assert(metrics.clearedVeilVisible, "Veil Shrine was not visibly marked cleared in the hub.");
+    assert(metrics.clearedCinderVisible, "Cinder Ward was not visibly marked cleared in the hub.");
 
     await browser.close();
     browser = null;

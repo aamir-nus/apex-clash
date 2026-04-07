@@ -19,6 +19,16 @@ function resetRouteRuntimeState(registry) {
   registry.set("combatSnapshot", null);
 }
 
+function mapBossVaultToClearedRegion(regionId) {
+  return regionId === "shatter_boss_vault"
+    ? "shatter_block"
+    : regionId === "veil_boss_vault"
+      ? "veil_shrine"
+      : regionId === "cinder_boss_vault"
+        ? "cinder_ward"
+        : null;
+}
+
 export class HubScene extends Phaser.Scene {
   constructor() {
     super("HubScene");
@@ -30,6 +40,7 @@ export class HubScene extends Phaser.Scene {
     this.tutorialText = null;
     this.selectedRegionId = "shatter_block";
     this.unlockedRegionIds = ["shatter_block"];
+    this.clearedRegionIds = [];
     this.isTransitioning = false;
     this.firstRunTutorial = false;
     this.unsubscribeControlCommands = null;
@@ -45,10 +56,20 @@ export class HubScene extends Phaser.Scene {
     this.regionKeys = this.input.keyboard.addKeys("ONE,TWO,THREE");
     const profile = this.registry.get("playerProfile") ?? null;
     const loadedSessionSummary = this.registry.get("loadedSessionSummary") ?? null;
+    const derivedClearedRegionId = mapBossVaultToClearedRegion(
+      loadedSessionSummary?.sessionState?.clearedBossRegionId ?? null
+    );
     this.unlockedRegionIds = [
       ...new Set([
         ...(profile?.unlockedRegionIds ?? ["shatter_block"]),
         ...(loadedSessionSummary?.sessionState?.unlockedRegionIds ?? [])
+      ])
+    ];
+    this.clearedRegionIds = [
+      ...new Set([
+        ...(profile?.clearedRegionIds ?? []),
+        ...(loadedSessionSummary?.sessionState?.clearedRegionIds ?? []),
+        ...(derivedClearedRegionId ? [derivedClearedRegionId] : [])
       ])
     ];
     this.registry.set("loadedSessionSummary", null);
@@ -209,7 +230,8 @@ export class HubScene extends Phaser.Scene {
         status: "Safe zone"
       },
       sessionState: {
-        unlockedRegionIds: this.unlockedRegionIds
+        unlockedRegionIds: this.unlockedRegionIds,
+        clearedRegionIds: this.clearedRegionIds
       },
       selectedRegionId: this.selectedRegionId
     });
