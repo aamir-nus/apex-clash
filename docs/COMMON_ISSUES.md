@@ -48,10 +48,36 @@ Then:
 Note:
 - Mongo is intentionally not published to a host port in Docker Compose, to avoid collisions with any local Mongo instance
 
-## Mongo Persistence Not Verified Yet
+## Browser Flow Fails With CORS Errors
 
-Current state:
-- repository layers support Mongo
-- live Docker/manual persistence verification is still pending
+Symptom:
+- browser-flow or Docker browser-flow shows `API unavailable`
+- console mentions `Access-Control-Allow-Origin`
 
-Do not assume persistence is production-ready until local and Docker verification have both passed.
+Check:
+- use `http://localhost:5173` for local browser-flow
+- use `http://localhost:8080` for Docker browser-flow
+- avoid mixing `127.0.0.1` for the web origin while the API is allowing `localhost`
+
+Recommended commands:
+- `npm run test:browser-flow`
+- `npm run test:docker-browser-flow`
+
+Fix:
+- keep browser harness URLs on `localhost`
+- do not switch the web origin to `127.0.0.1` unless the server CORS allowlist is updated too
+
+## Mongo Runtime Check Fails
+
+Check:
+- local or Docker Mongo is running
+- `MONGODB_URI` points at the active Mongo instance
+- `/health` reports `persistence.mode: "mongo"`
+
+Recommended command:
+- `npm run test:mongo-runtime`
+
+If it still fails:
+- start Docker Mongo with `docker compose up -d mongo`
+- verify `MONGODB_URI=mongodb://127.0.0.1:27017/apex-clash`
+- rerun the runtime check outside the sandbox if local port binding is blocked

@@ -13,6 +13,7 @@ Browser-proven now:
 - hub deployment now has explicit browser controls as well as keyboard input, so scene transitions are testable without fragile focus assumptions
 - region, dungeon, and boss scenes now expose visible action controls in the browser shell for stable onboarding, accessibility, and automation
 - inventory and moveset changes now sync into active combat, dungeon, and boss scenes without needing a scene restart
+- first-route onboarding now uses stronger HUD objective calls and pulsing in-scene target markers instead of relying only on text
 - active technique bindings use a 2-slot model: `Q` and `E`, with `R` reserved for `Domain Surge`
 - 3 authored region routes in the current slice: Shatter Block, Veil Shrine, and Cinder Ward
 - the first full Shatter route is proven end to end in the browser gate: boon -> dungeon -> miniboss -> boss -> extract -> unlock
@@ -24,6 +25,9 @@ Browser-proven now:
 - Veil boss scroll rewards unlock class-specific skills
 - backend-owned XP, level-up choices, session sync, and reward claims
 - manual save snapshots plus profile-session resume
+- Mongo runtime verification now proves live profile, session, and save-slot persistence against a real Mongo-backed server
+- Mongo restart verification now proves re-login and progression recovery after server restart
+- Docker browser-flow verification now proves the full three-route gameplay loop against the deployed web and API stack
 
 Implemented but still not release-polished:
 - scene dressing is still mostly prototype-grade
@@ -35,14 +39,13 @@ Implemented but still not release-polished:
 Missing for a credible `v3` release candidate:
 - more authored dungeons and bosses
 - broader loot, consumables, and materials
-- live Mongo-backed gameplay verification
 - sprite and audio production pipeline
 - stronger first-run onboarding and presentation polish
 - broader browser UX pass across all screens and flows
 
 Active work:
 - broader authored content and reward pacing beyond the current 3-route slice
-- live Mongo-backed persistence verification in gameplay flows
+- broader browser play coverage beyond the current three-route proof
 - sprite and audio production pipeline
 - browser bundle hardening beyond current chunk splitting
 - multi-region progression toward the `v3` release candidate bar
@@ -92,7 +95,11 @@ npm run test:server
 npm run test:backend-contract
 npm run test:auth-profile-contract
 npm run test:debug-audit
+npm run test:docker-browser-flow
+npm run test:docker-deploy
 npm run test:experience-audit
+npm run test:mongo-restart
+npm run test:mongo-runtime
 npm run test:ui-flow-audit
 npm run test:browser-flow
 npm run lint
@@ -102,6 +109,10 @@ npm run test:smoke
 
 `test:experience-audit` reports gameplay/UX coverage metrics for class count, region count, item and skill breadth, objective coverage, tutorial coverage, live loadout sync coverage, and smoke-suite composition.
 `test:debug-audit` verifies that request, error, reward-rejection, save, and background sync debug hooks are still present with the expected context fields.
+`test:docker-browser-flow` boots the Docker Compose stack and runs the full browser gameplay flow against the deployed web and API surfaces.
+`test:docker-deploy` boots the Docker Compose stack, verifies the host-facing web and API surfaces, and checks Mongo-backed auth/profile/save behavior through the deployed endpoints.
+`test:mongo-restart` proves that a Mongo-backed user can log back in after a server restart and still retrieve the same profile region, cleared-route progression, and save slots.
+`test:mongo-runtime` starts the API against a real Mongo URI, checks `/health` persistence mode, then verifies profile/session/save flows are actually backed by Mongo rather than the memory fallback.
 `test:ui-flow-audit` verifies the player-facing browser flow surfaces for transitions, onboarding, save/resume visibility, reward banners, and bind confirmation.
 `test:browser-flow` now proves the full Shatter, Veil, and Cinder routes, including Veil scroll quick-bind, Cinder reward quick-equip, extract, save-slot create, resume-mode toggle, manual sync, and persistent cleared-route progression in the hub.
 
@@ -135,6 +146,11 @@ Latest three-route verified timings:
 - Veil quick bind: `77ms`
 - Cinder quick equip: `65ms`
 - manual sync: `161ms`
+
+Latest onboarding/readability verified timings:
+- local browser-flow after scene guidance pass: all 3 routes still green
+- first-run tutorial flag persists: `true`
+- cleared route count remains: `3`
 
 ## Game Flow
 
@@ -205,11 +221,11 @@ It is still a hardened vertical slice on the path to `v3`, with:
 - three browser-proven full routes with real extract, unlock, reward, bind, equip, and cleared-route tracking behavior
 - cleared routes persist on the player profile and render distinctly in the hub progression cards
 - the hub now shows an explicit Blacksite route ladder summary with clear percentage and authored-route completion state
+- deploy-grade browser gameplay verification now runs against the Docker Compose web/API stack
 
 Still missing for a spec-faithful `v3`:
 - more authored dungeons and bosses
 - broader loot, consumables, and materials
-- Mongo-backed gameplay verification
 - sprite/audio production pipeline
 - a real production-polish pass on scene visuals, combat readability, onboarding, and browser UX
 
@@ -217,11 +233,10 @@ Still missing for a spec-faithful `v3`:
 
 Immediate task breakdown:
 1. Stabilize real persistence:
-   - verify live Mongo-backed gameplay persistence in actual browser runs
    - confirm save snapshot and live profile resume behave the same after restart
 2. Polish the proven path:
    - improve hub, region, dungeon, and boss visual dressing
-   - tighten onboarding and first-run readability
+   - keep replacing instructional text with visual markers and stronger objective guidance
    - sharpen combat telegraphs, feedback, and scene clarity
 3. Expand authored content:
    - add more dungeon layouts per region

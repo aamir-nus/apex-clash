@@ -51,6 +51,9 @@ export class DungeonScene extends Phaser.Scene {
     this.cinderBacklashHp = 4;
     this.cinderBacklashCe = 6;
     this.unsubscribeControlCommands = null;
+    this.relicMarker = null;
+    this.minibossMarker = null;
+    this.vaultMarker = null;
   }
 
   create() {
@@ -109,6 +112,22 @@ export class DungeonScene extends Phaser.Scene {
     this.add.rectangle(300, 270, 160, 220, isVeilDungeon ? 0x1e2038 : isCinderDungeon ? 0x3a1e16 : 0x13283a, 0.22).setStrokeStyle(1, isVeilDungeon ? 0xd4b5ff : isCinderDungeon ? 0xff995a : 0x74c0fc);
     this.add.rectangle(488, 270, 140, 180, isVeilDungeon ? 0x203126 : isCinderDungeon ? 0x3f281a : 0x2a1626, 0.2).setStrokeStyle(1, isVeilDungeon ? 0x87e0c2 : isCinderDungeon ? 0xffd08a : 0xe56b6f);
     this.add.rectangle(660, 270, 180, 220, isVeilDungeon ? 0x341a3c : isCinderDungeon ? 0x472016 : 0x28161c, 0.22).setStrokeStyle(1, isVeilDungeon ? 0xffc9f5 : isCinderDungeon ? 0xff8a5b : 0xff8f70);
+    this.add.line(0, 0, 308, 270, 690, 270, 0xf6f1df, 0.18).setOrigin(0, 0).setLineWidth(2);
+    this.add.text(260, 176, isVeilDungeon ? "Sigil chamber" : isCinderDungeon ? "Core chamber" : "Relic chamber", {
+      color: "#c6d2dc",
+      fontFamily: "monospace",
+      fontSize: "12px"
+    });
+    this.add.text(446, 176, "Sentinel lock", {
+      color: "#ffd98b",
+      fontFamily: "monospace",
+      fontSize: "12px"
+    });
+    this.add.text(626, 176, "Vault gate", {
+      color: "#f6f1df",
+      fontFamily: "monospace",
+      fontSize: "12px"
+    });
 
     this.add.text(100, 86, isVeilDungeon ? "Veil Depth" : isCinderDungeon ? "Furnace Descent" : "Shatter Dungeon", {
       color: "#f6f1df",
@@ -175,6 +194,36 @@ export class DungeonScene extends Phaser.Scene {
       this.miniboss.setFillStyle(0x5a5a5a, 0.28);
       this.minibossPulse?.stop();
     }
+    this.relicMarker = this.add.text(300, 222, "v", {
+      color: "#74c0fc",
+      fontFamily: "monospace",
+      fontSize: "28px"
+    });
+    this.minibossMarker = this.add.text(482, 220, "v", {
+      color: "#ffd98b",
+      fontFamily: "monospace",
+      fontSize: "28px"
+    });
+    this.vaultMarker = this.add.text(682, 214, "v", {
+      color: "#ff8f70",
+      fontFamily: "monospace",
+      fontSize: "28px"
+    });
+    [this.relicMarker, this.minibossMarker, this.vaultMarker].forEach((marker) => {
+      this.tweens.add({
+        targets: marker,
+        y: marker.y - 12,
+        duration: 520,
+        yoyo: true,
+        repeat: -1,
+        ease: "Sine.easeInOut"
+      });
+    });
+    this.add.text(626, 344, this.minibossDefeated ? "Vault open" : "Vault sealed", {
+      color: this.minibossDefeated ? "#b8f29b" : "#ffb4a2",
+      fontFamily: "monospace",
+      fontSize: "12px"
+    });
 
     this.cursors = this.input.keyboard.createCursorKeys();
     this.actionKeys = this.input.keyboard.addKeys("W,A,S,D");
@@ -608,7 +657,7 @@ export class DungeonScene extends Phaser.Scene {
             : "Press E to claim the relic shard"
       );
     } else if (this.relicClaimed && !this.minibossDefeated && minibossDistance < 120) {
-      this.promptText.setText("Use J / Q / R to break the sentinel");
+      this.promptText.setText("Pressure the sentinel with J / Q / R");
     } else if (this.minibossDefeated && gateDistance < 82) {
       this.promptText.setText("Press E to enter the boss vault");
     } else {
@@ -622,12 +671,16 @@ export class DungeonScene extends Phaser.Scene {
                 ? "Furnace sentinel active. Strike only on cooling breaches."
                 : "Sentinel active. Pressure the chamber guardian."
             : isVeilDungeon
-              ? "Sweep the shrine floor and secure the sigil."
+              ? "Follow the marker and secure the sigil."
               : isCinderDungeon
-                ? "Sweep the ember floor and stabilize the core."
-                : "Sweep the room and secure the relic."
+                ? "Follow the marker and stabilize the core."
+                : "Follow the marker and secure the relic."
       );
     }
+
+    this.relicMarker.setVisible(!this.relicClaimed);
+    this.minibossMarker.setVisible(this.relicClaimed && !this.minibossDefeated);
+    this.vaultMarker.setVisible(this.minibossDefeated);
 
     if (!this.relicClaimed && relicDistance < 56 && Phaser.Input.Keyboard.JustDown(this.interactKey)) {
       this.claimRelic();

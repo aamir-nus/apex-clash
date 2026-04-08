@@ -81,11 +81,14 @@ Current verified browser baseline:
 - Cinder boss reward -> quick equip -> extract is clearable in the headless browser gate
 - unlocked and cleared route progression persists on the player profile and is reflected in the hub
 - the hub exposes a route-ladder summary with completion percentage and full authored-route clear state
+- Mongo runtime verification now proves health, profile, session, and save-slot persistence against a live Mongo-backed server
+- Mongo restart verification now proves re-login and progression recovery after server restart
+- Docker browser-flow verification now proves the multi-route gameplay loop against the deployed web and API stack
 - save-slot create, resume toggle, and manual sync all pass in the headless browser gate
+- first-run route guidance now has scene markers and stronger HUD objective surfacing on the proven path
 
 Current mechanic-hardening target:
 - broader reward pacing and authored content depth still need to reach the same UX bar
-- live Mongo-backed gameplay verification remains open
 
 ## Current Milestone
 
@@ -98,11 +101,11 @@ Current mechanic-hardening target:
 
 ## Next Tasks
 
-1. Verify live Mongo persistence during real gameplay and restart flows.
-2. Polish the proven path visually and improve onboarding clarity.
-3. Expand authored dungeon layouts, encounter variety, and reward pacing.
-4. Move from placeholder presentation toward sprite/audio production quality.
-5. Revisit bundle strategy after more real content lands.
+1. Polish the proven path visually and continue reducing text-only onboarding.
+2. Expand authored dungeon layouts, encounter variety, and reward pacing.
+3. Move from placeholder presentation toward sprite/audio production quality.
+4. Revisit bundle strategy after more real content lands.
+5. Add broader browser play coverage beyond the current three-route proof.
 
 ## Final
 

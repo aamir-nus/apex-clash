@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import { env } from "./config/env.js";
+import { getPersistenceStatus } from "./lib/persistenceStatus.js";
 import { authSession } from "./middleware/authSession.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { requestLogger } from "./middleware/requestLogger.js";
@@ -25,7 +26,11 @@ export function createApp() {
     response.json({
       ok: true,
       version: "0.1.0",
-      mode: "scaffold"
+      mode: "scaffold",
+      persistence: {
+        ...getPersistenceStatus(),
+        mongodbUriConfigured: Boolean(env.mongodbUri)
+      }
     });
   });
 

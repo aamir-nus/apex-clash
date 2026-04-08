@@ -12,6 +12,33 @@ const arena = {
   height: 540
 };
 
+const routeDisplay = {
+  shatter_block: {
+    name: "Shatter Block",
+    x: 268,
+    y: 252,
+    fill: 0x244b33,
+    stroke: 0xb8f29b,
+    accent: 0x8ec07c
+  },
+  veil_shrine: {
+    name: "Veil Shrine",
+    x: 488,
+    y: 252,
+    fill: 0x322146,
+    stroke: 0xf0d2ff,
+    accent: 0xc77dff
+  },
+  cinder_ward: {
+    name: "Cinder Ward",
+    x: 708,
+    y: 252,
+    fill: 0x472016,
+    stroke: 0xffd4a3,
+    accent: 0xff8a5b
+  }
+};
+
 function resetRouteRuntimeState(registry) {
   registry.set("loadedPlayerState", null);
   registry.set("loadedSessionSummary", null);
@@ -41,6 +68,7 @@ export class HubScene extends Phaser.Scene {
     this.selectedRegionId = "shatter_block";
     this.unlockedRegionIds = ["shatter_block"];
     this.clearedRegionIds = [];
+    this.routeLadderDecor = [];
     this.isTransitioning = false;
     this.firstRunTutorial = false;
     this.unsubscribeControlCommands = null;
@@ -175,6 +203,43 @@ export class HubScene extends Phaser.Scene {
         ? "Deploy path: Hub -> Region -> Secure a boon -> Enter dungeon -> Break the boss pattern."
         : "Hot path: choose route, deploy, clear the route, return stronger."
     );
+    this.drawRouteLadder();
+  }
+
+  drawRouteLadder() {
+    this.routeLadderDecor.forEach((entry) => entry.destroy());
+    this.routeLadderDecor = [];
+    Object.entries(routeDisplay).forEach(([regionId, route]) => {
+      const unlocked = this.unlockedRegionIds.includes(regionId);
+      const cleared = this.clearedRegionIds.includes(regionId);
+      const selected = this.selectedRegionId === regionId;
+
+      this.routeLadderDecor.push(
+        this.add
+        .rectangle(route.x, route.y, 146, 118, route.fill, unlocked ? 0.68 : 0.22)
+        .setStrokeStyle(selected ? 3 : 2, route.stroke, cleared ? 1 : unlocked ? 0.7 : 0.28)
+      );
+      this.routeLadderDecor.push(
+        this.add
+        .rectangle(route.x, route.y + 56, 102, 10, route.accent, cleared ? 0.82 : unlocked ? 0.46 : 0.18)
+        .setStrokeStyle(1, 0xf6f1df, 0.15)
+      );
+      this.routeLadderDecor.push(this.add.text(route.x - 52, route.y - 36, route.name, {
+        color: "#f6f1df",
+        fontFamily: "monospace",
+        fontSize: "14px"
+      }));
+      this.routeLadderDecor.push(this.add.text(route.x - 52, route.y - 8, cleared ? "Cleared" : unlocked ? "Unlocked" : "Sealed", {
+        color: cleared ? "#b8f29b" : unlocked ? "#ffd98b" : "#7c8a96",
+        fontFamily: "monospace",
+        fontSize: "13px"
+      }));
+      this.routeLadderDecor.push(this.add.text(route.x - 52, route.y + 18, selected ? "Selected for deploy" : "Standby route", {
+        color: selected ? "#9adbf2" : "#c6d2dc",
+        fontFamily: "monospace",
+        fontSize: "12px"
+      }));
+    });
   }
 
   emitHubRuntime() {

@@ -8,8 +8,10 @@ import { chromium } from "playwright";
 const rootDir = process.cwd();
 const webDistIndex = path.join(rootDir, "web", "dist", "index.html");
 const webDistDir = path.join(rootDir, "web", "dist");
-const serverUrl = "http://localhost:4000/health";
-const webUrl = "http://localhost:5173";
+const apiBaseUrl = process.env.BROWSER_FLOW_API_BASE_URL ?? "http://localhost:4000";
+const webUrl = process.env.BROWSER_FLOW_WEB_URL ?? "http://localhost:5173";
+const managedMode = process.env.BROWSER_FLOW_MODE ?? "managed";
+const serverUrl = `${apiBaseUrl}/health`;
 const mimeTypes = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -100,10 +102,14 @@ function createStaticServer() {
 }
 
 async function run() {
-  assert(fs.existsSync(webDistIndex), "Missing built web assets. Run `npm run build` before browser flow checks.");
+  if (managedMode === "managed") {
+    assert(fs.existsSync(webDistIndex), "Missing built web assets. Run `npm run build` before browser flow checks.");
+  }
 
-  const server = spawnManagedProcess("npm", ["run", "start", "-w", "server"]);
-  const staticServer = createStaticServer();
+  const server = managedMode === "managed"
+    ? spawnManagedProcess("npm", ["run", "start", "-w", "server"])
+    : null;
+  const staticServer = managedMode === "managed" ? createStaticServer() : null;
   let browser = null;
   let context = null;
   let page = null;
@@ -114,10 +120,12 @@ async function run() {
   };
 
   try {
-    await new Promise((resolve, reject) => {
-      staticServer.once("error", reject);
-      staticServer.listen(5173, "localhost", resolve);
-    });
+    if (staticServer) {
+      await new Promise((resolve, reject) => {
+        staticServer.once("error", reject);
+        staticServer.listen(5173, "localhost", resolve);
+      });
+    }
     await waitForHttp(serverUrl);
     await waitForHttp(webUrl);
 
@@ -412,8 +420,8 @@ async function run() {
           error: error.message,
           bodyText: page ? await page.locator("body").innerText().catch(() => "") : "",
           pageLogs: pageLogs.slice(-10),
-          serverLogs: server.logs.slice(-10),
-          webLogs: ["static server"],
+          serverLogs: server?.logs?.slice(-10) ?? [],
+          webLogs: staticServer ? ["static server"] : ["external web"],
         },
         null,
         2
@@ -424,7 +432,9 @@ async function run() {
     if (browser) {
       await browser.close().catch(() => {});
     }
-    await new Promise((resolve) => staticServer.close(resolve));
+    if (staticServer) {
+      await new Promise((resolve) => staticServer.close(resolve));
+    }
     await stopManagedProcess(server);
   }
 }

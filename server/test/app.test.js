@@ -19,6 +19,7 @@ import {
   updatePlayerClass
 } from "../src/controllers/playerController.js";
 import { createSaveSlot, getSaveSlot, updateSaveSlot } from "../src/controllers/saveController.js";
+import { getPersistenceStatus } from "../src/lib/persistenceStatus.js";
 import { errorHandler } from "../src/middleware/errorHandler.js";
 import { requestLogger } from "../src/middleware/requestLogger.js";
 import { getBootstrapContent } from "../src/services/contentService.js";
@@ -769,6 +770,18 @@ test("save controller rejects invalid archetypes", async () => {
   assert.equal(response.statusCode, 400);
   assert.equal(response.payload.ok, false);
   assert.equal(response.payload.error, "Invalid archetypeId");
+});
+
+test("persistence status reports mongo and memory modes correctly", () => {
+  assert.deepEqual(getPersistenceStatus(1), {
+    mode: "mongo",
+    mongoConnected: true
+  });
+
+  assert.deepEqual(getPersistenceStatus(0), {
+    mode: "memory-fallback",
+    mongoConnected: false
+  });
 });
 
 test("request logger emits start and completion records with request id", () => {

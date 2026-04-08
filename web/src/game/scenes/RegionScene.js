@@ -36,6 +36,7 @@ export class RegionScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.firstRunTutorial = false;
     this.unsubscribeControlCommands = null;
+    this.gateMarker = null;
   }
 
   create() {
@@ -122,11 +123,23 @@ export class RegionScene extends Phaser.Scene {
       fontFamily: "monospace",
       fontSize: "14px"
     });
+    this.add.line(0, 0, 282, 214, 650, 270, regionTheme.frameStroke, 0.28).setOrigin(0, 0).setLineWidth(3);
+    this.add.circle(416, 242, 10, regionTheme.frameStroke, 0.16).setStrokeStyle(2, 0xf6f1df, 0.2);
+    this.add.text(384, 252, "Forward route", {
+      color: "#d9e7d2",
+      fontFamily: "monospace",
+      fontSize: "12px"
+    });
 
     this.add.text(100, 90, regionTheme.title, {
       color: "#f6f1df",
       fontFamily: "monospace",
       fontSize: "28px"
+    });
+    this.add.text(100, 114, `Route pressure: ${this.currentRegionId === "veil_shrine" ? "sanctum descent" : this.currentRegionId === "cinder_ward" ? "furnace descent" : "rupture sweep"}`, {
+      color: "#ffd98b",
+      fontFamily: "monospace",
+      fontSize: "13px"
     });
 
     this.add.text(
@@ -171,6 +184,19 @@ export class RegionScene extends Phaser.Scene {
 
     this.gateZone = this.add.rectangle(660, 270, 120, 120, 0xb8f29b, 0.08);
     this.physics.add.existing(this.gateZone, true);
+    this.gateMarker = this.add.text(648, 226, "v", {
+      color: "#ffd98b",
+      fontFamily: "monospace",
+      fontSize: "28px"
+    });
+    this.tweens.add({
+      targets: this.gateMarker,
+      y: 212,
+      duration: 520,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut"
+    });
     this.buildAdaptivePointsOfInterest();
 
     this.refreshSummary();
@@ -566,6 +592,8 @@ export class RegionScene extends Phaser.Scene {
 
     if (nearestPoint) {
       this.poiPrompt = nearestPoint.prompt;
+      this.gateMarker.setAlpha(0.25);
+      nearestPoint.marker.setAlpha(1);
     } else if (insideGate) {
       this.poiPrompt =
         this.currentRegionId === "veil_shrine"
@@ -573,9 +601,17 @@ export class RegionScene extends Phaser.Scene {
           : this.currentRegionId === "cinder_ward"
             ? "Press E to enter the furnace descent"
             : "Press E to enter the dungeon";
+      this.gateMarker.setAlpha(1);
     } else {
-      this.poiPrompt = "Explore the block, read the nodes, then approach the gate";
+      this.poiPrompt = this.firstRunTutorial
+        ? "Follow the marker: secure one boon, then take the gate"
+        : "Follow the marker: claim a node or move to the gate";
+      this.gateMarker.setAlpha(0.78);
     }
+
+    this.poiZones
+      .filter((entry) => !entry.claimed && entry !== nearestPoint)
+      .forEach((entry) => entry.marker.setAlpha(0.7));
 
     this.promptText.setText(this.poiPrompt);
 

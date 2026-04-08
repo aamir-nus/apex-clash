@@ -1,6 +1,10 @@
 import crypto from "node:crypto";
+import {
+  createUserRecord,
+  findUserById,
+  findUserByUsername
+} from "./userRepository.js";
 
-const users = [];
 const sessions = new Map();
 const DEFAULT_ADMIN_USERNAME = "admin";
 const DEFAULT_ADMIN_PASSWORD = "admin";
@@ -23,12 +27,13 @@ function sanitizeUser(user) {
   };
 }
 
-function ensureDefaultAdminUser() {
-  if (users.some((user) => user.username === DEFAULT_ADMIN_USERNAME)) {
+async function ensureDefaultAdminUser() {
+  const existingAdmin = await findUserByUsername(DEFAULT_ADMIN_USERNAME);
+  if (existingAdmin) {
     return;
   }
 
-  users.push({
+  await createUserRecord({
     id: crypto.randomUUID(),
     username: DEFAULT_ADMIN_USERNAME,
     passwordHash: hashPassword(DEFAULT_ADMIN_PASSWORD),
@@ -36,15 +41,14 @@ function ensureDefaultAdminUser() {
   });
 }
 
-ensureDefaultAdminUser();
-
-export function registerUser({ username, password }) {
+export async function registerUser({ username, password }) {
+  await ensureDefaultAdminUser();
   const normalizedUsername = username.trim().toLowerCase();
   if (!normalizedUsername || password.length < 6) {
     return { error: "Username and password must be valid" };
   }
 
-  if (users.some((user) => user.username === normalizedUsername)) {
+  if (await findUserByUsername(normalizedUsername)) {
     return { error: "Username already exists" };
   }
 
@@ -55,13 +59,14 @@ export function registerUser({ username, password }) {
     role: "player"
   };
 
-  users.push(user);
-  return { user: sanitizeUser(user) };
+  const storedUser = await createUserRecord(user);
+  return { user: sanitizeUser(storedUser) };
 }
 
-export function loginUser({ username, password }) {
+export async function loginUser({ username, password }) {
+  await ensureDefaultAdminUser();
   const normalizedUsername = username.trim().toLowerCase();
-  const user = users.find((entry) => entry.username === normalizedUsername);
+  const user = await findUserByUsername(normalizedUsername);
 
   if (!user || !verifyPassword(password, user.passwordHash)) {
     return { error: "Invalid credentials" };
@@ -76,13 +81,13 @@ export function loginUser({ username, password }) {
   };
 }
 
-export function getSessionUser(token) {
+export async function getSessionUser(token) {
   const userId = sessions.get(token);
   if (!userId) {
     return null;
   }
 
-  const user = users.find((entry) => entry.id === userId);
+  const user = await findUserById(userId);
   return user ? sanitizeUser(user) : null;
 }
 

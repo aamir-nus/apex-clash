@@ -111,10 +111,11 @@ export function GameHud({
       {runtime.objective ? (
         <section className="objective-banner">
           <div>
+            <p className="hud-kicker">Now</p>
             <strong>{runtime.objective.title}</strong>
             <span>{runtime.objective.detail}</span>
           </div>
-          {runtime.objective.step ? <small>{runtime.objective.step}</small> : null}
+          {runtime.objective.step ? <small className="objective-step">{runtime.objective.step}</small> : null}
         </section>
       ) : null}
 

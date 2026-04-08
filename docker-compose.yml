@@ -10,7 +10,9 @@ services:
     ports:
       - "4000:4000"
     depends_on:
-      - mongo
+      mongo:
+        condition: service_started
+    restart: unless-stopped
 
   web:
     build:
@@ -21,12 +23,15 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      - server
+      server:
+        condition: service_healthy
+    restart: unless-stopped
 
   mongo:
     image: mongo:7
     volumes:
       - mongo-data:/data/db
+    restart: unless-stopped
 
 volumes:
   mongo-data:

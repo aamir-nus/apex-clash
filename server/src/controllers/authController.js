@@ -11,8 +11,8 @@ export function createGuestSession(_request, response) {
   });
 }
 
-export function registerUserSession(request, response) {
-  const result = registerUser(request.body ?? {});
+export async function registerUserSession(request, response) {
+  const result = await registerUser(request.body ?? {});
   if (result.error) {
     logger.warn("Rejected register request", {
       requestId: request.id,
@@ -28,8 +28,8 @@ export function registerUserSession(request, response) {
   });
 }
 
-export function loginUserSession(request, response) {
-  const result = loginUser(request.body ?? {});
+export async function loginUserSession(request, response) {
+  const result = await loginUser(request.body ?? {});
   if (result.error) {
     logger.warn("Rejected login request", {
       requestId: request.id,
@@ -45,10 +45,10 @@ export function loginUserSession(request, response) {
   });
 }
 
-export function getCurrentSession(request, response) {
+export async function getCurrentSession(request, response) {
   const authorization = request.headers.authorization ?? "";
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-  const user = token ? getSessionUser(token) : null;
+  const user = token ? await getSessionUser(token) : null;
 
   if (!user) {
     response.status(401).json({ ok: false, error: "Not authenticated" });

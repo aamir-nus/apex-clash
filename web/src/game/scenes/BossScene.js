@@ -49,6 +49,7 @@ export class BossScene extends Phaser.Scene {
     this.signatureOpenMs = 900;
     this.signatureTickCooldown = 0;
     this.unsubscribeControlCommands = null;
+    this.bossMarker = null;
   }
 
   create() {
@@ -101,6 +102,18 @@ export class BossScene extends Phaser.Scene {
 
     this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, isVeilBoss ? 0x171126 : isCinderBoss ? 0x24120d : 0x120b12);
     this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, isVeilBoss ? 0x2e1e44 : isCinderBoss ? 0x3a1d13 : 0x24131d, 1).setStrokeStyle(2, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffc27a : 0xff8f70);
+    this.add
+      .line(0, 0, 480, 110, 480, 430, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffb36b : 0xff8f70, 0.14)
+      .setOrigin(0, 0)
+      .setLineWidth(6);
+    this.add
+      .rectangle(480, 270, 124, 260, isVeilBoss ? 0xc77dff : isCinderBoss ? 0xff8a5b : 0xf25f5c, 0.06)
+      .setStrokeStyle(1, 0xf6f1df, 0.12);
+    this.add.text(434, 122, "Danger lane", {
+      color: "#f6f1df",
+      fontFamily: "monospace",
+      fontSize: "12px"
+    });
     this.add.text(100, 84, isVeilBoss ? "Sanctum Vault" : isCinderBoss ? "Cinder Vault" : "Boss Vault", {
       color: "#f6f1df",
       fontFamily: "monospace",
@@ -121,6 +134,27 @@ export class BossScene extends Phaser.Scene {
     this.physics.add.existing(this.boss);
     this.boss.body.setImmovable(true);
     this.boss.setStrokeStyle(3, 0xffd98b);
+    this.bossMarker = this.add.text(692, 214, "v", {
+      color: "#ffd98b",
+      fontFamily: "monospace",
+      fontSize: "28px"
+    });
+    this.tweens.add({
+      targets: this.bossMarker,
+      y: 202,
+      duration: 520,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut"
+    });
+    this.add
+      .circle(700, 270, 68, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffb36b : 0xff8f70, 0.06)
+      .setStrokeStyle(2, 0xf6f1df, 0.16);
+    this.add.text(648, 352, isVeilBoss ? "Rupture zone" : isCinderBoss ? "Heat bloom" : "Punish zone", {
+      color: "#c6d2dc",
+      fontFamily: "monospace",
+      fontSize: "12px"
+    });
 
     this.cursors = this.input.keyboard.createCursorKeys();
     this.actionKeys = this.input.keyboard.addKeys("W,A,S,D");
@@ -180,6 +214,7 @@ export class BossScene extends Phaser.Scene {
     const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
     const isVeilBoss = this.currentRegionId === "veil_boss_vault";
     const isCinderBoss = this.currentRegionId === "cinder_boss_vault";
+    this.bossMarker?.setVisible(this.bossHp > 0);
     const unlockedRegionIds =
       this.bossHp === 0 && this.currentRegionId === "shatter_boss_vault"
         ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"]), "veil_shrine"])]

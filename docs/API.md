@@ -22,6 +22,14 @@ Seeded local admin:
 
 - `GET /health`
 
+Health payload includes:
+
+- `mode`
+- `version`
+- `persistence.mode`
+- `persistence.mongoConnected`
+- `persistence.mongodbUriConfigured`
+
 ### Auth
 
 - `POST /auth/guest`
@@ -116,14 +124,23 @@ Current public regression gates:
 - `npm run test:skill-binding-contract`
 - `npm run test:experience-audit`
 - `npm run test:debug-audit`
+- `npm run test:docker-browser-flow`
+- `npm run test:docker-deploy`
+- `npm run test:mongo-restart`
+- `npm run test:mongo-runtime`
 - `npm run test:ui-flow-audit`
 - `npm run test:browser-flow`
 - `npm run test:smoke`
 
 The experience audit keeps the build aligned with the intended gameplay slice, not just backend response shapes. It checks current content breadth, Q/E skill-slot truth, first-run tutorial coverage, objective coverage, live profile sync coverage, and smoke-suite composition.
 The debug audit keeps our troubleshooting surface honest. It checks request/error logs, reward and skill-equip rejection logs, save-slot mutation logs, and the client-side background sync error context.
+The Docker browser-flow check boots the Compose stack and runs the same multi-route headless gameplay proof against the deployed web and API surfaces.
+The Docker deploy check boots the Compose stack, verifies the host-facing web and API surfaces, and checks Mongo-backed auth/profile/save flows through the deployed endpoints.
+The Mongo restart check proves that a Mongo-backed player can re-authenticate after a server restart and still recover the same profile region, cleared-route progression, and save slots.
+The Mongo runtime check starts the API against a real Mongo URI, asserts `/health` reports `persistence.mode === "mongo"`, then verifies profile, session, and save-slot flows against that live backing store.
 The UI flow audit checks the player-visible browser path: transition overlay messaging, onboarding visibility, save/resume visibility, reward banners, and reward-to-bind confirmation surfaces.
 The browser flow check proves the first authored route through boon, dungeon, miniboss, boss, and extract, verifies unlocked-route visibility, creates a save slot, and verifies resume-mode and manual-sync behavior.
 The browser flow check also proves the unlocked-route continuation paths: unlock -> Veil route -> Veil boss scroll reward -> quick bind -> extract -> Cinder route -> Cinder boss reward -> quick equip -> extract.
 The browser flow check now also verifies that fully completed routes stay visibly cleared in the hub after extraction.
-The next browser-hardening target is broader content pacing, Mongo-backed gameplay verification, and richer authored route depth beyond the current three-route slice.
+The browser flow check also covers the current onboarding/readability baseline: HUD objective surfacing, first-run completion persistence, and the guided three-route path remaining stable after scene-marker polish.
+The next browser-hardening target is broader content pacing and richer authored route depth beyond the current three-route slice.
