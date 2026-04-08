@@ -19,6 +19,7 @@ Browser-proven now:
 - hub, region, dungeon, and boss scenes now have stronger authored dressing and route landmarks instead of reading as flat test chambers
 - Veil and Cinder route pacing now has less dead time: cleaner window timing, lighter backlash, and limited off-window chip progress
 - boon claim, sentinel break, rupture windows, and boss clears now trigger in-scene callouts and short chamber flashes
+- combat sandbox and boss clears now have stronger hit-state callouts, wave-break framing, and route-clear emphasis
 - active technique bindings use a 2-slot model: `Q` and `E`, with `R` reserved for `Domain Surge`
 - 3 authored region routes in the current slice: Shatter Block, Veil Shrine, and Cinder Ward
 - the first full Shatter route is proven end to end in the browser gate: boon -> dungeon -> miniboss -> boss -> extract -> unlock
@@ -179,6 +180,11 @@ Latest scene-feedback verification:
 - local browser-flow after chamber-callout pass: all 3 routes still green
 - Veil miniboss clear now lands at `4300ms`
 - Cinder boss clear now lands at `5635ms`
+
+Latest impact-feedback verification:
+- local browser-flow after combat-hit and clear-emphasis pass: all 3 routes still green
+- Shatter boss clear now lands at `3494ms`
+- Cinder boss clear now lands at `5964ms`
 
 ## Game Flow
 

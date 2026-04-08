@@ -53,6 +53,7 @@ export class BossScene extends Phaser.Scene {
     this.signatureLane = null;
     this.bossDangerWash = null;
     this.feedbackText = null;
+    this.clearText = null;
   }
 
   create() {
@@ -141,6 +142,12 @@ export class BossScene extends Phaser.Scene {
       color: "#f6f1df",
       fontFamily: "monospace",
       fontSize: "15px",
+      align: "center"
+    }).setOrigin(0.5).setAlpha(0);
+    this.clearText = this.add.text(480, 250, "", {
+      color: "#b8f29b",
+      fontFamily: "monospace",
+      fontSize: "24px",
       align: "center"
     }).setOrigin(0.5).setAlpha(0);
     this.add.text(100, 84, isVeilBoss ? "Sanctum Vault" : isCinderBoss ? "Cinder Vault" : "Boss Vault", {
@@ -507,6 +514,7 @@ export class BossScene extends Phaser.Scene {
             : "Vault curse collapsed",
         0xb8f29b
       );
+      this.playClearFeedback();
     }
     this.emitBossRuntime();
   }
@@ -723,6 +731,29 @@ export class BossScene extends Phaser.Scene {
       alpha: 0,
       duration: 620,
       ease: "Quad.easeOut"
+    });
+  }
+
+  playClearFeedback() {
+    if (!this.clearText) {
+      return;
+    }
+
+    this.clearText.setText("Route Cleared");
+    this.clearText.setAlpha(1);
+    this.clearText.setScale(0.88);
+    this.tweens.killTweensOf(this.clearText);
+    this.tweens.add({
+      targets: this.clearText,
+      scaleX: 1.08,
+      scaleY: 1.08,
+      y: 224,
+      alpha: 0,
+      duration: 1100,
+      ease: "Back.easeOut",
+      onComplete: () => {
+        this.clearText.setY(250);
+      }
     });
   }
 }

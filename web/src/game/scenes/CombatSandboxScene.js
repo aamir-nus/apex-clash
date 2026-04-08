@@ -46,6 +46,8 @@ export class CombatSandboxScene extends Phaser.Scene {
     this.surgeActiveUntil = 0;
     this.domainCharge = 0;
     this.domainActiveUntil = 0;
+    this.feedbackText = null;
+    this.waveClearText = null;
   }
 
   create() {
@@ -57,6 +59,18 @@ export class CombatSandboxScene extends Phaser.Scene {
     this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, 0x102332);
     this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, 0x0d1b26, 1).setStrokeStyle(2, 0x31556f);
     this.dangerOverlay = this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, 0xf25f5c, 0);
+    this.feedbackText = this.add.text(480, 96, "", {
+      color: "#f6f1df",
+      fontFamily: "monospace",
+      fontSize: "15px",
+      align: "center"
+    }).setOrigin(0.5).setAlpha(0);
+    this.waveClearText = this.add.text(480, 250, "", {
+      color: "#b8f29b",
+      fontFamily: "monospace",
+      fontSize: "22px",
+      align: "center"
+    }).setOrigin(0.5).setAlpha(0);
     this.enemyFocusMarker = this.add.text(0, 0, "v", {
       color: "#ffd98b",
       fontFamily: "monospace",
@@ -273,6 +287,7 @@ export class CombatSandboxScene extends Phaser.Scene {
       this.surgeActiveUntil = this.time.now + 3200;
       this.pushFeed("Predator surge awakened. Commit to close-range pressure.");
       this.spawnFloatingText(this.player.x - 14, this.player.y - 28, "surge", "#9bf6ff");
+      this.playSceneFeedback("Predator surge", 0x9bf6ff, "normal");
       emitSoundEvent({ type: "enemy_down" });
     }
   }
@@ -289,6 +304,7 @@ export class CombatSandboxScene extends Phaser.Scene {
     this.burnoutUntil = this.time.now + 2800;
     this.pushFeed("Technique burnout. CE control collapsed for a moment.");
     this.spawnFloatingText(this.player.x - 20, this.player.y - 26, "burnout", "#ff8f70");
+    this.playSceneFeedback("Technique burnout", 0xc77dff, "normal");
     emitSoundEvent({ type: "danger" });
   }
 
@@ -404,6 +420,57 @@ export class CombatSandboxScene extends Phaser.Scene {
       duration: 140,
       ease: "Quad.easeOut",
       onComplete: () => burst.destroy()
+    });
+  }
+
+  playSceneFeedback(message, color = 0xf6f1df, emphasis = "normal") {
+    if (!this.feedbackText || !this.dangerOverlay) {
+      return;
+    }
+
+    this.feedbackText.setText(message);
+    this.feedbackText.setAlpha(1);
+    this.tweens.killTweensOf(this.feedbackText);
+    this.tweens.killTweensOf(this.dangerOverlay);
+    this.dangerOverlay.setFillStyle(color, emphasis === "heavy" ? 0.14 : 0.08);
+    this.tweens.add({
+      targets: this.feedbackText,
+      y: 82,
+      alpha: 0,
+      duration: emphasis === "heavy" ? 1500 : 1100,
+      ease: "Quad.easeOut",
+      onComplete: () => {
+        this.feedbackText.setY(96);
+      }
+    });
+    this.tweens.add({
+      targets: this.dangerOverlay,
+      alpha: 0,
+      duration: emphasis === "heavy" ? 720 : 420,
+      ease: "Quad.easeOut"
+    });
+  }
+
+  playWaveClearFeedback() {
+    if (!this.waveClearText) {
+      return;
+    }
+
+    this.waveClearText.setText("Wave Broken");
+    this.waveClearText.setAlpha(1);
+    this.waveClearText.setScale(0.9);
+    this.tweens.killTweensOf(this.waveClearText);
+    this.tweens.add({
+      targets: this.waveClearText,
+      scaleX: 1.08,
+      scaleY: 1.08,
+      y: 226,
+      alpha: 0,
+      duration: 950,
+      ease: "Back.easeOut",
+      onComplete: () => {
+        this.waveClearText.setY(250);
+      }
     });
   }
 
@@ -559,6 +626,7 @@ export class CombatSandboxScene extends Phaser.Scene {
       this.playerState.ce = Math.max(0, this.playerState.ce - 8);
       this.pushFeed(`${target.enemyType} countered the reckless commit.`);
       this.spawnFloatingText(this.player.x + 10, this.player.y - 18, "countered", "#ff8f70");
+      this.playSceneFeedback("Counter punished", 0xff8f70, "heavy");
       emitSoundEvent({ type: "danger" });
       this.emitRuntime();
       return;
@@ -588,6 +656,9 @@ export class CombatSandboxScene extends Phaser.Scene {
       `${damage}${precisionHit ? " !" : ""}`,
       precisionHit ? "#ffe066" : "#ffd98b"
     );
+    if (precisionHit) {
+      this.playSceneFeedback("Precision punish", 0xffe066, "normal");
+    }
 
     if (precisionHit) {
       if (this.playerState.heavenlyRestriction) {
@@ -615,6 +686,7 @@ export class CombatSandboxScene extends Phaser.Scene {
       this.pushFeed(`${target.enemyType} is staggered. Commit to the punish window.`);
       emitSoundEvent({ type: "enemy_down" });
       this.spawnFloatingText(target.x + 8, target.y - 26, "stagger", "#9bf6ff");
+      this.playSceneFeedback(`${target.enemyType} staggered`, 0x9bf6ff, "normal");
     }
 
     if (target.health <= 0) {
@@ -628,6 +700,8 @@ export class CombatSandboxScene extends Phaser.Scene {
       this.pushFeed("Curse eliminated. XP +15.");
       if (this.getEnemiesRemaining() === 0) {
         this.enemyRespawnCooldown = 2;
+        this.playWaveClearFeedback();
+        this.playSceneFeedback("Arena cleared", 0xb8f29b, "heavy");
       }
     }
 
@@ -966,6 +1040,9 @@ export class CombatSandboxScene extends Phaser.Scene {
     this.flashTarget(player, 0xf25f5c);
     this.spawnImpactBurst(player.x, player.y, 0xf25f5c, 20);
     this.spawnFloatingText(player.x + 10, player.y - 10, `-${incomingDamage}`, "#ff8f70");
+    if (this.playerState.hp <= this.playerState.maxHp * 0.3) {
+      this.playSceneFeedback("Critical condition", 0xf25f5c, "heavy");
+    }
     this.tweens.add({
       targets: this.player,
       x: this.player.x - this.facingVector.x * 8,
@@ -1058,6 +1135,7 @@ export class CombatSandboxScene extends Phaser.Scene {
       this.combatSnapshot.skillsUsed += 1;
       this.pushFeed("Domain surge deployed. Pressure the curses now.");
       this.spawnFloatingText(this.player.x - 18, this.player.y - 30, "domain", "#ffe066");
+      this.playSceneFeedback("Domain surge deployed", 0xf28482, "heavy");
       emitSoundEvent({ type: "enemy_down" });
       const target = this.getPrimaryEnemyTarget(9999);
       const config = this.getAbilityConfig("domain");
@@ -1087,6 +1165,7 @@ export class CombatSandboxScene extends Phaser.Scene {
       this.openPrecisionWindow(520);
       this.addSurgeMeter(16);
       this.pushFeed("Dodge primed. Reposition through pressure.");
+      this.playSceneFeedback("Precision dodge", 0x74c0fc, "normal");
       emitSoundEvent({ type: "dodge" });
       this.setPlayerAnimationState("dodge", 160);
       this.animateDodge();
