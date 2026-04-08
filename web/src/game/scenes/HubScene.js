@@ -111,6 +111,31 @@ export class HubScene extends Phaser.Scene {
     this.add.circle(168, 110, 34, 0xf4b942, 0.08).setStrokeStyle(2, 0xf4b942, 0.22);
     this.add.circle(792, 428, 42, 0x4cc9f0, 0.08).setStrokeStyle(2, 0x4cc9f0, 0.24);
     this.add.rectangle(arena.width / 2, arena.height / 2, 760, 360, 0x13283a, 1).setStrokeStyle(2, 0xf4b942);
+    this.add.rectangle(164, 246, 92, 150, 0x1b2734, 0.42).setStrokeStyle(1, 0x4cc9f0, 0.2);
+    this.add.rectangle(798, 254, 110, 166, 0x1b2734, 0.32).setStrokeStyle(1, 0xf4b942, 0.2);
+    this.add.rectangle(162, 308, 54, 14, 0x4cc9f0, 0.18).setStrokeStyle(1, 0xf6f1df, 0.12);
+    this.add.rectangle(162, 334, 54, 14, 0x4cc9f0, 0.12).setStrokeStyle(1, 0xf6f1df, 0.1);
+    this.add.rectangle(800, 312, 68, 16, 0xf4b942, 0.16).setStrokeStyle(1, 0xf6f1df, 0.12);
+    this.add.rectangle(800, 340, 68, 16, 0xf4b942, 0.1).setStrokeStyle(1, 0xf6f1df, 0.1);
+    const beaconRing = this.add.circle(706, 210, 22, 0x4cc9f0, 0.06).setStrokeStyle(2, 0x4cc9f0, 0.26);
+    this.tweens.add({
+      targets: beaconRing,
+      scaleX: 1.25,
+      scaleY: 1.25,
+      alpha: 0,
+      duration: 1400,
+      repeat: -1,
+      ease: "Sine.easeOut"
+    });
+    const archiveBlink = this.add.rectangle(250, 214, 12, 12, 0xffb36b, 0.7).setStrokeStyle(1, 0xf6f1df, 0.2);
+    this.tweens.add({
+      targets: archiveBlink,
+      alpha: 0.22,
+      duration: 580,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut"
+    });
     const commandStrip = this.add.rectangle(480, 424, 688, 54, 0x0f1d2b, 0.85).setStrokeStyle(1, 0x30526a, 0.8);
     this.tweens.add({
       targets: commandStrip,
@@ -131,6 +156,16 @@ export class HubScene extends Phaser.Scene {
       color: "#ffd4a3",
       fontFamily: "monospace",
       fontSize: "16px"
+    });
+    this.add.text(112, 382, "Briefing wall", {
+      color: "#7fb7cf",
+      fontFamily: "monospace",
+      fontSize: "12px"
+    });
+    this.add.text(740, 384, "Transit cradle", {
+      color: "#e5c37b",
+      fontFamily: "monospace",
+      fontSize: "12px"
     });
 
     this.add.text(100, 100, "Blacksite Hub", {

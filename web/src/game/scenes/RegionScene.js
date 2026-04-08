@@ -111,6 +111,20 @@ export class RegionScene extends Phaser.Scene {
     this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, regionTheme.frame, 1).setStrokeStyle(2, regionTheme.frameStroke);
     this.add.rectangle(660, 270, 140, 140, regionTheme.gateFill, 0.55).setStrokeStyle(2, regionTheme.gateStroke);
     this.add.rectangle(280, 270, 180, 200, regionTheme.accentFill, 0.18).setStrokeStyle(1, regionTheme.accentStroke);
+    this.add.rectangle(224, 246, 44, 110, regionTheme.frameStroke, 0.08).setStrokeStyle(1, 0xf6f1df, 0.12);
+    this.add.rectangle(334, 308, 52, 96, regionTheme.frameStroke, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
+    this.add.rectangle(560, 246, 88, 24, regionTheme.gateStroke, 0.08).setStrokeStyle(1, 0xf6f1df, 0.1);
+    this.add.rectangle(740, 320, 64, 132, regionTheme.gateStroke, 0.06).setStrokeStyle(1, 0xf6f1df, 0.12);
+    const routeBeacon = this.add.circle(650, 270, 26, regionTheme.gateStroke, 0.08).setStrokeStyle(2, regionTheme.gateStroke, 0.24);
+    this.tweens.add({
+      targets: routeBeacon,
+      scaleX: 1.3,
+      scaleY: 1.3,
+      alpha: 0,
+      duration: 1350,
+      repeat: -1,
+      ease: "Sine.easeOut"
+    });
     this.add.rectangle(652, 176, 66, 18, regionTheme.gateStroke, 0.22).setStrokeStyle(1, 0xf6f1df, 0.3);
     this.add.text(624, 166, "Gate", {
       color: "#f6f1df",
@@ -127,6 +141,16 @@ export class RegionScene extends Phaser.Scene {
     this.add.circle(416, 242, 10, regionTheme.frameStroke, 0.16).setStrokeStyle(2, 0xf6f1df, 0.2);
     this.add.text(384, 252, "Forward route", {
       color: "#d9e7d2",
+      fontFamily: "monospace",
+      fontSize: "12px"
+    });
+    this.add.text(224, 350, this.currentRegionId === "veil_shrine" ? "Veil residue" : this.currentRegionId === "cinder_ward" ? "Heat fractures" : "Collapse traces", {
+      color: "#c6d2dc",
+      fontFamily: "monospace",
+      fontSize: "12px"
+    });
+    this.add.text(612, 350, this.currentRegionId === "veil_shrine" ? "Shrine descent" : this.currentRegionId === "cinder_ward" ? "Furnace descent" : "Dungeon breach", {
+      color: "#ffd98b",
       fontFamily: "monospace",
       fontSize: "12px"
     });
@@ -198,6 +222,12 @@ export class RegionScene extends Phaser.Scene {
       ease: "Sine.easeInOut"
     });
     this.buildAdaptivePointsOfInterest();
+    this.add.rectangle(148, 432, 168, 26, 0x0c141d, 0.56).setStrokeStyle(1, regionTheme.frameStroke, 0.3);
+    this.add.text(118, 424, "Follow pulses, then take the gate", {
+      color: "#f6f1df",
+      fontFamily: "monospace",
+      fontSize: "12px"
+    });
 
     this.refreshSummary();
     this.emitRegionRuntime();
@@ -316,6 +346,16 @@ export class RegionScene extends Phaser.Scene {
 
     this.poiZones = definitions.map((entry) => {
       const marker = this.add.circle(entry.x, entry.y, 16, entry.color, 0.65).setStrokeStyle(2, 0xf6f1df);
+      const halo = this.add.circle(entry.x, entry.y, 34, entry.color, 0.08).setStrokeStyle(1, entry.color, 0.24);
+      this.tweens.add({
+        targets: halo,
+        scaleX: 1.24,
+        scaleY: 1.24,
+        alpha: 0,
+        duration: 1200,
+        repeat: -1,
+        ease: "Sine.easeOut"
+      });
       marker.pulseTween = this.tweens.add({
         targets: marker,
         scaleX: 1.18,
@@ -333,6 +373,7 @@ export class RegionScene extends Phaser.Scene {
       });
       return {
         ...entry,
+        halo,
         marker,
         label,
         claimed: false

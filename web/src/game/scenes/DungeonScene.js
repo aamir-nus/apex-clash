@@ -112,7 +112,13 @@ export class DungeonScene extends Phaser.Scene {
     this.add.rectangle(300, 270, 160, 220, isVeilDungeon ? 0x1e2038 : isCinderDungeon ? 0x3a1e16 : 0x13283a, 0.22).setStrokeStyle(1, isVeilDungeon ? 0xd4b5ff : isCinderDungeon ? 0xff995a : 0x74c0fc);
     this.add.rectangle(488, 270, 140, 180, isVeilDungeon ? 0x203126 : isCinderDungeon ? 0x3f281a : 0x2a1626, 0.2).setStrokeStyle(1, isVeilDungeon ? 0x87e0c2 : isCinderDungeon ? 0xffd08a : 0xe56b6f);
     this.add.rectangle(660, 270, 180, 220, isVeilDungeon ? 0x341a3c : isCinderDungeon ? 0x472016 : 0x28161c, 0.22).setStrokeStyle(1, isVeilDungeon ? 0xffc9f5 : isCinderDungeon ? 0xff8a5b : 0xff8f70);
+    this.add.rectangle(246, 238, 42, 134, isVeilDungeon ? 0xd4b5ff : isCinderDungeon ? 0xff995a : 0x74c0fc, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
+    this.add.rectangle(418, 324, 54, 92, isVeilDungeon ? 0x87e0c2 : isCinderDungeon ? 0xffd08a : 0xe56b6f, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
+    this.add.rectangle(732, 248, 52, 150, isVeilDungeon ? 0xffc9f5 : isCinderDungeon ? 0xff8a5b : 0xff8f70, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
     this.add.line(0, 0, 308, 270, 690, 270, 0xf6f1df, 0.18).setOrigin(0, 0).setLineWidth(2);
+    this.add.circle(308, 270, 38, isVeilDungeon ? 0xd4b5ff : isCinderDungeon ? 0xff995a : 0x74c0fc, 0.04).setStrokeStyle(1, 0xf6f1df, 0.12);
+    this.add.circle(490, 270, 46, isVeilDungeon ? 0x87e0c2 : isCinderDungeon ? 0xffd08a : 0xe56b6f, 0.04).setStrokeStyle(1, 0xf6f1df, 0.12);
+    this.add.circle(690, 270, 52, isVeilDungeon ? 0xffc9f5 : isCinderDungeon ? 0xff8a5b : 0xff8f70, 0.04).setStrokeStyle(1, 0xf6f1df, 0.12);
     this.add.text(260, 176, isVeilDungeon ? "Sigil chamber" : isCinderDungeon ? "Core chamber" : "Relic chamber", {
       color: "#c6d2dc",
       fontFamily: "monospace",
@@ -221,6 +227,12 @@ export class DungeonScene extends Phaser.Scene {
     });
     this.add.text(626, 344, this.minibossDefeated ? "Vault open" : "Vault sealed", {
       color: this.minibossDefeated ? "#b8f29b" : "#ffb4a2",
+      fontFamily: "monospace",
+      fontSize: "12px"
+    });
+    this.add.rectangle(480, 428, 408, 24, 0x0d141d, 0.52).setStrokeStyle(1, 0xf6f1df, 0.12);
+    this.add.text(324, 420, isVeilDungeon ? "Sigil -> fracture shield -> sanctum vault" : isCinderDungeon ? "Core -> cooling breach -> cinder vault" : "Relic -> sentinel -> boss vault", {
+      color: "#f6f1df",
       fontFamily: "monospace",
       fontSize: "12px"
     });

@@ -16,6 +16,7 @@ Browser-proven now:
 - first-route onboarding now uses stronger HUD objective calls and pulsing in-scene target markers instead of relying only on text
 - combat, dungeon, and boss encounters now have stronger live telegraph emphasis: threat markers, danger washes, and clearer vulnerability-state color changes
 - the browser shell now frames the active route as a field briefing instead of a generic status dashboard
+- hub, region, dungeon, and boss scenes now have stronger authored dressing and route landmarks instead of reading as flat test chambers
 - active technique bindings use a 2-slot model: `Q` and `E`, with `R` reserved for `Domain Surge`
 - 3 authored region routes in the current slice: Shatter Block, Veil Shrine, and Cinder Ward
 - the first full Shatter route is proven end to end in the browser gate: boon -> dungeon -> miniboss -> boss -> extract -> unlock
@@ -161,6 +162,10 @@ Latest combat-readability verification:
 Latest authored-shell verification:
 - local browser-flow after route-briefing shell pass: all 3 routes still green
 - live route focus, directive copy, and route ladder summary stay aligned with the active scene
+
+Latest authored-scene verification:
+- local browser-flow after scene-dressing pass: all 3 routes still green
+- route landmarks and chamber dressing did not break the proven browser path
 
 ## Game Flow
 
