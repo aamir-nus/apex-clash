@@ -214,6 +214,33 @@ This is not the full product `v1` from the PRD yet.
 
 This repository milestone is `v1` in repo-version terms, not the final PRD-complete game.
 
+## Since v1
+
+Key differences over the `v1` tag (`v1.0` baseline):
+
+- deployed-stack verification is much stronger:
+  - live Mongo runtime check
+  - Mongo restart check
+  - Docker deploy check
+  - Docker browser gameplay check
+- auth identity is now Mongo-aware instead of process-local only
+- `/health` now reports persistence mode and Mongo connection status
+- scene guidance is stronger:
+  - field-brief shell framing
+  - route-specific directives
+  - first-run route markers
+  - stronger HUD objective surfacing
+- combat readability is stronger:
+  - clearer threat focus
+  - stronger danger-state feedback
+  - better boss and sentinel vulnerability signaling
+- Docker definitions are more production-minded:
+  - healthchecks
+  - startup ordering
+  - restart policy
+
+This is a better `v1.x` hardening/polish cut, not a new scope tier.
+
 Compared with `v0.5`, this `v1` milestone adds:
 - three browser-proven authored routes instead of one partial route
 - backend-owned reward, progression, and loadout contracts across the full slice
