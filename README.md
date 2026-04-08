@@ -17,6 +17,7 @@ Browser-proven now:
 - combat, dungeon, and boss encounters now have stronger live telegraph emphasis: threat markers, danger washes, and clearer vulnerability-state color changes
 - the browser shell now frames the active route as a field briefing instead of a generic status dashboard
 - hub, region, dungeon, and boss scenes now have stronger authored dressing and route landmarks instead of reading as flat test chambers
+- Veil and Cinder route pacing now has less dead time: cleaner window timing, lighter backlash, and limited off-window chip progress
 - active technique bindings use a 2-slot model: `Q` and `E`, with `R` reserved for `Domain Surge`
 - 3 authored region routes in the current slice: Shatter Block, Veil Shrine, and Cinder Ward
 - the first full Shatter route is proven end to end in the browser gate: boon -> dungeon -> miniboss -> boss -> extract -> unlock
@@ -166,6 +167,12 @@ Latest authored-shell verification:
 Latest authored-scene verification:
 - local browser-flow after scene-dressing pass: all 3 routes still green
 - route landmarks and chamber dressing did not break the proven browser path
+
+Latest pacing verification:
+- local browser-flow after route-tempo pass: all 3 routes still green
+- Veil boss clear now lands at `6318ms`
+- Cinder miniboss clear now lands at `2983ms`
+- Cinder boss clear now lands at `6282ms`
 
 ## Game Flow
 

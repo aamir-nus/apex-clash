@@ -35,18 +35,18 @@ export class BossScene extends Phaser.Scene {
     this.sanctumGuard = 0;
     this.sanctumWindowOpen = false;
     this.lastSanctumWindowOpen = false;
-    this.sanctumCycleMs = 2600;
-    this.sanctumOpenMs = 950;
+    this.sanctumCycleMs = 2400;
+    this.sanctumOpenMs = 1150;
     this.cinderWindowOpen = false;
     this.lastCinderWindowOpen = false;
-    this.cinderCycleMs = 1900;
-    this.cinderOpenMs = 800;
-    this.cinderBacklashHp = 5;
-    this.cinderBacklashCe = 8;
+    this.cinderCycleMs = 1800;
+    this.cinderOpenMs = 950;
+    this.cinderBacklashHp = 4;
+    this.cinderBacklashCe = 6;
     this.signatureActive = false;
     this.lastSignatureActive = false;
-    this.signatureCycleMs = 3600;
-    this.signatureOpenMs = 900;
+    this.signatureCycleMs = 3800;
+    this.signatureOpenMs = 760;
     this.signatureTickCooldown = 0;
     this.unsubscribeControlCommands = null;
     this.bossMarker = null;
@@ -84,16 +84,16 @@ export class BossScene extends Phaser.Scene {
     const isVeilBoss = this.currentRegionId === "veil_boss_vault";
     const isCinderBoss = this.currentRegionId === "cinder_boss_vault";
     const boonKind = this.explorationBonus?.kind ?? "none";
-    const baseGuard = boonKind === "technique" ? 34 : boonKind === "pressure" ? 42 : 48;
-    this.sanctumCycleMs = boonKind === "pressure" ? 2200 : 2600;
-    this.sanctumOpenMs = boonKind === "pressure" ? 1200 : 950;
+    const baseGuard = boonKind === "technique" ? 28 : boonKind === "pressure" ? 34 : 40;
+    this.sanctumCycleMs = boonKind === "pressure" ? 2100 : 2400;
+    this.sanctumOpenMs = boonKind === "pressure" ? 1350 : 1150;
     this.sanctumGuard = loadedSessionState.sanctumGuard ?? (isVeilBoss ? baseGuard : 0);
     this.sanctumWindowOpen = Boolean(loadedSessionState.sanctumWindowOpen);
     this.lastSanctumWindowOpen = this.sanctumWindowOpen;
-    this.cinderCycleMs = boonKind === "pressure" ? 1600 : 1900;
-    this.cinderOpenMs = boonKind === "pressure" ? 1000 : 800;
-    this.cinderBacklashHp = boonKind === "recovery" ? 3 : 5;
-    this.cinderBacklashCe = boonKind === "recovery" ? 4 : 8;
+    this.cinderCycleMs = boonKind === "pressure" ? 1550 : 1800;
+    this.cinderOpenMs = boonKind === "pressure" ? 1150 : 950;
+    this.cinderBacklashHp = boonKind === "recovery" ? 2 : 4;
+    this.cinderBacklashCe = boonKind === "recovery" ? 3 : 6;
     this.cinderWindowOpen = Boolean(loadedSessionState.cinderWindowOpen);
     this.lastCinderWindowOpen = this.cinderWindowOpen;
     this.signatureActive = Boolean(loadedSessionState.signatureActive);
@@ -421,7 +421,7 @@ export class BossScene extends Phaser.Scene {
                 : isCinderBoss
                   ? this.cinderWindowOpen
                     ? "Cooling breach open. Burn the furnace core now."
-                    : "Furnace overdrive active. Wait or eat backlash."
+                    : "Furnace overdrive active. Mistimed hits still chip, but clean breaches are faster."
                 : "Break the vault curse to finish the dungeon slice."
               : this.currentRegionId === "shatter_boss_vault"
                 ? "Boss down. Veil Shrine unlocked. Press H to extract."
@@ -456,8 +456,10 @@ export class BossScene extends Phaser.Scene {
     }
 
     if (isVeilBoss && !this.sanctumWindowOpen) {
-      this.playerState.ce = Math.max(0, this.playerState.ce - 10);
-      this.playerState.hp = Math.max(1, this.playerState.hp - 6);
+      this.playerState.ce = Math.max(0, this.playerState.ce - 8);
+      this.playerState.hp = Math.max(1, this.playerState.hp - 4);
+      this.bossHp = Math.max(0, this.bossHp - Math.max(3, Math.floor(damage * 0.14)));
+      this.handleBossRewardClaim();
       emitSoundEvent({ type: "danger" });
       this.emitBossRuntime();
       return;
@@ -466,7 +468,7 @@ export class BossScene extends Phaser.Scene {
     if (isCinderBoss && !this.cinderWindowOpen) {
       this.playerState.ce = Math.max(0, this.playerState.ce - this.cinderBacklashCe);
       this.playerState.hp = Math.max(1, this.playerState.hp - this.cinderBacklashHp);
-      this.bossHp = Math.max(0, this.bossHp - Math.max(4, Math.floor(damage * 0.25)));
+      this.bossHp = Math.max(0, this.bossHp - Math.max(5, Math.floor(damage * 0.35)));
       this.handleBossRewardClaim();
       emitSoundEvent({ type: "danger" });
       this.emitBossRuntime();
@@ -474,8 +476,10 @@ export class BossScene extends Phaser.Scene {
     }
 
     if (this.signatureActive) {
-      this.playerState.hp = Math.max(1, this.playerState.hp - 5);
-      this.playerState.ce = Math.max(0, this.playerState.ce - 4);
+      this.playerState.hp = Math.max(1, this.playerState.hp - 4);
+      this.playerState.ce = Math.max(0, this.playerState.ce - 3);
+      this.bossHp = Math.max(0, this.bossHp - Math.max(3, Math.floor(damage * 0.12)));
+      this.handleBossRewardClaim();
       emitSoundEvent({ type: "danger" });
       this.emitBossRuntime();
       return;

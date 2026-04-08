@@ -89,6 +89,7 @@ Current verified browser baseline:
 - combat readability now has stronger threat markers, danger-state washes, and clearer vulnerability signaling on the proven path
 - the browser shell now uses route-specific field briefings and directive framing tied to the active route
 - the core route spaces now have stronger authored landmarks and chamber dressing without breaking the proven browser path
+- Veil and Cinder route pacing has been tightened so browser-proven encounters spend less time stalled on closed cycles
 
 Current mechanic-hardening target:
 - broader reward pacing and authored content depth still need to reach the same UX bar
@@ -104,7 +105,7 @@ Current mechanic-hardening target:
 
 ## Next Tasks
 
-1. Polish the proven path visually and continue reducing text-only onboarding while strengthening live combat clarity, route framing, and encounter pacing.
+1. Polish the proven path visually and continue reducing text-only onboarding while strengthening live combat clarity, route framing, and fine-grained encounter pacing.
 2. Expand authored dungeon layouts, encounter variety, and reward pacing.
 3. Move from placeholder presentation toward sprite/audio production quality.
 4. Revisit bundle strategy after more real content lands.

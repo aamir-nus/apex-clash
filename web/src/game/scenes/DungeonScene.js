@@ -88,16 +88,16 @@ export class DungeonScene extends Phaser.Scene {
     const isCinderDungeon = this.currentRegionId === "cinder_dungeon";
     const boonKind = this.explorationBonus?.kind ?? "none";
     const baseSanctumShield =
-      boonKind === "technique" ? 24 : boonKind === "pressure" ? 30 : 36;
-    this.sanctumCycleMs = boonKind === "pressure" ? 2000 : 2200;
-    this.sanctumOpenMs = boonKind === "pressure" ? 1100 : 900;
-    this.minibossHp = loadedSessionState.dungeonMinibossHp ?? (isVeilDungeon ? 92 : 72);
+      boonKind === "technique" ? 18 : boonKind === "pressure" ? 24 : 30;
+    this.sanctumCycleMs = boonKind === "pressure" ? 1800 : 2000;
+    this.sanctumOpenMs = boonKind === "pressure" ? 1350 : 1100;
+    this.minibossHp = loadedSessionState.dungeonMinibossHp ?? (isVeilDungeon ? 84 : 72);
     if (isCinderDungeon) {
-      this.minibossHp = loadedSessionState.dungeonMinibossHp ?? 84;
-      this.cinderCycleMs = boonKind === "pressure" ? 1500 : 1800;
-      this.cinderOpenMs = boonKind === "pressure" ? 900 : 700;
-      this.cinderBacklashHp = boonKind === "recovery" ? 2 : 4;
-      this.cinderBacklashCe = boonKind === "recovery" ? 3 : 6;
+      this.minibossHp = loadedSessionState.dungeonMinibossHp ?? 76;
+      this.cinderCycleMs = boonKind === "pressure" ? 1450 : 1650;
+      this.cinderOpenMs = boonKind === "pressure" ? 1050 : 900;
+      this.cinderBacklashHp = boonKind === "recovery" ? 1 : 3;
+      this.cinderBacklashCe = boonKind === "recovery" ? 2 : 4;
     }
     this.sanctumShield = loadedSessionState.sanctumShield ?? (isVeilDungeon ? baseSanctumShield : 0);
     this.sanctumWindowOpen = Boolean(loadedSessionState.sanctumWindowOpen);
@@ -445,7 +445,7 @@ export class DungeonScene extends Phaser.Scene {
                 : isCinderDungeon
                   ? this.cinderWindowOpen
                     ? "Cooling window open. Push damage before the core flares again."
-                    : "Furnace surge active. Mistimed attacks will burn you."
+                    : "Furnace surge active. Mistimed attacks still chip, but clean windows are faster."
                 : "Relic claimed. Break the sentinel to unlock the boss vault."
               : isVeilDungeon
                 ? "Claim the shrine sigil to wake the sanctum sentinel."
@@ -499,8 +499,9 @@ export class DungeonScene extends Phaser.Scene {
     }
 
     if (isVeilDungeon && !this.sanctumWindowOpen) {
-      this.playerState.ce = Math.max(0, this.playerState.ce - 8);
-      this.playerState.hp = Math.max(1, this.playerState.hp - 4);
+      this.playerState.ce = Math.max(0, this.playerState.ce - 6);
+      this.playerState.hp = Math.max(1, this.playerState.hp - 3);
+      this.minibossHp = Math.max(0, this.minibossHp - Math.max(3, Math.floor(damage * 0.18)));
       emitSoundEvent({ type: "danger" });
       this.emitDungeonRuntime();
       return;
@@ -509,7 +510,7 @@ export class DungeonScene extends Phaser.Scene {
     if (isCinderDungeon && !this.cinderWindowOpen) {
       this.playerState.ce = Math.max(0, this.playerState.ce - this.cinderBacklashCe);
       this.playerState.hp = Math.max(1, this.playerState.hp - this.cinderBacklashHp);
-      this.minibossHp = Math.max(0, this.minibossHp - Math.max(4, Math.floor(damage * 0.35)));
+      this.minibossHp = Math.max(0, this.minibossHp - Math.max(5, Math.floor(damage * 0.45)));
       emitSoundEvent({ type: "danger" });
       this.emitDungeonRuntime();
       return;
@@ -682,7 +683,7 @@ export class DungeonScene extends Phaser.Scene {
             ? isVeilDungeon
               ? "Sanctum sentinel active. Break it to reach the inner vault."
               : isCinderDungeon
-                ? "Furnace sentinel active. Strike only on cooling breaches."
+                ? "Furnace sentinel active. Cooling breaches are best, but off-cycle pressure still chips."
                 : "Sentinel active. Pressure the chamber guardian."
             : isVeilDungeon
               ? "Follow the marker and secure the sigil."
