@@ -41,6 +41,24 @@ const routeToneById = {
   cinder_ward: "route-cinder"
 };
 
+const routeBriefings = {
+  shatter_block: {
+    label: "Rupture Sweep",
+    summary: "Broken streets, low-rank curse pressure, and the fastest first clear in the build.",
+    directive: "Secure one boon fast, crack the relic room, and push cleanly into the first boss vault."
+  },
+  veil_shrine: {
+    label: "Sanctum Descent",
+    summary: "A timing route built around sealed pressure, rupture windows, and scroll progression.",
+    directive: "Strip the sanctum shield, respect the lane, then bind the scroll reward immediately."
+  },
+  cinder_ward: {
+    label: "Furnace Descent",
+    summary: "Heat pressure, cooling breaches, and faster reward-to-equip conversion.",
+    directive: "Stabilize the core, punish only on the breach, and extract with the emblem."
+  }
+};
+
 function isRouteCleared(regionId, clearedRegionIds, unlockedRegionIds) {
   if (clearedRegionIds.includes(regionId)) {
     return true;
@@ -211,6 +229,18 @@ function App() {
   const routeCompletionPercent = routeTracker.length
     ? Math.round((clearedRouteCount / routeTracker.length) * 100)
     : 0;
+  const highlightedRouteId =
+    runtime.scene.scene === "hub"
+      ? runtime.selectedRegionId
+      : runtime.regionId === "shatter_dungeon" || runtime.regionId === "shatter_boss_vault"
+        ? "shatter_block"
+        : runtime.regionId === "veil_dungeon" || runtime.regionId === "veil_boss_vault"
+          ? "veil_shrine"
+          : runtime.regionId === "cinder_dungeon" || runtime.regionId === "cinder_boss_vault"
+            ? "cinder_ward"
+            : runtime.regionId;
+  const highlightedRoute = routeTracker.find((route) => route.id === highlightedRouteId) ?? routeTracker[0];
+  const highlightedBriefing = routeBriefings[highlightedRoute?.id] ?? routeBriefings.shatter_block;
 
   return (
     <main className="app-shell">
@@ -227,11 +257,11 @@ function App() {
           </div>
         </div>
         <div className="status-card compact">
-          <h2>Current slice</h2>
+          <h2>Field Brief</h2>
           <ul>
-            <li>Hub to region to combat loop</li>
-            <li>Live HUD + save panel</li>
-            <li>Player auth layer + loadout panel</li>
+            <li>{highlightedRoute?.name ?? "Shatter Block"} is the active route focus</li>
+            <li>{highlightedBriefing.summary}</li>
+            <li>{runtime.objective?.title ?? "Deploy and take the next room cleanly."}</li>
           </ul>
         </div>
       </section>
@@ -280,18 +310,16 @@ function App() {
               <span>Keyboard-first, controller-ready, browser-native</span>
             </div>
             <div>
-              <strong>Stable route</strong>
-              <span>All 3 routes are browser-proven end to end</span>
+              <strong>Route ladder</strong>
+              <span>{clearedRouteCount}/{routeTracker.length || 3} cleared · {routeCompletionPercent}% complete</span>
             </div>
             <div>
-              <strong>Next target</strong>
-              <span>Mongo gameplay verification and broader authored content</span>
+              <strong>Current operation</strong>
+              <span>{highlightedBriefing.label}</span>
             </div>
             <div>
-              <strong>Route clear</strong>
-              <span>
-                {clearedRouteCount}/{routeTracker.length || 3} cleared · {routeCompletionPercent}%
-              </span>
+              <strong>Directive</strong>
+              <span>{highlightedBriefing.directive}</span>
             </div>
           </div>
           <Suspense fallback={<div className="canvas-loading">Loading Phaser runtime...</div>}>
@@ -361,6 +389,13 @@ function App() {
                   : `${clearedRouteCount} cleared · ${unlockedRouteCount} unlocked · next route ready`}
               </small>
             </div>
+            <div className={`route-brief-card ${routeToneById[highlightedRoute?.id] ?? ""}`}>
+              <div className="route-brief-copy">
+                <strong>{highlightedRoute?.name ?? "Blacksite Route"}</strong>
+                <span>{highlightedBriefing.summary}</span>
+              </div>
+              <small>{highlightedBriefing.directive}</small>
+            </div>
             <div className="route-progress-summary">
               <div className="route-progress-meter" aria-hidden="true">
                 <span style={{ width: `${routeCompletionPercent}%` }} />
@@ -429,7 +464,7 @@ function App() {
 
         <aside className="panel-stack">
           <section className="panel">
-            <h2>Build Summary</h2>
+            <h2>Operator Summary</h2>
             <div className="stat-block">
               {Object.entries(effectiveStats).map(([key, value]) => (
                 <div key={key} className="stat-row">
@@ -441,8 +476,7 @@ function App() {
             <div className="note-block">
               <strong>Current push</strong>
               <p>
-                Expand into multi-region progression, verify Mongo in real runs,
-                and replace placeholder combat loops with authored encounters.
+                Hold the proven three-route path, sharpen scene readability, and keep pushing toward authored encounter depth.
               </p>
             </div>
             <div className="ux-list">

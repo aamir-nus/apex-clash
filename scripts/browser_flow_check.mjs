@@ -24,6 +24,10 @@ function routeStatus(page, text) {
   return page.locator(".route-status-pill", { hasText: text });
 }
 
+function objectiveBanner(page) {
+  return page.locator(".objective-banner");
+}
+
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
@@ -167,7 +171,7 @@ async function run() {
     await page.getByText("Scene: Region").waitFor();
     metrics.transitionToRegionMs = Date.now() - transitionStartedAt;
 
-    await page.getByText("Probe the route").waitFor();
+    await objectiveBanner(page).getByText("Probe the route").waitFor();
     await page.getByText("Search the area, secure a boon, and enter the dungeon ingress.").waitFor();
     const boonStartedAt = Date.now();
     await page.getByRole("button", { name: "Secure Boon" }).click();
@@ -207,7 +211,7 @@ async function run() {
     const bossClearStartedAt = Date.now();
     const bossTimeout = Date.now() + 25000;
     while (Date.now() < bossTimeout) {
-      const extractReady = await page.getByText("Extract with the clear").isVisible().catch(() => false);
+      const extractReady = await objectiveBanner(page).getByText("Extract with the clear").isVisible().catch(() => false);
       if (extractReady) {
         break;
       }
@@ -215,7 +219,7 @@ async function run() {
       await page.getByRole("button", { name: "Strike Boss" }).click();
       await delay(300);
     }
-    await page.getByText("Extract with the clear").waitFor();
+    await objectiveBanner(page).getByText("Extract with the clear").waitFor();
     metrics.bossClearMs = Date.now() - bossClearStartedAt;
 
     const extractStartedAt = Date.now();
@@ -271,7 +275,7 @@ async function run() {
     const veilBossClearStartedAt = Date.now();
     const veilBossTimeout = Date.now() + 25000;
     while (Date.now() < veilBossTimeout) {
-      const extractReady = await page.getByText("Extract with the clear").isVisible().catch(() => false);
+      const extractReady = await objectiveBanner(page).getByText("Extract with the clear").isVisible().catch(() => false);
       if (extractReady) {
         break;
       }
@@ -279,7 +283,7 @@ async function run() {
       await page.getByRole("button", { name: "Strike Boss" }).click();
       await delay(300);
     }
-    await page.getByText("Extract with the clear").waitFor();
+    await objectiveBanner(page).getByText("Extract with the clear").waitFor();
     await page.getByText("New scroll: Rupture Arc").waitFor();
     metrics.veilBossClearMs = Date.now() - veilBossClearStartedAt;
 
@@ -341,7 +345,7 @@ async function run() {
     const cinderBossClearStartedAt = Date.now();
     const cinderBossTimeout = Date.now() + 25000;
     while (Date.now() < cinderBossTimeout) {
-      const extractReady = await page.getByText("Extract with the clear").isVisible().catch(() => false);
+      const extractReady = await objectiveBanner(page).getByText("Extract with the clear").isVisible().catch(() => false);
       if (extractReady) {
         break;
       }
@@ -349,7 +353,7 @@ async function run() {
       await page.getByRole("button", { name: "Strike Boss" }).click();
       await delay(300);
     }
-    await page.getByText("Extract with the clear").waitFor();
+    await objectiveBanner(page).getByText("Extract with the clear").waitFor();
     await page.getByText("New reward: Caldera Emblem").waitFor();
     metrics.cinderBossClearMs = Date.now() - cinderBossClearStartedAt;
 
