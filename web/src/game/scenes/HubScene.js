@@ -44,6 +44,7 @@ function resetRouteRuntimeState(registry) {
   registry.set("loadedSessionSummary", null);
   registry.set("explorationBonus", null);
   registry.set("combatSnapshot", null);
+  registry.set("routeReturnSummary", null);
 }
 
 function mapBossVaultToClearedRegion(regionId) {
@@ -72,6 +73,10 @@ export class HubScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.firstRunTutorial = false;
     this.unsubscribeControlCommands = null;
+    this.routeReturnSummary = null;
+    this.arrivalText = null;
+    this.arrivalSubtext = null;
+    this.arrivalGlow = null;
   }
 
   create() {
@@ -84,6 +89,7 @@ export class HubScene extends Phaser.Scene {
     this.regionKeys = this.input.keyboard.addKeys("ONE,TWO,THREE");
     const profile = this.registry.get("playerProfile") ?? null;
     const loadedSessionSummary = this.registry.get("loadedSessionSummary") ?? null;
+    this.routeReturnSummary = this.registry.get("routeReturnSummary") ?? null;
     const derivedClearedRegionId = mapBossVaultToClearedRegion(
       loadedSessionSummary?.sessionState?.clearedBossRegionId ?? null
     );
@@ -167,6 +173,19 @@ export class HubScene extends Phaser.Scene {
       fontFamily: "monospace",
       fontSize: "12px"
     });
+    this.arrivalGlow = this.add.circle(706, 210, 42, 0xb8f29b, 0);
+    this.arrivalText = this.add.text(480, 164, "", {
+      color: "#b8f29b",
+      fontFamily: "monospace",
+      fontSize: "22px",
+      align: "center"
+    }).setOrigin(0.5).setAlpha(0);
+    this.arrivalSubtext = this.add.text(480, 194, "", {
+      color: "#f6f1df",
+      fontFamily: "monospace",
+      fontSize: "14px",
+      align: "center"
+    }).setOrigin(0.5).setAlpha(0);
 
     this.add.text(100, 100, "Blacksite Hub", {
       color: "#f6f1df",
@@ -201,6 +220,7 @@ export class HubScene extends Phaser.Scene {
     });
 
     this.refreshSummary();
+    this.playArrivalSummary();
     this.emitHubRuntime();
     this.unsubscribeControlCommands = subscribeToControlCommands((command) => {
       if (command?.scene !== "hub" || this.isTransitioning) {
@@ -280,6 +300,9 @@ export class HubScene extends Phaser.Scene {
   emitHubRuntime() {
     const definition = (this.content.classes ?? []).find((entry) => entry.id === this.selectedArchetype);
     const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
+    const returnSummary = this.routeReturnSummary;
+    const selectedRegionName =
+      (this.content.regions ?? []).find((entry) => entry.id === this.selectedRegionId)?.name ?? "the field";
     emitRuntimeUpdate({
       scene: {
         scene: "hub",
@@ -308,14 +331,27 @@ export class HubScene extends Phaser.Scene {
       cooldowns: [],
       resumeSource,
       objective: {
-        title: this.firstRunTutorial ? "First deployment" : "Deploy from Blacksite",
-        detail: this.firstRunTutorial
+        title: returnSummary?.title ?? (this.firstRunTutorial ? "First deployment" : "Deploy from Blacksite"),
+        detail: returnSummary?.detail ?? (this.firstRunTutorial
           ? "Start in Shatter Block, secure one boon, then enter the field gate."
-          : `Choose a route and enter ${(this.content.regions ?? []).find((entry) => entry.id === this.selectedRegionId)?.name ?? "the field"}.`,
-        step: this.firstRunTutorial ? "Press 1, then Enter" : "Select 1 / 2 / 3, then press Enter"
+          : `Choose a route and enter ${selectedRegionName}.`),
+        step: returnSummary?.step ?? (this.firstRunTutorial ? "Press 1, then Enter" : "Select 1 / 2 / 3, then press Enter")
       },
+      activeEffects: returnSummary
+        ? [
+            {
+              id: "route-return",
+              label: returnSummary.effectLabel,
+              detail: returnSummary.effectDetail,
+              tone: "boon"
+            }
+          ]
+        : [],
       combatFeed: [
-        { id: 1, message: `Hub ready. Deploy to ${(this.content.regions ?? []).find((entry) => entry.id === this.selectedRegionId)?.name ?? "the field"}.` },
+        {
+          id: 1,
+          message: returnSummary?.feedMessage ?? `Hub ready. Deploy to ${selectedRegionName}.`
+        },
         {
           id: 2,
           message: this.unlockedRegionIds.includes("cinder_ward")
@@ -331,9 +367,37 @@ export class HubScene extends Phaser.Scene {
       },
       sessionState: {
         unlockedRegionIds: this.unlockedRegionIds,
-        clearedRegionIds: this.clearedRegionIds
+        clearedRegionIds: this.clearedRegionIds,
+        routeReturnSummary: returnSummary
       },
       selectedRegionId: this.selectedRegionId
+    });
+  }
+
+  playArrivalSummary() {
+    if (!this.routeReturnSummary || !this.arrivalText || !this.arrivalSubtext || !this.arrivalGlow) {
+      return;
+    }
+
+    this.arrivalText.setText(this.routeReturnSummary.bannerTitle);
+    this.arrivalSubtext.setText(this.routeReturnSummary.bannerDetail);
+    this.arrivalText.setAlpha(1).setY(164);
+    this.arrivalSubtext.setAlpha(1).setY(194);
+    this.arrivalGlow.setAlpha(0.32).setScale(1);
+    this.tweens.add({
+      targets: [this.arrivalText, this.arrivalSubtext],
+      alpha: 0,
+      y: "-=12",
+      duration: 2400,
+      ease: "Quad.easeOut"
+    });
+    this.tweens.add({
+      targets: this.arrivalGlow,
+      alpha: 0,
+      scaleX: 1.55,
+      scaleY: 1.55,
+      duration: 1100,
+      ease: "Quad.easeOut"
     });
   }
 

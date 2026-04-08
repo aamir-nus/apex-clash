@@ -6,6 +6,27 @@ Browser-first occult action RPG built with React, Phaser, Express, and MongoDB.
 
 Current target: `v3` browser release candidate path
 
+## Demo Readiness
+
+Current demo target:
+- one stable browser-first demo path that can be presented without explaining away broken transitions, missing save behavior, or reward/loadout drift
+
+Demo-ready requirements:
+- login or register works cleanly
+- hub -> Shatter -> Veil -> Cinder route flow completes in the browser gate
+- reward -> quick bind / quick equip -> extract flow is visible and understandable
+- cleared-route progression, save-slot create, resume toggle, and manual sync all work
+- scene transitions are readable and do not bleed stale route state
+- local smoke passes
+- deployed Docker browser-flow passes
+
+Current honest status:
+- core demo path: ready
+- browser proof: green
+- deploy proof: green
+- presentation polish: demo-ready on the proven 3-route slice
+- content breadth: below full `v3` target
+
 Browser-proven now:
 - browser launcher and Phaser play surface
 - auth, player profile, inventory, and save slots
@@ -20,6 +41,7 @@ Browser-proven now:
 - Veil and Cinder route pacing now has less dead time: cleaner window timing, lighter backlash, and limited off-window chip progress
 - boon claim, sentinel break, rupture windows, and boss clears now trigger in-scene callouts and short chamber flashes
 - combat sandbox and boss clears now have stronger hit-state callouts, wave-break framing, and route-clear emphasis
+- boss extract now carries a route-clear recovery summary back into the hub, so return flow lands with visible payoff instead of an abrupt reset
 - active technique bindings use a 2-slot model: `Q` and `E`, with `R` reserved for `Domain Surge`
 - 3 authored region routes in the current slice: Shatter Block, Veil Shrine, and Cinder Ward
 - the first full Shatter route is proven end to end in the browser gate: boon -> dungeon -> miniboss -> boss -> extract -> unlock
@@ -55,6 +77,8 @@ Active work:
 - sprite and audio production pipeline
 - browser bundle hardening beyond current chunk splitting
 - multi-region progression toward the `v3` release candidate bar
+- demo-ready polish on first-run presentation, route payoff, and scene-to-scene readability
+- deeper scene polish beyond the current demo-ready bar
 
 Known issue:
 - `phaser-runtime` still exceeds Vite's chunk warning threshold
@@ -185,6 +209,23 @@ Latest impact-feedback verification:
 - local browser-flow after combat-hit and clear-emphasis pass: all 3 routes still green
 - Shatter boss clear now lands at `3494ms`
 - Cinder boss clear now lands at `5964ms`
+
+Latest demo-ready gate:
+- `npm run test:smoke` passed
+- `npm run test:docker-browser-flow` passed
+- current demo-ready claim applies to the proven 3-route browser/deployed slice, not the full `v3` scope
+- extract and hub-return payoff is now part of that proven demo slice
+
+## Demo Checklist
+
+Tracked public demo bar:
+- browser gate green on all 3 routes
+- Docker browser gate green
+- save/resume path green
+- reward/bind/equip feedback green
+- no known route-state regression
+
+Local iterative checklist lives in `docs/tasklists/DEMO_READY_CHECKLIST.md` and is intentionally not tracked in git.
 
 ## Game Flow
 

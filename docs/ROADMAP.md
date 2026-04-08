@@ -92,9 +92,24 @@ Current verified browser baseline:
 - Veil and Cinder route pacing has been tightened so browser-proven encounters spend less time stalled on closed cycles
 - key route moments now use in-scene callouts and chamber flashes instead of relying only on HUD text
 - the combat sandbox and boss clears now have stronger hit-state and route-clear emphasis without breaking the browser proof
+- boss extract now hands a route-recovery summary back into the hub so the return flow has visible payoff
 
 Current mechanic-hardening target:
 - broader reward pacing and authored content depth still need to reach the same UX bar
+
+## Demo-Ready Bar
+
+Near-term demo-ready requirements:
+
+1. local smoke is green
+2. Docker browser-flow is green
+3. the three-route browser path stays regression-free
+4. save/resume and reward/loadout sync remain stable
+5. scene readability is strong enough that a presenter does not need to narrate around the UI
+
+Current demo status:
+- requirements 1, 2, 3, 4, and 5: currently green on the proven 3-route slice
+- demo-ready today means presentable vertical slice, not full `v3` completeness
 
 ## Current Milestone
 
@@ -107,11 +122,11 @@ Current mechanic-hardening target:
 
 ## Next Tasks
 
-1. Polish the proven path visually and continue reducing text-only onboarding while strengthening live combat clarity, route framing, and fine-grained encounter pacing.
-2. Expand authored dungeon layouts, encounter variety, and reward pacing.
-3. Move from placeholder presentation toward sprite/audio production quality.
-4. Revisit bundle strategy after more real content lands.
-5. Add broader browser play coverage beyond the current three-route proof.
+1. Keep rerunning the demo-ready gate after each polish batch: local smoke, then Docker browser-flow.
+2. Continue reducing text-only onboarding while strengthening live combat clarity and route framing.
+3. Expand authored dungeon layouts, encounter variety, and reward pacing.
+4. Move from placeholder presentation toward sprite/audio production quality.
+5. Revisit bundle strategy after more real content lands.
 
 ## Final
 

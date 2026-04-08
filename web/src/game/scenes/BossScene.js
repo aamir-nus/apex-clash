@@ -13,6 +13,39 @@ const arena = {
   height: 540
 };
 
+const routeReturnDisplay = {
+  shatter_boss_vault: {
+    bannerTitle: "Shatter Block Secured",
+    bannerDetail: "Veil Shrine breach coordinates recovered.",
+    title: "Route recovery complete",
+    detail: "Shatter Block collapsed cleanly. Veil Shrine is now ready for deployment.",
+    step: "Redeploy to Veil Shrine or bank the clear in a save slot.",
+    effectLabel: "Veil Shrine unlocked",
+    effectDetail: "Transit gate calibrated from the shattered vault.",
+    feedMessage: "Shatter Block secured. Veil Shrine is now available from the hub."
+  },
+  veil_boss_vault: {
+    bannerTitle: "Veil Shrine Broken",
+    bannerDetail: "Cinder Ward ingress stabilized through the sanctum breach.",
+    title: "Sanctum collapse confirmed",
+    detail: "Veil Shrine is clear. Cinder Ward is now available for the next deployment.",
+    step: "Quick-bind the scroll, then push toward Cinder Ward when ready.",
+    effectLabel: "Cinder Ward unlocked",
+    effectDetail: "Furnace ingress opened from sanctum collapse.",
+    feedMessage: "Veil Shrine secured. Cinder Ward is now available from the hub."
+  },
+  cinder_boss_vault: {
+    bannerTitle: "Cinder Ward Cleared",
+    bannerDetail: "Core fragments recovered and routed into Blacksite stores.",
+    title: "Furnace route secured",
+    detail: "Cinder Ward is clear. Extracted core rewards are ready for immediate use.",
+    step: "Review the route ladder, bank the clear, and prep the next operator pass.",
+    effectLabel: "Core recovered",
+    effectDetail: "Cinder rewards delivered to hub inventory channels.",
+    feedMessage: "Cinder Ward secured. Core rewards are waiting in the hub loadout panels."
+  }
+};
+
 function cloneState(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -571,8 +604,10 @@ export class BossScene extends Phaser.Scene {
         ...(clearedRegionId ? [clearedRegionId] : [])
       ])
     ];
+    const routeReturnSummary = routeReturnDisplay[this.currentRegionId] ?? null;
     this.registry.set("explorationBonus", null);
     this.registry.set("combatSnapshot", null);
+    this.registry.set("routeReturnSummary", routeReturnSummary);
     this.registry.set("loadedPlayerState", {
       ...this.playerState,
       xp: this.playerState.xp + 30,
@@ -600,8 +635,8 @@ export class BossScene extends Phaser.Scene {
     this.registry.set("currentRegionId", "hub_blacksite");
     emitTransitionUpdate({
       active: true,
-      label: "Dungeon clear",
-      detail: "Extracting to Blacksite with recovered progress..."
+      label: routeReturnSummary?.bannerTitle ?? "Dungeon clear",
+      detail: routeReturnSummary?.bannerDetail ?? "Extracting to Blacksite with recovered progress..."
     });
     this.time.delayedCall(220, () => {
       emitSceneUpdate({
