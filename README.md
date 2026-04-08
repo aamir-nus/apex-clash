@@ -14,6 +14,7 @@ Browser-proven now:
 - region, dungeon, and boss scenes now expose visible action controls in the browser shell for stable onboarding, accessibility, and automation
 - inventory and moveset changes now sync into active combat, dungeon, and boss scenes without needing a scene restart
 - first-route onboarding now uses stronger HUD objective calls and pulsing in-scene target markers instead of relying only on text
+- combat, dungeon, and boss encounters now have stronger live telegraph emphasis: threat markers, danger washes, and clearer vulnerability-state color changes
 - active technique bindings use a 2-slot model: `Q` and `E`, with `R` reserved for `Domain Surge`
 - 3 authored region routes in the current slice: Shatter Block, Veil Shrine, and Cinder Ward
 - the first full Shatter route is proven end to end in the browser gate: boon -> dungeon -> miniboss -> boss -> extract -> unlock
@@ -31,7 +32,7 @@ Browser-proven now:
 
 Implemented but still not release-polished:
 - scene dressing is still mostly prototype-grade
-- combat readability is serviceable, not final-quality
+- combat readability is improving, but still not final-quality
 - launcher/HUD/inventory UX is improved, but still not ship-grade
 - reward pacing exists, but not at full content depth
 - progression exists, but not at full `v3` scale
@@ -152,6 +153,10 @@ Latest onboarding/readability verified timings:
 - first-run tutorial flag persists: `true`
 - cleared route count remains: `3`
 
+Latest combat-readability verification:
+- local browser-flow after telegraph/danger-state pass: all 3 routes still green
+- combat scenes now preserve route completion and save/resume behavior under the stronger feedback layer
+
 ## Game Flow
 
 Simple loop:
@@ -237,7 +242,7 @@ Immediate task breakdown:
 2. Polish the proven path:
    - improve hub, region, dungeon, and boss visual dressing
    - keep replacing instructional text with visual markers and stronger objective guidance
-   - sharpen combat telegraphs, feedback, and scene clarity
+   - keep sharpening combat telegraphs, hit feedback, and scene clarity
 3. Expand authored content:
    - add more dungeon layouts per region
    - improve reward pacing and encounter variety

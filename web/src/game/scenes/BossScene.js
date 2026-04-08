@@ -50,6 +50,8 @@ export class BossScene extends Phaser.Scene {
     this.signatureTickCooldown = 0;
     this.unsubscribeControlCommands = null;
     this.bossMarker = null;
+    this.signatureLane = null;
+    this.bossDangerWash = null;
   }
 
   create() {
@@ -106,7 +108,7 @@ export class BossScene extends Phaser.Scene {
       .line(0, 0, 480, 110, 480, 430, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffb36b : 0xff8f70, 0.14)
       .setOrigin(0, 0)
       .setLineWidth(6);
-    this.add
+    this.signatureLane = this.add
       .rectangle(480, 270, 124, 260, isVeilBoss ? 0xc77dff : isCinderBoss ? 0xff8a5b : 0xf25f5c, 0.06)
       .setStrokeStyle(1, 0xf6f1df, 0.12);
     this.add.text(434, 122, "Danger lane", {
@@ -114,6 +116,14 @@ export class BossScene extends Phaser.Scene {
       fontFamily: "monospace",
       fontSize: "12px"
     });
+    this.bossDangerWash = this.add.rectangle(
+      arena.width / 2,
+      arena.height / 2,
+      820,
+      400,
+      isVeilBoss ? 0xc77dff : isCinderBoss ? 0xff8a5b : 0xf25f5c,
+      0
+    );
     this.add.text(100, 84, isVeilBoss ? "Sanctum Vault" : isCinderBoss ? "Cinder Vault" : "Boss Vault", {
       color: "#f6f1df",
       fontFamily: "monospace",
@@ -593,11 +603,15 @@ export class BossScene extends Phaser.Scene {
       if (this.signatureActive !== this.lastSignatureActive) {
         this.lastSignatureActive = this.signatureActive;
         emitSoundEvent({ type: this.signatureActive ? "danger" : "skill_cast" });
+        this.bossMarker.setColor(this.signatureActive ? "#ff8f70" : "#ffd98b");
         this.emitBossRuntime();
       }
     } else {
       this.signatureActive = false;
     }
+
+    this.signatureLane.setAlpha(this.signatureActive ? 0.18 : 0.06);
+    this.bossDangerWash.setAlpha(this.signatureActive ? 0.06 : 0);
 
     this.signatureTickCooldown = Math.max(0, this.signatureTickCooldown - delta / 1000);
     if (this.bossHp > 0 && this.signatureActive) {

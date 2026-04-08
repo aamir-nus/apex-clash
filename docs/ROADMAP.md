@@ -86,6 +86,7 @@ Current verified browser baseline:
 - Docker browser-flow verification now proves the multi-route gameplay loop against the deployed web and API stack
 - save-slot create, resume toggle, and manual sync all pass in the headless browser gate
 - first-run route guidance now has scene markers and stronger HUD objective surfacing on the proven path
+- combat readability now has stronger threat markers, danger-state washes, and clearer vulnerability signaling on the proven path
 
 Current mechanic-hardening target:
 - broader reward pacing and authored content depth still need to reach the same UX bar
@@ -101,7 +102,7 @@ Current mechanic-hardening target:
 
 ## Next Tasks
 
-1. Polish the proven path visually and continue reducing text-only onboarding.
+1. Polish the proven path visually and continue reducing text-only onboarding while strengthening live combat clarity.
 2. Expand authored dungeon layouts, encounter variety, and reward pacing.
 3. Move from placeholder presentation toward sprite/audio production quality.
 4. Revisit bundle strategy after more real content lands.

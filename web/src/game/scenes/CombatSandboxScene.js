@@ -38,6 +38,8 @@ export class CombatSandboxScene extends Phaser.Scene {
     this.activeCast = null;
     this.enemyTelegraphs = null;
     this.floatingTexts = null;
+    this.dangerOverlay = null;
+    this.enemyFocusMarker = null;
     this.precisionWindowUntil = 0;
     this.burnoutUntil = 0;
     this.surgeMeter = 0;
@@ -54,6 +56,21 @@ export class CombatSandboxScene extends Phaser.Scene {
 
     this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, 0x102332);
     this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, 0x0d1b26, 1).setStrokeStyle(2, 0x31556f);
+    this.dangerOverlay = this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, 0xf25f5c, 0);
+    this.enemyFocusMarker = this.add.text(0, 0, "v", {
+      color: "#ffd98b",
+      fontFamily: "monospace",
+      fontSize: "28px"
+    });
+    this.enemyFocusMarker.setVisible(false);
+    this.tweens.add({
+      targets: this.enemyFocusMarker,
+      y: "-=10",
+      duration: 420,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut"
+    });
 
     this.player = this.add.rectangle(180, arena.height / 2, 24, 24, 0x3ddc97);
     this.physics.add.existing(this.player);
@@ -255,6 +272,7 @@ export class CombatSandboxScene extends Phaser.Scene {
       this.surgeMeter = 0;
       this.surgeActiveUntil = this.time.now + 3200;
       this.pushFeed("Predator surge awakened. Commit to close-range pressure.");
+      this.spawnFloatingText(this.player.x - 14, this.player.y - 28, "surge", "#9bf6ff");
       emitSoundEvent({ type: "enemy_down" });
     }
   }
@@ -270,6 +288,7 @@ export class CombatSandboxScene extends Phaser.Scene {
 
     this.burnoutUntil = this.time.now + 2800;
     this.pushFeed("Technique burnout. CE control collapsed for a moment.");
+    this.spawnFloatingText(this.player.x - 20, this.player.y - 26, "burnout", "#ff8f70");
     emitSoundEvent({ type: "danger" });
   }
 
@@ -1038,6 +1057,7 @@ export class CombatSandboxScene extends Phaser.Scene {
       this.playerState.ce = Math.max(0, this.playerState.ce - ceCost);
       this.combatSnapshot.skillsUsed += 1;
       this.pushFeed("Domain surge deployed. Pressure the curses now.");
+      this.spawnFloatingText(this.player.x - 18, this.player.y - 30, "domain", "#ffe066");
       emitSoundEvent({ type: "enemy_down" });
       const target = this.getPrimaryEnemyTarget(9999);
       const config = this.getAbilityConfig("domain");
@@ -1128,6 +1148,30 @@ export class CombatSandboxScene extends Phaser.Scene {
       entry.remaining = Math.max(0, entry.remaining - deltaSeconds);
     });
     this.processEnemyBehavior(deltaSeconds);
+    const focusedEnemy = this.getPrimaryEnemyTarget(260);
+    if (focusedEnemy?.active) {
+      this.enemyFocusMarker.setPosition(focusedEnemy.x - 8, focusedEnemy.y - 34);
+      this.enemyFocusMarker.setVisible(true);
+      this.enemyFocusMarker.setColor(
+        focusedEnemy.attackState === "windup"
+          ? "#ff8f70"
+          : focusedEnemy.attackState === "staggered"
+            ? "#9bf6ff"
+            : "#ffd98b"
+      );
+    } else {
+      this.enemyFocusMarker.setVisible(false);
+    }
+    const lowHpDanger = this.playerState.hp <= this.playerState.maxHp * 0.3;
+    const dangerAlpha = this.isBurnedOut()
+      ? 0.12
+      : lowHpDanger
+        ? 0.08
+        : this.enemies.getChildren().some((enemy) => enemy.active && enemy.attackState === "windup")
+          ? 0.05
+          : 0;
+    this.dangerOverlay.setAlpha(Phaser.Math.Linear(this.dangerOverlay.alpha, dangerAlpha, 0.18));
+    this.dangerOverlay.fillColor = this.isBurnedOut() ? 0xc77dff : 0xf25f5c;
 
     const ceRegenRate = this.playerState.heavenlyRestriction
       ? 1.4
@@ -1329,7 +1373,18 @@ export class CombatSandboxScene extends Phaser.Scene {
       enemy.enemyType === "Shrieker"
         ? this.add.circle(enemy.x, enemy.y, 54, 0xc96bff, 0.14).setStrokeStyle(2, 0xc96bff, 0.85)
         : this.add.circle(enemy.x, enemy.y, 28, 0xf25f5c, 0.14).setStrokeStyle(2, 0xf25f5c, 0.85);
+    const label = this.add.text(
+      enemy.x - 24,
+      enemy.y - 42,
+      enemy.enemyType === "Shrieker" ? "beam" : enemy.enemyType === "Crusher" ? "slam" : "lunge",
+      {
+        color: "#f6f1df",
+        fontFamily: "monospace",
+        fontSize: "11px"
+      }
+    );
     enemy.telegraphShape = telegraph;
+    enemy.telegraphLabel = label;
     this.enemyTelegraphs.add(telegraph);
     this.tweens.add({
       targets: telegraph,
@@ -1340,7 +1395,9 @@ export class CombatSandboxScene extends Phaser.Scene {
       ease: "Quad.easeOut",
       onComplete: () => {
         telegraph.destroy();
+        label.destroy();
         enemy.telegraphShape = null;
+        enemy.telegraphLabel = null;
       }
     });
     this.time.delayedCall(Math.floor(enemy.attackWindupMs * 0.55), () => {
@@ -1362,6 +1419,8 @@ export class CombatSandboxScene extends Phaser.Scene {
     enemy.attackState = "idle";
     enemy.counterReady = false;
     enemy.idleTween?.resume();
+    enemy.telegraphLabel?.destroy();
+    enemy.telegraphLabel = null;
 
     if (distance > enemy.attackRange + 18) {
       this.pushFeed(`${enemy.enemyType} missed its strike.`);

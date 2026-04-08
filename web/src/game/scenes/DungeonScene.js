@@ -634,6 +634,7 @@ export class DungeonScene extends Phaser.Scene {
       if (this.sanctumWindowOpen !== this.lastSanctumWindowOpen) {
         this.lastSanctumWindowOpen = this.sanctumWindowOpen;
         emitSoundEvent({ type: this.sanctumWindowOpen ? "enemy_down" : "danger" });
+        this.minibossMarker.setColor(this.sanctumWindowOpen ? "#9bf6ff" : "#ffd98b");
         this.emitDungeonRuntime();
       }
     }
@@ -644,6 +645,7 @@ export class DungeonScene extends Phaser.Scene {
       if (this.cinderWindowOpen !== this.lastCinderWindowOpen) {
         this.lastCinderWindowOpen = this.cinderWindowOpen;
         emitSoundEvent({ type: this.cinderWindowOpen ? "enemy_down" : "danger" });
+        this.minibossMarker.setColor(this.cinderWindowOpen ? "#9bf6ff" : "#ffd98b");
         this.emitDungeonRuntime();
       }
     }
@@ -681,6 +683,9 @@ export class DungeonScene extends Phaser.Scene {
     this.relicMarker.setVisible(!this.relicClaimed);
     this.minibossMarker.setVisible(this.relicClaimed && !this.minibossDefeated);
     this.vaultMarker.setVisible(this.minibossDefeated);
+    if (this.vaultMarker.visible) {
+      this.vaultMarker.setColor("#b8f29b");
+    }
 
     if (!this.relicClaimed && relicDistance < 56 && Phaser.Input.Keyboard.JustDown(this.interactKey)) {
       this.claimRelic();
