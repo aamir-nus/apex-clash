@@ -37,6 +37,8 @@ export class RegionScene extends Phaser.Scene {
     this.firstRunTutorial = false;
     this.unsubscribeControlCommands = null;
     this.gateMarker = null;
+    this.feedbackText = null;
+    this.feedbackWash = null;
   }
 
   create() {
@@ -191,6 +193,13 @@ export class RegionScene extends Phaser.Scene {
       fontFamily: "monospace",
       fontSize: "14px"
     });
+    this.feedbackWash = this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, regionTheme.frameStroke, 0);
+    this.feedbackText = this.add.text(480, 104, "", {
+      color: "#f6f1df",
+      fontFamily: "monospace",
+      fontSize: "15px",
+      align: "center"
+    }).setOrigin(0.5).setAlpha(0);
 
     this.player = this.add.rectangle(220, 270, 24, 24, 0x3ddc97);
     this.physics.add.existing(this.player);
@@ -478,7 +487,37 @@ export class RegionScene extends Phaser.Scene {
     this.registry.set("explorationBonus", point.reward);
     this.pushDiscoveryFeed(`${point.label.text} secured: ${point.reward.label}.`);
     emitSoundEvent({ type: "enemy_down" });
+    this.playSceneFeedback(point.reward.label, point.color);
     this.emitRegionRuntime();
+  }
+
+  playSceneFeedback(message, color) {
+    if (!this.feedbackText || !this.feedbackWash) {
+      return;
+    }
+
+    this.feedbackText.setText(`Boon secured: ${message}`);
+    this.feedbackText.setColor("#f6f1df");
+    this.feedbackText.setAlpha(1);
+    this.feedbackWash.setFillStyle(color, 0.12);
+    this.tweens.killTweensOf(this.feedbackText);
+    this.tweens.killTweensOf(this.feedbackWash);
+    this.tweens.add({
+      targets: this.feedbackText,
+      y: 88,
+      alpha: 0,
+      duration: 1400,
+      ease: "Quad.easeOut",
+      onComplete: () => {
+        this.feedbackText.setY(104);
+      }
+    });
+    this.tweens.add({
+      targets: this.feedbackWash,
+      alpha: 0,
+      duration: 620,
+      ease: "Quad.easeOut"
+    });
   }
 
   claimFirstAvailablePointOfInterest() {

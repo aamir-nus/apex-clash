@@ -90,6 +90,7 @@ Current verified browser baseline:
 - the browser shell now uses route-specific field briefings and directive framing tied to the active route
 - the core route spaces now have stronger authored landmarks and chamber dressing without breaking the proven browser path
 - Veil and Cinder route pacing has been tightened so browser-proven encounters spend less time stalled on closed cycles
+- key route moments now use in-scene callouts and chamber flashes instead of relying only on HUD text
 
 Current mechanic-hardening target:
 - broader reward pacing and authored content depth still need to reach the same UX bar

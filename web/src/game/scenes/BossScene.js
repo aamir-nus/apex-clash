@@ -52,6 +52,7 @@ export class BossScene extends Phaser.Scene {
     this.bossMarker = null;
     this.signatureLane = null;
     this.bossDangerWash = null;
+    this.feedbackText = null;
   }
 
   create() {
@@ -136,6 +137,12 @@ export class BossScene extends Phaser.Scene {
       isVeilBoss ? 0xc77dff : isCinderBoss ? 0xff8a5b : 0xf25f5c,
       0
     );
+    this.feedbackText = this.add.text(480, 100, "", {
+      color: "#f6f1df",
+      fontFamily: "monospace",
+      fontSize: "15px",
+      align: "center"
+    }).setOrigin(0.5).setAlpha(0);
     this.add.text(100, 84, isVeilBoss ? "Sanctum Vault" : isCinderBoss ? "Cinder Vault" : "Boss Vault", {
       color: "#f6f1df",
       fontFamily: "monospace",
@@ -451,6 +458,9 @@ export class BossScene extends Phaser.Scene {
       const guardBreak = Math.max(10, Math.floor(damage * 0.8));
       this.sanctumGuard = Math.max(0, this.sanctumGuard - guardBreak);
       emitSoundEvent({ type: this.sanctumGuard === 0 ? "enemy_down" : "skill_cast" });
+      if (this.sanctumGuard === 0) {
+        this.playSceneFeedback("Sanctum guard shattered", 0xe2b6ff);
+      }
       this.emitBossRuntime();
       return;
     }
@@ -488,6 +498,16 @@ export class BossScene extends Phaser.Scene {
     this.bossHp = Math.max(0, this.bossHp - damage);
     this.handleBossRewardClaim();
     emitSoundEvent({ type: this.bossHp === 0 ? "enemy_down" : "skill_cast" });
+    if (this.bossHp === 0) {
+      this.playSceneFeedback(
+        this.currentRegionId === "veil_boss_vault"
+          ? "Sanctum curse collapsed"
+          : this.currentRegionId === "cinder_boss_vault"
+            ? "Furnace core extinguished"
+            : "Vault curse collapsed",
+        0xb8f29b
+      );
+    }
     this.emitBossRuntime();
   }
 
@@ -617,6 +637,9 @@ export class BossScene extends Phaser.Scene {
       if (this.sanctumWindowOpen !== this.lastSanctumWindowOpen) {
         this.lastSanctumWindowOpen = this.sanctumWindowOpen;
         emitSoundEvent({ type: this.sanctumWindowOpen ? "enemy_down" : "danger" });
+        if (this.sanctumWindowOpen) {
+          this.playSceneFeedback("Rupture window open", 0xc77dff);
+        }
         this.emitBossRuntime();
       }
     }
@@ -627,6 +650,9 @@ export class BossScene extends Phaser.Scene {
       if (this.cinderWindowOpen !== this.lastCinderWindowOpen) {
         this.lastCinderWindowOpen = this.cinderWindowOpen;
         emitSoundEvent({ type: this.cinderWindowOpen ? "enemy_down" : "danger" });
+        if (this.cinderWindowOpen) {
+          this.playSceneFeedback("Cooling breach open", 0xff8a5b);
+        }
         this.emitBossRuntime();
       }
     }
@@ -638,6 +664,9 @@ export class BossScene extends Phaser.Scene {
         this.lastSignatureActive = this.signatureActive;
         emitSoundEvent({ type: this.signatureActive ? "danger" : "skill_cast" });
         this.bossMarker.setColor(this.signatureActive ? "#ff8f70" : "#ffd98b");
+        if (this.signatureActive) {
+          this.playSceneFeedback("Signature field active", 0xf25f5c);
+        }
         this.emitBossRuntime();
       }
     } else {
@@ -667,5 +696,33 @@ export class BossScene extends Phaser.Scene {
     if (this.bossHp === 0 && Phaser.Input.Keyboard.JustDown(this.returnKey)) {
       this.extractToHub();
     }
+  }
+
+  playSceneFeedback(message, color) {
+    if (!this.feedbackText || !this.bossDangerWash) {
+      return;
+    }
+
+    this.feedbackText.setText(message);
+    this.feedbackText.setAlpha(1);
+    this.tweens.killTweensOf(this.feedbackText);
+    this.tweens.killTweensOf(this.bossDangerWash);
+    this.bossDangerWash.setFillStyle(color, 0.14);
+    this.tweens.add({
+      targets: this.feedbackText,
+      y: 84,
+      alpha: 0,
+      duration: 1350,
+      ease: "Quad.easeOut",
+      onComplete: () => {
+        this.feedbackText.setY(100);
+      }
+    });
+    this.tweens.add({
+      targets: this.bossDangerWash,
+      alpha: 0,
+      duration: 620,
+      ease: "Quad.easeOut"
+    });
   }
 }

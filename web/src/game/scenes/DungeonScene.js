@@ -54,6 +54,8 @@ export class DungeonScene extends Phaser.Scene {
     this.relicMarker = null;
     this.minibossMarker = null;
     this.vaultMarker = null;
+    this.feedbackText = null;
+    this.feedbackWash = null;
   }
 
   create() {
@@ -162,6 +164,20 @@ export class DungeonScene extends Phaser.Scene {
       fontFamily: "monospace",
       fontSize: "14px"
     });
+    this.feedbackWash = this.add.rectangle(
+      arena.width / 2,
+      arena.height / 2,
+      820,
+      400,
+      isVeilDungeon ? 0xe2b6ff : isCinderDungeon ? 0xffb36b : 0x8fb9ff,
+      0
+    );
+    this.feedbackText = this.add.text(480, 102, "", {
+      color: "#f6f1df",
+      fontFamily: "monospace",
+      fontSize: "15px",
+      align: "center"
+    }).setOrigin(0.5).setAlpha(0);
 
     this.player = this.add.rectangle(180, 270, 24, 24, 0x3ddc97);
     this.physics.add.existing(this.player);
@@ -477,6 +493,18 @@ export class DungeonScene extends Phaser.Scene {
     this.registry.set("dungeonRelicClaimed", true);
     this.miniboss.setFillStyle(0xe56b6f, 0.82);
     emitSoundEvent({ type: "enemy_down" });
+    this.playSceneFeedback(
+      this.currentRegionId === "veil_dungeon"
+        ? "Shrine sigil secured"
+        : this.currentRegionId === "cinder_dungeon"
+          ? "Ember core stabilized"
+          : "Relic shard secured",
+      this.currentRegionId === "veil_dungeon"
+        ? 0xe2b6ff
+        : this.currentRegionId === "cinder_dungeon"
+          ? 0xffb36b
+          : 0x8fb9ff
+    );
     this.emitDungeonRuntime();
   }
 
@@ -523,6 +551,14 @@ export class DungeonScene extends Phaser.Scene {
       this.miniboss.setFillStyle(0x5a5a5a, 0.28);
       this.minibossPulse?.stop();
       this.playerState.pendingStatPoints += 1;
+      this.playSceneFeedback(
+        this.currentRegionId === "veil_dungeon"
+          ? "Sanctum sentinel broken"
+          : this.currentRegionId === "cinder_dungeon"
+            ? "Furnace sentinel broken"
+            : "Sentinel broken",
+        0xb8f29b
+      );
       emitInventoryReward({
         rewardSource:
           this.currentRegionId === "veil_dungeon"
@@ -538,6 +574,34 @@ export class DungeonScene extends Phaser.Scene {
       });
     }
     this.emitDungeonRuntime();
+  }
+
+  playSceneFeedback(message, color) {
+    if (!this.feedbackText || !this.feedbackWash) {
+      return;
+    }
+
+    this.feedbackText.setText(message);
+    this.feedbackText.setAlpha(1);
+    this.feedbackWash.setFillStyle(color, 0.14);
+    this.tweens.killTweensOf(this.feedbackText);
+    this.tweens.killTweensOf(this.feedbackWash);
+    this.tweens.add({
+      targets: this.feedbackText,
+      y: 86,
+      alpha: 0,
+      duration: 1400,
+      ease: "Quad.easeOut",
+      onComplete: () => {
+        this.feedbackText.setY(102);
+      }
+    });
+    this.tweens.add({
+      targets: this.feedbackWash,
+      alpha: 0,
+      duration: 680,
+      ease: "Quad.easeOut"
+    });
   }
 
   enterBossVault() {
