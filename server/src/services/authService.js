@@ -28,6 +28,10 @@ function sanitizeUser(user) {
 }
 
 async function ensureDefaultAdminUser() {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+
   const existingAdmin = await findUserByUsername(DEFAULT_ADMIN_USERNAME);
   if (existingAdmin) {
     return;
@@ -43,6 +47,10 @@ async function ensureDefaultAdminUser() {
 
 export async function registerUser({ username, password }) {
   await ensureDefaultAdminUser();
+  if (typeof username !== "string" || typeof password !== "string") {
+    return { error: "Username and password must be valid" };
+  }
+
   const normalizedUsername = username.trim().toLowerCase();
   if (!normalizedUsername || password.length < 6) {
     return { error: "Username and password must be valid" };
@@ -65,6 +73,10 @@ export async function registerUser({ username, password }) {
 
 export async function loginUser({ username, password }) {
   await ensureDefaultAdminUser();
+  if (typeof username !== "string" || typeof password !== "string") {
+    return { error: "Invalid credentials" };
+  }
+
   const normalizedUsername = username.trim().toLowerCase();
   const user = await findUserByUsername(normalizedUsername);
 

@@ -1,11 +1,13 @@
 import { apiBaseUrl } from "../config/api";
 
 async function request(path, options = {}) {
+  const { headers: callerHeaders, ...restOptions } = options;
   const response = await fetch(`${apiBaseUrl}${path}`, {
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      ...(callerHeaders ?? {})
     },
-    ...options
+    ...restOptions
   });
 
   if (!response.ok) {

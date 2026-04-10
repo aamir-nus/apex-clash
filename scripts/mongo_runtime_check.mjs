@@ -151,7 +151,7 @@ async function run() {
       headers: authHeaders
     });
 
-    assert(initialProfile.currentRegionId === "hub_blacksite", "Initial profile did not start at hub.");
+    assert(initialProfile.currentRegionId === "hub_jujutsu_high", "Initial profile did not start at hub.");
     assert(sessionProfile.currentRegionId === "barrier_shrine", "Session update did not persist region.");
     assert(
       sessionProfile.clearedRegionIds?.includes("detention_center"),

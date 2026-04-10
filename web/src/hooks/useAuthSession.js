@@ -5,8 +5,13 @@ const storageKey = "apex-clash-auth";
 
 export function useAuthSession() {
   const [session, setSession] = useState(() => {
-    const stored = window.localStorage.getItem(storageKey);
-    return stored ? JSON.parse(stored) : { token: "", user: null };
+    try {
+      const stored = window.localStorage.getItem(storageKey);
+      return stored ? JSON.parse(stored) : { token: "", user: null };
+    } catch {
+      window.localStorage.removeItem(storageKey);
+      return { token: "", user: null };
+    }
   });
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");

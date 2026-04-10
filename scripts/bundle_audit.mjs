@@ -11,6 +11,7 @@ function assert(condition, message) {
 }
 
 function collectAssetMetrics() {
+  assert(fs.existsSync(assetsDir), "Missing built web assets. Run `npm run build` before bundle audit.");
   const entries = fs.readdirSync(assetsDir);
   return entries.map((file) => {
     const absolutePath = path.join(assetsDir, file);
@@ -30,7 +31,6 @@ const reactChunk = metrics.find((entry) => entry.file.startsWith("react-vendor-"
 const appChunk = metrics.find((entry) => /^index-.*\.js$/.test(entry.file));
 const canvasChunk = metrics.find((entry) => entry.file.startsWith("GameCanvas-"));
 
-assert(fs.existsSync(assetsDir), "Missing built web assets. Run `npm run build` before bundle audit.");
 assert(phaserChunk, "Missing Phaser runtime chunk.");
 assert(gameRuntimeChunk, "Missing game runtime chunk.");
 assert(reactChunk, "Missing React vendor chunk.");

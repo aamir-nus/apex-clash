@@ -151,7 +151,7 @@ export function useSaveSlots(selectedArchetype, runtime, authToken, onProfileSyn
     }
 
     const nextSignature = JSON.stringify({
-      sessionScope: selectedSlotId ?? "live-profile",
+      sessionScope: selectedSlotId || "live-profile",
       payload: savePayload
     });
 
