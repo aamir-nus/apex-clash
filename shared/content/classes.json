@@ -1,0 +1,78 @@
+[
+  {
+    "id": "striker",
+    "name": "Striker Sorcerer",
+    "combatStyle": "Melee pressure and Black Flash synergy",
+    "baseStats": {
+      "hp": 120,
+      "ceOutput": 45,
+      "ceReserve": 25,
+      "attack": 16,
+      "defense": 10,
+      "speed": 12,
+      "technique": 9,
+      "perception": 8,
+      "crit": 6,
+      "poise": 11
+    },
+    "blackFlashAffinity": 1.5,
+    "burnoutThreshold": 3
+  },
+  {
+    "id": "technique_fighter",
+    "name": "Technique Fighter",
+    "combatStyle": "Hybrid spacing with seals and barriers",
+    "baseStats": {
+      "hp": 108,
+      "ceOutput": 50,
+      "ceReserve": 32,
+      "attack": 13,
+      "defense": 9,
+      "speed": 11,
+      "technique": 12,
+      "perception": 10,
+      "crit": 7,
+      "poise": 8
+    },
+    "blackFlashAffinity": 1.2,
+    "burnoutThreshold": 5
+  },
+  {
+    "id": "projection_sorcerer",
+    "name": "Projection Sorcerer",
+    "combatStyle": "Ranged cursed technique casts and area denial",
+    "baseStats": {
+      "hp": 96,
+      "ceOutput": 60,
+      "ceReserve": 36,
+      "attack": 11,
+      "defense": 7,
+      "speed": 10,
+      "technique": 15,
+      "perception": 12,
+      "crit": 8,
+      "poise": 6
+    },
+    "blackFlashAffinity": 1.0,
+    "burnoutThreshold": 6
+  },
+  {
+    "id": "heavenly_restriction",
+    "name": "Heavenly Restriction",
+    "combatStyle": "Cursed tool mastery with physical dominance",
+    "baseStats": {
+      "hp": 136,
+      "ceOutput": 20,
+      "ceReserve": 12,
+      "attack": 15,
+      "defense": 11,
+      "speed": 13,
+      "technique": 5,
+      "perception": 11,
+      "crit": 7,
+      "poise": 12
+    },
+    "blackFlashAffinity": 0.8,
+    "burnoutThreshold": 1
+  }
+]

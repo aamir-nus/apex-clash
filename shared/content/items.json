@@ -1,0 +1,638 @@
+[
+  {
+    "id": "rust_talisman",
+    "name": "Defense Talisman",
+    "type": "charm",
+    "rarity": "common",
+    "statModifiers": {
+      "defense": 2
+    }
+  },
+  {
+    "id": "breach_blade",
+    "name": "Cursed Short Blade",
+    "type": "weapon",
+    "rarity": "rare",
+    "equipSlot": "weapon",
+    "classRestrictions": ["striker"],
+    "statModifiers": {
+      "attack": 5,
+      "poise": 2
+    },
+    "identityPassive": {
+      "type": "penetration",
+      "effect": "Attacks ignore 10% of enemy defense"
+    }
+  },
+  {
+    "id": "pulse_tanto",
+    "name": "Resonance Tanto",
+    "type": "weapon",
+    "rarity": "uncommon",
+    "equipSlot": "weapon",
+    "classRestrictions": ["technique_fighter"],
+    "statModifiers": {
+      "attack": 3,
+      "speed": 2
+    },
+    "identityPassive": {
+      "type": "resonance",
+      "effect": "CE skills cost 5% less"
+    }
+  },
+  {
+    "id": "ritual_focus",
+    "name": "Technique Focus Seal",
+    "type": "weapon",
+    "rarity": "rare",
+    "equipSlot": "weapon",
+    "classRestrictions": ["projection_sorcerer"],
+    "statModifiers": {
+      "technique": 4,
+      "attack": 2
+    },
+    "identityPassive": {
+      "type": "focus",
+      "effect": "Increases skill range by 15%"
+    }
+  },
+  {
+    "id": "grave_polearm",
+    "name": "Exorcist Polearm",
+    "type": "weapon",
+    "rarity": "rare",
+    "equipSlot": "weapon",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 4,
+      "poise": 3
+    },
+    "identityPassive": {
+      "type": "exorcism",
+      "effect": "Bonus damage against curses"
+    }
+  },
+  {
+    "id": "focus_charm",
+    "name": "CE Focus Seal",
+    "type": "charm",
+    "rarity": "uncommon",
+    "equipSlot": "charm",
+    "classRestrictions": ["technique_fighter", "projection_sorcerer"],
+    "statModifiers": {
+      "ce": 8
+    }
+  },
+  {
+    "id": "hunter_sash",
+    "name": "Cursed Tool Sash",
+    "type": "charm",
+    "rarity": "uncommon",
+    "equipSlot": "charm",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "speed": 2,
+      "defense": 1
+    }
+  },
+  {
+    "id": "siege_anklet",
+    "name": "Barrier Anklet",
+    "type": "charm",
+    "rarity": "rare",
+    "equipSlot": "charm",
+    "classRestrictions": ["striker"],
+    "statModifiers": {
+      "attack": 2,
+      "speed": 1
+    }
+  },
+  {
+    "id": "echo_band",
+    "name": "Resonance Band",
+    "type": "charm",
+    "rarity": "rare",
+    "equipSlot": "charm",
+    "classRestrictions": ["technique_fighter"],
+    "statModifiers": {
+      "technique": 2,
+      "ce": 4
+    }
+  },
+  {
+    "id": "prism_seal",
+    "name": "Technique Prism",
+    "type": "charm",
+    "rarity": "rare",
+    "equipSlot": "charm",
+    "classRestrictions": ["projection_sorcerer"],
+    "statModifiers": {
+      "technique": 3,
+      "crit": 2
+    }
+  },
+  {
+    "id": "butcher_wrap",
+    "name": "Cursed Tool Wrap",
+    "type": "charm",
+    "rarity": "rare",
+    "equipSlot": "charm",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 2,
+      "defense": 2
+    }
+  },
+  {
+    "id": "cataclysm_locket",
+    "name": "Domain Locket",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["striker"],
+    "statModifiers": {
+      "attack": 3,
+      "poise": 2,
+      "crit": 1
+    }
+  },
+  {
+    "id": "glass_veil_knot",
+    "name": "Barrier Veil Knot",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["technique_fighter"],
+    "statModifiers": {
+      "technique": 3,
+      "speed": 2,
+      "ce": 4
+    }
+  },
+  {
+    "id": "astral_prism",
+    "name": "Cursed Energy Prism",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["projection_sorcerer"],
+    "statModifiers": {
+      "technique": 4,
+      "crit": 3
+    }
+  },
+  {
+    "id": "gravebinder_strap",
+    "name": "Exorcism Strap",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 3,
+      "speed": 2,
+      "defense": 1
+    }
+  },
+  {
+    "id": "furnace_heart",
+    "name": "Cursed Flame Heart",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["striker"],
+    "statModifiers": {
+      "attack": 4,
+      "speed": 1,
+      "poise": 2
+    }
+  },
+  {
+    "id": "ember_knot",
+    "name": "Blaze Knot",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["technique_fighter"],
+    "statModifiers": {
+      "attack": 2,
+      "technique": 3,
+      "speed": 2
+    }
+  },
+  {
+    "id": "flare_prism",
+    "name": "Output Prism",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["projection_sorcerer"],
+    "statModifiers": {
+      "attack": 2,
+      "technique": 4,
+      "crit": 2
+    }
+  },
+  {
+    "id": "ash_runner_wrap",
+    "name": "Ash Runner Wrap",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 3,
+      "defense": 2,
+      "speed": 2
+    }
+  },
+  {
+    "id": "caldera_emblem",
+    "name": "Volcanic Zone Emblem",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["striker"],
+    "statModifiers": {
+      "attack": 4,
+      "defense": 2,
+      "poise": 3
+    }
+  },
+  {
+    "id": "phoenix_loop",
+    "name": "Reverse CE Loop",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["technique_fighter"],
+    "statModifiers": {
+      "attack": 3,
+      "technique": 3,
+      "speed": 2
+    }
+  },
+  {
+    "id": "sunflare_prism",
+    "name": "Maximum Output Prism",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["projection_sorcerer"],
+    "statModifiers": {
+      "attack": 2,
+      "technique": 5,
+      "crit": 2
+    }
+  },
+  {
+    "id": "kiln_tread",
+    "name": "Burn Zone Tread",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 4,
+      "defense": 2,
+      "speed": 2
+    }
+  },
+  {
+    "id": "field_tonic",
+    "name": "Recovery Talisman",
+    "type": "consumable",
+    "rarity": "common",
+    "statModifiers": {
+      "hp": 12,
+      "defense": 1
+    }
+  },
+  {
+    "id": "cursed_resin",
+    "name": "Cursed Resin",
+    "type": "material",
+    "rarity": "common",
+    "statModifiers": {}
+  },
+  {
+    "id": "veil_shard",
+    "name": "Barrier Fragment",
+    "type": "material",
+    "rarity": "rare",
+    "statModifiers": {}
+  },
+  {
+    "id": "ember_tonic",
+    "name": "Output Talisman",
+    "type": "consumable",
+    "rarity": "rare",
+    "statModifiers": {
+      "ce": 10,
+      "technique": 2
+    }
+  },
+  {
+    "id": "furnace_core",
+    "name": "Curse Core",
+    "type": "material",
+    "rarity": "rare",
+    "statModifiers": {}
+  },
+  {
+    "id": "resin_elixir",
+    "name": "CE Draught",
+    "type": "consumable",
+    "rarity": "rare",
+    "statModifiers": {
+      "ce": 14,
+      "technique": 3
+    }
+  },
+  {
+    "id": "furnace_draught",
+    "name": "Maximum Technique Draught",
+    "type": "consumable",
+    "rarity": "epic",
+    "statModifiers": {
+      "attack": 3,
+      "speed": 2,
+      "poise": 1
+    }
+  },
+  {
+    "id": "night_iron_chain",
+    "name": "Cursed Tool Chain",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["striker"],
+    "statModifiers": {
+      "attack": 4,
+      "crit": 2,
+      "poise": 2
+    }
+  },
+  {
+    "id": "cathedral_knot",
+    "name": "Domain Knot",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["technique_fighter"],
+    "statModifiers": {
+      "attack": 2,
+      "technique": 4,
+      "ce": 6
+    }
+  },
+  {
+    "id": "moonwire_prism",
+    "name": "Cursed Thread Prism",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["projection_sorcerer"],
+    "statModifiers": {
+      "technique": 5,
+      "crit": 3,
+      "speed": 1
+    }
+  },
+  {
+    "id": "stalker_shroud",
+    "name": "Stealth Curtain Shroud",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 4,
+      "speed": 3,
+      "defense": 2
+    }
+  },
+  {
+    "id": "midnight_tonic",
+    "name": "Domain Talisman",
+    "type": "consumable",
+    "rarity": "epic",
+    "statModifiers": {
+      "hp": 18,
+      "ce": 12,
+      "technique": 2
+    }
+  },
+  {
+    "id": "night_ichor",
+    "name": "Cursed Ichor",
+    "type": "material",
+    "rarity": "epic",
+    "statModifiers": {}
+  },
+  {
+    "id": "domain_relic_shard",
+    "name": "Domain Relic Shard",
+    "type": "material",
+    "rarity": "epic",
+    "statModifiers": {}
+  },
+  {
+    "id": "inverted_spear_of_heaven",
+    "name": "Inverted Spear of Heaven",
+    "type": "weapon",
+    "rarity": "legendary",
+    "equipSlot": "weapon",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 8,
+      "speed": 4,
+      "poise": 3
+    },
+    "identityPassive": {
+      "type": "nullity",
+      "effect": "Negates cursed technique effects on hit"
+    }
+  },
+  {
+    "id": "playful_cloud",
+    "name": "Playful Cloud",
+    "type": "weapon",
+    "rarity": "legendary",
+    "equipSlot": "weapon",
+    "classRestrictions": ["striker"],
+    "statModifiers": {
+      "attack": 7,
+      "defense": 3,
+      "speed": 3
+    },
+    "identityPassive": {
+      "type": "ce_conduit",
+      "effect": "Converts excess CE into bonus damage"
+    }
+  },
+  {
+    "id": "sword_of_extraction",
+    "name": "Sword of Extraction",
+    "type": "weapon",
+    "rarity": "epic",
+    "equipSlot": "weapon",
+    "classRestrictions": ["technique_fighter"],
+    "statModifiers": {
+      "attack": 5,
+      "technique": 3,
+      "ceOutput": 6
+    },
+    "identityPassive": {
+      "type": "barrier_breaker",
+      "effect": "Bonus damage against barriers and domains"
+    }
+  },
+  {
+    "id": "black_flash_talisman",
+    "name": "Black Flash Talisman",
+    "type": "consumable",
+    "rarity": "epic",
+    "statModifiers": {
+      "ceOutput": 5,
+      "attack": 3
+    },
+    "identityPassive": {
+      "type": "timing_window",
+      "effect": "Extends Black Flash timing window by 50%"
+    }
+  },
+  {
+    "id": "domain_amplification_charm",
+    "name": "Domain Amplification Charm",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "statModifiers": {
+      "ceOutput": 6,
+      "technique": 3
+    },
+    "identityPassive": {
+      "type": "domain_amplification",
+      "effect": "Neutralizes enemy domain effects"
+    }
+  },
+  {
+    "id": "merger_ink",
+    "name": "Merger Ink",
+    "type": "material",
+    "rarity": "epic",
+    "statModifiers": {}
+  },
+  {
+    "id": "star_amber",
+    "name": "Star Amber",
+    "type": "material",
+    "rarity": "epic",
+    "statModifiers": {}
+  },
+  {
+    "id": "singularity_chain",
+    "name": "Singularity Chain",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["striker"],
+    "statModifiers": {
+      "attack": 4,
+      "poise": 2,
+      "crit": 2
+    }
+  },
+  {
+    "id": "star_script_knot",
+    "name": "Star Script Knot",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["technique_fighter"],
+    "statModifiers": {
+      "technique": 4,
+      "speed": 2,
+      "ceOutput": 6
+    }
+  },
+  {
+    "id": "orbit_prism",
+    "name": "Orbit Prism",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["projection_sorcerer"],
+    "statModifiers": {
+      "technique": 5,
+      "crit": 2,
+      "ceReserve": 6
+    }
+  },
+  {
+    "id": "grave_vector_wrap",
+    "name": "Grave Vector Wrap",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 4,
+      "speed": 2,
+      "defense": 2
+    }
+  },
+  {
+    "id": "merger_fang",
+    "name": "Merger Fang",
+    "type": "weapon",
+    "rarity": "legendary",
+    "equipSlot": "weapon",
+    "classRestrictions": ["striker"],
+    "statModifiers": {
+      "attack": 7,
+      "poise": 3,
+      "crit": 2
+    }
+  },
+  {
+    "id": "starfold_seal",
+    "name": "Starfold Seal",
+    "type": "weapon",
+    "rarity": "legendary",
+    "equipSlot": "weapon",
+    "classRestrictions": ["technique_fighter"],
+    "statModifiers": {
+      "attack": 4,
+      "technique": 5,
+      "ceOutput": 8
+    }
+  },
+  {
+    "id": "axis_crown",
+    "name": "Axis Crown",
+    "type": "weapon",
+    "rarity": "legendary",
+    "equipSlot": "weapon",
+    "classRestrictions": ["projection_sorcerer"],
+    "statModifiers": {
+      "attack": 3,
+      "technique": 6,
+      "ceReserve": 8
+    }
+  },
+  {
+    "id": "eventide_harness",
+    "name": "Eventide Harness",
+    "type": "weapon",
+    "rarity": "legendary",
+    "equipSlot": "weapon",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 6,
+      "speed": 3,
+      "defense": 2
+    }
+  }
+]

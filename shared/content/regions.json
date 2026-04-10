@@ -1,0 +1,38 @@
+[
+  {
+    "id": "hub_jujutsu_high",
+    "name": "Tokyo Jujutsu High",
+    "type": "hub",
+    "recommendedLevel": 1
+  },
+  {
+    "id": "detention_center",
+    "name": "Detention Center",
+    "type": "region",
+    "recommendedLevel": 1
+  },
+  {
+    "id": "barrier_shrine",
+    "name": "Barrier Shrine",
+    "type": "region",
+    "recommendedLevel": 6
+  },
+  {
+    "id": "shibuya_burn_sector",
+    "name": "Shibuya Burn Sector",
+    "type": "region",
+    "recommendedLevel": 10
+  },
+  {
+    "id": "collapsed_cathedral_barrier",
+    "name": "Collapsed Cathedral Barrier",
+    "type": "region",
+    "recommendedLevel": 14
+  },
+  {
+    "id": "merger_ossuary",
+    "name": "Merger Ossuary",
+    "type": "region",
+    "recommendedLevel": 18
+  }
+]
