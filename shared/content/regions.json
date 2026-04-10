@@ -1,31 +1,31 @@
 [
   {
-    "id": "hub_blacksite",
-    "name": "Blacksite Hub",
+    "id": "hub_jujutsu_high",
+    "name": "Tokyo Jujutsu High",
     "type": "hub",
     "recommendedLevel": 1
   },
   {
-    "id": "shatter_block",
-    "name": "Shatter Block",
+    "id": "detention_center",
+    "name": "Detention Center",
     "type": "region",
     "recommendedLevel": 1
   },
   {
-    "id": "veil_shrine",
-    "name": "Veil Shrine",
+    "id": "barrier_shrine",
+    "name": "Barrier Shrine",
     "type": "region",
     "recommendedLevel": 6
   },
   {
-    "id": "cinder_ward",
-    "name": "Cinder Ward",
+    "id": "shibuya_burn_sector",
+    "name": "Shibuya Burn Sector",
     "type": "region",
     "recommendedLevel": 10
   },
   {
-    "id": "night_cathedral",
-    "name": "Night Cathedral",
+    "id": "collapsed_cathedral_barrier",
+    "name": "Collapsed Cathedral Barrier",
     "type": "region",
     "recommendedLevel": 14
   }

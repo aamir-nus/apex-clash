@@ -120,10 +120,10 @@ async function run() {
       method: "PUT",
       headers: initialHeaders,
       body: JSON.stringify({
-        regionId: "veil_shrine",
-        unlockedRegionIds: ["veil_shrine"],
+        regionId: "barrier_shrine",
+        unlockedRegionIds: ["barrier_shrine"],
         sessionState: {
-          clearedBossRegionId: "shatter_boss_vault"
+          clearedBossRegionId: "detention_center_boss_vault"
         }
       })
     });
@@ -132,7 +132,7 @@ async function run() {
       method: "POST",
       headers: initialHeaders,
       body: JSON.stringify({
-        archetypeId: "close_combat",
+        archetypeId: "striker",
         label: "Mongo Restart Probe"
       })
     });
@@ -160,10 +160,10 @@ async function run() {
       headers: restartedHeaders
     });
 
-    assert(initialProfile.currentRegionId === "veil_shrine", "Initial Mongo-backed profile did not persist the route state before restart.");
-    assert(restartedProfile.currentRegionId === "veil_shrine", "Restarted profile did not persist the route state.");
+    assert(initialProfile.currentRegionId === "barrier_shrine", "Initial Mongo-backed profile did not persist the route state before restart.");
+    assert(restartedProfile.currentRegionId === "barrier_shrine", "Restarted profile did not persist the route state.");
     assert(
-      restartedProfile.clearedRegionIds?.includes("shatter_block"),
+      restartedProfile.clearedRegionIds?.includes("detention_center"),
       "Restarted profile did not retain cleared-route progression."
     );
     assert(

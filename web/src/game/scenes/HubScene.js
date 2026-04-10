@@ -13,32 +13,32 @@ const arena = {
 };
 
 const routeDisplay = {
-  shatter_block: {
-    name: "Shatter Block",
+  detention_center: {
+    name: "Detention Center",
     x: 268,
     y: 230,
     fill: 0x244b33,
     stroke: 0xb8f29b,
     accent: 0x8ec07c
   },
-  veil_shrine: {
-    name: "Veil Shrine",
+  barrier_shrine: {
+    name: "Barrier Shrine",
     x: 488,
     y: 230,
     fill: 0x322146,
     stroke: 0xf0d2ff,
     accent: 0xc77dff
   },
-  cinder_ward: {
-    name: "Cinder Ward",
+  shibuya_burn_sector: {
+    name: "Shibuya Burn Sector",
     x: 378,
     y: 360,
     fill: 0x472016,
     stroke: 0xffd4a3,
     accent: 0xff8a5b
   },
-  night_cathedral: {
-    name: "Night Cathedral",
+  collapsed_cathedral_barrier: {
+    name: "Collapsed Cathedral Barrier",
     x: 598,
     y: 360,
     fill: 0x141b36,
@@ -56,23 +56,23 @@ function resetRouteRuntimeState(registry) {
 }
 
 function mapBossVaultToClearedRegion(regionId) {
-  return regionId === "shatter_boss_vault"
-    ? "shatter_block"
-    : regionId === "veil_boss_vault"
-      ? "veil_shrine"
-      : regionId === "cinder_boss_vault"
-        ? "cinder_ward"
-        : regionId === "night_boss_vault"
-          ? "night_cathedral"
+  return regionId === "detention_center_boss_vault"
+    ? "detention_center"
+    : regionId === "barrier_shrine_boss_vault"
+      ? "barrier_shrine"
+      : regionId === "shibuya_burn_sector_boss_vault"
+        ? "shibuya_burn_sector"
+        : regionId === "collapsed_cathedral_barrier_boss_vault"
+          ? "collapsed_cathedral_barrier"
         : null;
 }
 
 function pickNextRecommendedRegion(unlockedRegionIds, clearedRegionIds) {
-  const routeOrder = ["shatter_block", "veil_shrine", "cinder_ward", "night_cathedral"];
+  const routeOrder = ["detention_center", "barrier_shrine", "shibuya_burn_sector", "collapsed_cathedral_barrier"];
   return (
     routeOrder.find((regionId) => unlockedRegionIds.includes(regionId) && !clearedRegionIds.includes(regionId)) ??
     routeOrder.find((regionId) => unlockedRegionIds.includes(regionId)) ??
-    "shatter_block"
+    "detention_center"
   );
 }
 
@@ -81,12 +81,12 @@ export class HubScene extends Phaser.Scene {
     super("HubScene");
     this.enterKey = null;
     this.regionKeys = null;
-    this.selectedArchetype = "close_combat";
+    this.selectedArchetype = "striker";
     this.content = {};
     this.summaryText = null;
     this.tutorialText = null;
-    this.selectedRegionId = "shatter_block";
-    this.unlockedRegionIds = ["shatter_block"];
+    this.selectedRegionId = "detention_center";
+    this.unlockedRegionIds = ["detention_center"];
     this.clearedRegionIds = [];
     this.routeLadderDecor = [];
     this.isTransitioning = false;
@@ -100,7 +100,7 @@ export class HubScene extends Phaser.Scene {
 
   create() {
     this.content = this.registry.get("content") ?? {};
-    this.selectedArchetype = this.registry.get("selectedArchetype") ?? "close_combat";
+    this.selectedArchetype = this.registry.get("selectedArchetype") ?? "striker";
     this.firstRunTutorial = this.registry.get("firstRunTutorial") ?? false;
     this.isTransitioning = false;
     this.input.keyboard.resetKeys();
@@ -114,7 +114,7 @@ export class HubScene extends Phaser.Scene {
     );
     this.unlockedRegionIds = [
       ...new Set([
-        ...(profile?.unlockedRegionIds ?? ["shatter_block"]),
+        ...(profile?.unlockedRegionIds ?? ["detention_center"]),
         ...(loadedSessionSummary?.sessionState?.unlockedRegionIds ?? [])
       ])
     ];
@@ -202,7 +202,7 @@ export class HubScene extends Phaser.Scene {
       align: "center"
     }).setOrigin(0.5).setAlpha(0);
 
-    this.add.text(100, 100, "Blacksite Hub", {
+    this.add.text(100, 100, "Tokyo Jujutsu High", {
       color: "#f6f1df",
       fontFamily: "monospace",
       fontSize: "28px"
@@ -212,7 +212,7 @@ export class HubScene extends Phaser.Scene {
       100,
       150,
       this.firstRunTutorial
-        ? "First deployment briefing.\n\nPress 1 to target Shatter Block.\nPress ENTER to deploy.\nUse the browser shell to swap archetypes before stepping out."
+        ? "First deployment briefing.\n\nPress 1 to target Detention Center.\nPress ENTER to deploy.\nUse the browser shell to swap archetypes before stepping out."
         : "Safe zone prototype.\n\nPress 1, 2, 3, or 4 to target an unlocked region.\nPress ENTER to deploy.\nSwitch archetypes from the browser shell before entering.",
       {
         color: "#c6d2dc",
@@ -266,11 +266,11 @@ export class HubScene extends Phaser.Scene {
     const nextRegion = (this.content.regions ?? []).find(
       (entry) => entry.id === pickNextRecommendedRegion(this.unlockedRegionIds, this.clearedRegionIds)
     );
-    const veilUnlocked = this.unlockedRegionIds.includes("veil_shrine");
-    const cinderUnlocked = this.unlockedRegionIds.includes("cinder_ward");
-    const nightUnlocked = this.unlockedRegionIds.includes("night_cathedral");
+    const barrierUnlocked = this.unlockedRegionIds.includes("barrier_shrine");
+    const burnUnlocked = this.unlockedRegionIds.includes("shibuya_burn_sector");
+    const cathedralUnlocked = this.unlockedRegionIds.includes("collapsed_cathedral_barrier");
     this.summaryText?.setText(
-      `Current build: ${definition?.name ?? "Unknown"}\nCombat style: ${definition?.combatStyle ?? "Unavailable"}\nSelected region: ${selectedRegion?.name ?? "Unknown"}\nNext recommended route: ${nextRegion?.name ?? "Unknown"}\nUnlocked routes: Shatter Block${veilUnlocked ? ", Veil Shrine" : ""}${cinderUnlocked ? ", Cinder Ward" : ""}${nightUnlocked ? ", Night Cathedral" : ""}`
+      `Current build: ${definition?.name ?? "Unknown"}\nCombat style: ${definition?.combatStyle ?? "Unavailable"}\nSelected region: ${selectedRegion?.name ?? "Unknown"}\nNext recommended route: ${nextRegion?.name ?? "Unknown"}\nUnlocked routes: Detention Center${barrierUnlocked ? ", Barrier Shrine" : ""}${burnUnlocked ? ", Shibuya Burn Sector" : ""}${cathedralUnlocked ? ", Collapsed Cathedral Barrier" : ""}`
     );
     this.tutorialText?.setText(
       this.firstRunTutorial
@@ -330,7 +330,7 @@ export class HubScene extends Phaser.Scene {
         scene: "hub",
         label: "Hub"
       },
-      regionId: "hub_blacksite",
+      regionId: "hub_jujutsu_high",
       player: {
         hp: 0,
         maxHp: 0,
@@ -353,9 +353,9 @@ export class HubScene extends Phaser.Scene {
       cooldowns: [],
       resumeSource,
       objective: {
-        title: returnSummary?.title ?? (this.firstRunTutorial ? "First deployment" : "Deploy from Blacksite"),
+        title: returnSummary?.title ?? (this.firstRunTutorial ? "First deployment" : "Deploy from Tokyo Jujutsu High"),
         detail: returnSummary?.detail ?? (this.firstRunTutorial
-          ? "Start in Shatter Block, secure one boon, then enter the field gate."
+          ? "Start in Detention Center, secure one boon, then enter the field gate."
           : `Choose a route and enter ${selectedRegionName}. Next recommended route: ${nextRecommendedRegionName}.`),
         step: returnSummary?.step ?? (this.firstRunTutorial ? "Press 1, then Enter" : `Select ${selectedRegionName}, then deploy toward ${nextRecommendedRegionName}`)
       },
@@ -477,31 +477,31 @@ export class HubScene extends Phaser.Scene {
       const loadedSessionSummary = this.registry.get("loadedSessionSummary") ?? null;
       this.unlockedRegionIds = [
         ...new Set([
-          ...(profile?.unlockedRegionIds ?? ["shatter_block"]),
+          ...(profile?.unlockedRegionIds ?? ["detention_center"]),
           ...(loadedSessionSummary?.sessionState?.unlockedRegionIds ?? [])
         ])
       ];
       if (!this.unlockedRegionIds.includes(this.selectedRegionId)) {
-        this.selectedRegionId = "shatter_block";
+        this.selectedRegionId = "detention_center";
       }
       this.refreshSummary();
       this.emitHubRuntime();
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.regionKeys.ONE)) {
-      this.handleRegionSelection("shatter_block");
+      this.handleRegionSelection("detention_center");
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.regionKeys.TWO) && this.unlockedRegionIds.includes("veil_shrine")) {
-      this.handleRegionSelection("veil_shrine");
+    if (Phaser.Input.Keyboard.JustDown(this.regionKeys.TWO) && this.unlockedRegionIds.includes("barrier_shrine")) {
+      this.handleRegionSelection("barrier_shrine");
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.regionKeys.THREE) && this.unlockedRegionIds.includes("cinder_ward")) {
-      this.handleRegionSelection("cinder_ward");
+    if (Phaser.Input.Keyboard.JustDown(this.regionKeys.THREE) && this.unlockedRegionIds.includes("shibuya_burn_sector")) {
+      this.handleRegionSelection("shibuya_burn_sector");
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.regionKeys.FOUR) && this.unlockedRegionIds.includes("night_cathedral")) {
-      this.handleRegionSelection("night_cathedral");
+    if (Phaser.Input.Keyboard.JustDown(this.regionKeys.FOUR) && this.unlockedRegionIds.includes("collapsed_cathedral_barrier")) {
+      this.handleRegionSelection("collapsed_cathedral_barrier");
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.enterKey)) {

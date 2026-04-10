@@ -126,10 +126,10 @@ async function run() {
       method: "PUT",
       headers: authHeaders,
       body: JSON.stringify({
-        regionId: "veil_shrine",
-        unlockedRegionIds: ["veil_shrine"],
+        regionId: "barrier_shrine",
+        unlockedRegionIds: ["barrier_shrine"],
         sessionState: {
-          clearedBossRegionId: "shatter_boss_vault"
+          clearedBossRegionId: "detention_center_boss_vault"
         }
       })
     });
@@ -138,7 +138,7 @@ async function run() {
       method: "POST",
       headers: authHeaders,
       body: JSON.stringify({
-        archetypeId: "close_combat",
+        archetypeId: "striker",
         label: "Docker Deploy Probe"
       })
     });
@@ -151,9 +151,9 @@ async function run() {
     });
 
     assert(/Apex Clash/i.test(html), "Docker web surface did not serve the app shell.");
-    assert(sessionProfile.currentRegionId === "veil_shrine", "Docker API did not persist the profile region.");
+    assert(sessionProfile.currentRegionId === "barrier_shrine", "Docker API did not persist the profile region.");
     assert(
-      persistedProfile.clearedRegionIds?.includes("shatter_block"),
+      persistedProfile.clearedRegionIds?.includes("detention_center"),
       "Docker API did not persist cleared-route progression."
     );
     assert(

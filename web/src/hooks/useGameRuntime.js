@@ -47,7 +47,7 @@ const defaultRuntime = {
     detail: ""
   },
   controls: [],
-  selectedRegionId: "shatter_block",
+  selectedRegionId: "detention_center",
   scene: {
     scene: "boot",
     label: "Boot"

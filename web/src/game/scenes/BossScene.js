@@ -14,45 +14,45 @@ const arena = {
 };
 
 const routeReturnDisplay = {
-  shatter_boss_vault: {
-    bannerTitle: "Shatter Block Secured",
-    bannerDetail: "Veil Shrine breach coordinates recovered.",
+  detention_center_boss_vault: {
+    bannerTitle: "Detention Center Secured",
+    bannerDetail: "Barrier Shrine breach coordinates recovered.",
     title: "Route recovery complete",
-    detail: "Shatter Block collapsed cleanly. Veil Shrine is now ready for deployment.",
-    step: "Redeploy to Veil Shrine or bank the clear in a save slot.",
-    effectLabel: "Veil Shrine unlocked",
-    effectDetail: "Transit gate calibrated from the shattered vault.",
-    feedMessage: "Shatter Block secured. Veil Shrine is now available from the hub."
+    detail: "Detention Center collapsed cleanly. Barrier Shrine is now ready for deployment.",
+    step: "Redeploy to Barrier Shrine or bank the clear in a save slot.",
+    effectLabel: "Barrier Shrine unlocked",
+    effectDetail: "Transit gate calibrated from the vault.",
+    feedMessage: "Detention Center secured. Barrier Shrine is now available from the hub."
   },
-  veil_boss_vault: {
-    bannerTitle: "Veil Shrine Broken",
-    bannerDetail: "Cinder Ward ingress stabilized through the sanctum breach.",
+  barrier_shrine_boss_vault: {
+    bannerTitle: "Barrier Shrine Broken",
+    bannerDetail: "Shibuya Burn Sector ingress stabilized through the barrier breach.",
     title: "Sanctum collapse confirmed",
-    detail: "Veil Shrine is clear. Cinder Ward is now available for the next deployment.",
-    step: "Quick-bind the scroll, then push toward Cinder Ward when ready.",
-    effectLabel: "Cinder Ward unlocked",
-    effectDetail: "Furnace ingress opened from sanctum collapse.",
-    feedMessage: "Veil Shrine secured. Cinder Ward is now available from the hub."
+    detail: "Barrier Shrine is clear. Shibuya Burn Sector is now available for the next deployment.",
+    step: "Quick-bind the scroll, then push toward Shibuya Burn Sector when ready.",
+    effectLabel: "Shibuya Burn Sector unlocked",
+    effectDetail: "Burn zone ingress opened from barrier collapse.",
+    feedMessage: "Barrier Shrine secured. Shibuya Burn Sector is now available from the hub."
   },
-  cinder_boss_vault: {
-    bannerTitle: "Cinder Ward Cleared",
-    bannerDetail: "Core fragments recovered and the Night Cathedral gate is now live.",
+  shibuya_burn_sector_boss_vault: {
+    bannerTitle: "Shibuya Burn Sector Cleared",
+    bannerDetail: "Core fragments recovered and the Cathedral barrier gate is now live.",
     title: "Furnace route secured",
-    detail: "Cinder Ward is clear. Night Cathedral is now available for the final ascent.",
+    detail: "Shibuya Burn Sector is clear. Collapsed Cathedral Barrier is now available for the final ascent.",
     step: "Review the route ladder, bank the clear, and prep for the final climb.",
-    effectLabel: "Night Cathedral unlocked",
-    effectDetail: "Final-chapter gate calibrated from furnace collapse.",
-    feedMessage: "Cinder Ward secured. Night Cathedral is now available from the hub."
+    effectLabel: "Collapsed Cathedral Barrier unlocked",
+    effectDetail: "Final-chapter gate calibrated from burn zone collapse.",
+    feedMessage: "Shibuya Burn Sector secured. Collapsed Cathedral Barrier is now available from the hub."
   },
-  night_boss_vault: {
-    bannerTitle: "Night Cathedral Broken",
-    bannerDetail: "Final-chapter scroll recovered from the midnight vault.",
+  collapsed_cathedral_barrier_boss_vault: {
+    bannerTitle: "Collapsed Cathedral Barrier Broken",
+    bannerDetail: "Final-chapter scroll recovered from the domain vault.",
     title: "Final ascent complete",
-    detail: "Night Cathedral is clear. The current vertical slice now reaches the final-chapter climb.",
+    detail: "Collapsed Cathedral Barrier is clear. The current vertical slice now reaches the final-chapter climb.",
     step: "Bind the final scroll or bank the clear in a save slot.",
     effectLabel: "Final chapter clear",
-    effectDetail: "Midnight vault reward secured and cleared-route state archived.",
-    feedMessage: "Night Cathedral secured. Final-chapter scroll recovered for immediate binding."
+    effectDetail: "Domain vault reward secured and cleared-route state archived.",
+    feedMessage: "Collapsed Cathedral Barrier secured. Final-chapter scroll recovered for immediate binding."
   }
 };
 
@@ -71,7 +71,7 @@ export class BossScene extends Phaser.Scene {
     this.skillKeys = null;
     this.returnKey = null;
     this.bossHp = 120;
-    this.currentRegionId = "shatter_boss_vault";
+    this.currentRegionId = "detention_center_boss_vault";
     this.isTransitioning = false;
     this.rewardClaimed = false;
     this.explorationBonus = null;
@@ -97,11 +97,20 @@ export class BossScene extends Phaser.Scene {
     this.bossDangerWash = null;
     this.feedbackText = null;
     this.clearText = null;
+    // Phase 2: JJK Mechanics
+    this.burnoutStacks = 0;
+    this.lastCEUseTime = 0;
+    this.blackFlashWindow = false;
+    this.blackFlashWindowEnd = 0;
+    this.blackFlashHitsRemaining = 0;
+    this.domainActive = false;
+    this.antiDomainActive = false;
+    this.blackFlashWindowMs = 500;
   }
 
   create() {
     const loadedPlayerState = this.registry.get("loadedPlayerState");
-    this.currentRegionId = this.registry.get("currentRegionId") ?? "shatter_boss_vault";
+    this.currentRegionId = this.registry.get("currentRegionId") ?? "detention_center_boss_vault";
     this.explorationBonus = this.registry.get("explorationBonus") ?? null;
     this.isTransitioning = false;
     this.input.keyboard.resetKeys();
@@ -115,6 +124,8 @@ export class BossScene extends Phaser.Scene {
           maxHp: profile?.computedStats?.hp ?? 100,
           ce: profile?.computedStats?.ce ?? 60,
           maxCe: profile?.computedStats?.ce ?? 60,
+          ceOutput: profile?.computedStats?.ceOutput ?? 40,
+          ceReserve: profile?.computedStats?.ceReserve ?? 20,
           level: profile?.level ?? 1,
           xp: 0,
           xpToNextLevel: 30,
@@ -122,11 +133,17 @@ export class BossScene extends Phaser.Scene {
           defense: profile?.computedStats?.defense ?? 8,
           speed: profile?.computedStats?.speed ?? 10,
           pendingStatPoints: 0,
-          archetype: profile?.classType ?? "sorcerer"
+          archetype: profile?.classType ?? "striker"
         };
-    const isVeilBoss = this.currentRegionId === "veil_boss_vault";
-    const isCinderBoss = this.currentRegionId === "cinder_boss_vault";
-    const isNightBoss = this.currentRegionId === "night_boss_vault";
+    // Phase 2: Initialize JJK mechanics from session state
+    this.burnoutStacks = loadedSessionState.burnoutStacks ?? 0;
+    this.lastCEUseTime = loadedSessionState.lastCEUseTime ?? 0;
+    this.blackFlashHitsRemaining = loadedSessionState.blackFlashHitsRemaining ?? 0;
+    this.domainActive = loadedSessionState.domainActive ?? false;
+    this.antiDomainActive = loadedSessionState.antiDomainActive ?? false;
+    const isVeilBoss = this.currentRegionId === "barrier_shrine_boss_vault";
+    const isCinderBoss = this.currentRegionId === "shibuya_burn_sector_boss_vault";
+    const isNightBoss = this.currentRegionId === "collapsed_cathedral_barrier_boss_vault";
     this.bossHp = loadedSessionState.bossHp ?? (isNightBoss ? 160 : 120);
     this.rewardClaimed = Boolean(loadedSessionState.bossRewardClaimed);
     const boonKind = this.explorationBonus?.kind ?? "none";
@@ -194,7 +211,7 @@ export class BossScene extends Phaser.Scene {
       fontSize: "24px",
       align: "center"
     }).setOrigin(0.5).setAlpha(0);
-    this.add.text(100, 84, isVeilBoss ? "Sanctum Vault" : isCinderBoss ? "Cinder Vault" : isNightBoss ? "Midnight Vault" : "Boss Vault", {
+    this.add.text(100, 84, isVeilBoss ? "Barrier Vault" : isCinderBoss ? "Burn Zone Vault" : isNightBoss ? "Domain Vault" : "Boss Vault", {
       color: "#f6f1df",
       fontFamily: "monospace",
       fontSize: "28px"
@@ -310,19 +327,19 @@ export class BossScene extends Phaser.Scene {
 
   emitBossRuntime() {
     const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
-    const isVeilBoss = this.currentRegionId === "veil_boss_vault";
-    const isCinderBoss = this.currentRegionId === "cinder_boss_vault";
-    const isNightBoss = this.currentRegionId === "night_boss_vault";
+    const isVeilBoss = this.currentRegionId === "barrier_shrine_boss_vault";
+    const isCinderBoss = this.currentRegionId === "shibuya_burn_sector_boss_vault";
+    const isNightBoss = this.currentRegionId === "collapsed_cathedral_barrier_boss_vault";
     const routeReturnSummary = routeReturnDisplay[this.currentRegionId] ?? null;
     this.bossMarker?.setVisible(this.bossHp > 0);
     const unlockedRegionIds =
-      this.bossHp === 0 && this.currentRegionId === "shatter_boss_vault"
-        ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"]), "veil_shrine"])]
-        : this.bossHp === 0 && this.currentRegionId === "veil_boss_vault"
-          ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"]), "veil_shrine", "cinder_ward"])]
-          : this.bossHp === 0 && this.currentRegionId === "cinder_boss_vault"
-            ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"]), "veil_shrine", "cinder_ward", "night_cathedral"])]
-          : this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"];
+      this.bossHp === 0 && this.currentRegionId === "detention_center_boss_vault"
+        ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"]), "barrier_shrine"])]
+        : this.bossHp === 0 && this.currentRegionId === "barrier_shrine_boss_vault"
+          ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"]), "barrier_shrine", "shibuya_burn_sector"])]
+          : this.bossHp === 0 && this.currentRegionId === "shibuya_burn_sector_boss_vault"
+            ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"]), "barrier_shrine", "shibuya_burn_sector", "collapsed_cathedral_barrier"])]
+          : this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"];
     emitRuntimeUpdate({
       scene: {
         scene: "boss",
@@ -516,11 +533,17 @@ export class BossScene extends Phaser.Scene {
         bossCleared: this.bossHp === 0,
         bossRewardClaimed: this.rewardClaimed,
         clearedBossRegionId: this.bossHp === 0 ? this.currentRegionId : null,
-        sanctumGuard: isVeilBoss ? this.sanctumGuard : undefined,
-        sanctumWindowOpen: isVeilBoss ? this.sanctumWindowOpen : undefined,
+        sanctumGuard: (isVeilBoss || isNightBoss) ? this.sanctumGuard : undefined,
+        sanctumWindowOpen: (isVeilBoss || isNightBoss) ? this.sanctumWindowOpen : undefined,
         cinderWindowOpen: isCinderBoss ? this.cinderWindowOpen : undefined,
         signatureActive: this.signatureActive,
-        unlockedRegionIds
+        unlockedRegionIds,
+        // Phase 2: JJK Mechanics
+        burnoutStacks: this.burnoutStacks,
+        blackFlashHitsRemaining: this.blackFlashHitsRemaining,
+        lastCEUseTime: this.lastCEUseTime,
+        domainActive: this.domainActive,
+        antiDomainActive: this.antiDomainActive
       },
       levelUp: {
         available: false,
@@ -542,13 +565,13 @@ export class BossScene extends Phaser.Scene {
                     ? "Cooling breach open. Burn the furnace core now."
                     : "Furnace overdrive active. Mistimed hits still chip, but clean breaches are faster."
                 : "Break the vault curse to finish the dungeon slice."
-              : this.currentRegionId === "shatter_boss_vault"
+              : this.currentRegionId === "detention_center_boss_vault"
                 ? "Boss down. Veil Shrine unlocked. Press H to extract."
-              : this.currentRegionId === "veil_boss_vault"
+              : this.currentRegionId === "barrier_shrine_boss_vault"
                 ? "Boss down. Cinder Ward unlocked. Press H to extract."
-                : this.currentRegionId === "cinder_boss_vault"
+                : this.currentRegionId === "shibuya_burn_sector_boss_vault"
                   ? "Boss down. Night Cathedral unlocked. Press H to extract."
-                  : this.currentRegionId === "night_boss_vault"
+                  : this.currentRegionId === "collapsed_cathedral_barrier_boss_vault"
                     ? "Boss down. Final chapter clear secured. Press H to extract."
                     : "Boss down. Press H to extract."
         },
@@ -573,26 +596,43 @@ export class BossScene extends Phaser.Scene {
       return;
     }
 
-    const isVeilBoss = this.currentRegionId === "veil_boss_vault";
-    const isCinderBoss = this.currentRegionId === "cinder_boss_vault";
+    const profile = this.registry.get("playerProfile");
+    const isVeilBoss = this.currentRegionId === "barrier_shrine_boss_vault";
+    const isCinderBoss = this.currentRegionId === "shibuya_burn_sector_boss_vault";
+    const isNightBoss = this.currentRegionId === "collapsed_cathedral_barrier_boss_vault";
     const damage = Math.max(8, Math.floor(this.playerState.attack * 0.9));
     this.player.setPosition(this.boss.x - 80, this.boss.y);
 
-    if (isVeilBoss && this.sanctumGuard > 0) {
-      const guardBreak = Math.max(10, Math.floor(damage * 0.8));
+    // Phase 2: Black Flash timing check
+    const blackFlashActive = this.blackFlashWindow && this.blackFlashHitsRemaining > 0;
+    const blackFlashMultiplier = blackFlashActive ? (profile?.computedStats?.blackFlashAffinity ?? 1.5) : 1.0;
+    const ceCost = Math.max(0, Math.floor(10 / blackFlashMultiplier));
+    this.lastCEUseTime = this.time.now;
+
+    // Phase 2: Track burnout
+    const burnoutThreshold = profile?.computedStats?.burnoutThreshold ?? 3;
+    if (this.burnoutStacks >= burnoutThreshold) {
+      this.playerState.hp = Math.max(1, this.playerState.hp - 2);
+      this.playSceneFeedback("Burnout backlash!", 0xf25f5c);
+    }
+
+    if ((isVeilBoss || isNightBoss) && this.sanctumGuard > 0) {
+      const guardBreak = Math.max(10, Math.floor(damage * 0.8 * blackFlashMultiplier));
       this.sanctumGuard = Math.max(0, this.sanctumGuard - guardBreak);
       emitSoundEvent({ type: this.sanctumGuard === 0 ? "enemy_down" : "skill_cast" });
       if (this.sanctumGuard === 0) {
-        this.playSceneFeedback("Sanctum guard shattered", 0xe2b6ff);
+        this.playSceneFeedback(isNightBoss ? "Eclipse guard shattered" : "Sanctum guard shattered", 0xe2b6ff);
       }
+      this.burnoutStacks += 1;
       this.emitBossRuntime();
       return;
     }
 
-    if (isVeilBoss && !this.sanctumWindowOpen) {
-      this.playerState.ce = Math.max(0, this.playerState.ce - 8);
+    if ((isVeilBoss || isNightBoss) && !this.sanctumWindowOpen) {
+      this.playerState.ce = Math.max(0, this.playerState.ce - ceCost);
       this.playerState.hp = Math.max(1, this.playerState.hp - 4);
-      this.bossHp = Math.max(0, this.bossHp - Math.max(3, Math.floor(damage * 0.14)));
+      this.bossHp = Math.max(0, this.bossHp - Math.max(3, Math.floor(damage * 0.14 * blackFlashMultiplier)));
+      this.burnoutStacks += 1;
       this.handleBossRewardClaim();
       emitSoundEvent({ type: "danger" });
       this.emitBossRuntime();
@@ -602,33 +642,55 @@ export class BossScene extends Phaser.Scene {
     if (isCinderBoss && !this.cinderWindowOpen) {
       this.playerState.ce = Math.max(0, this.playerState.ce - this.cinderBacklashCe);
       this.playerState.hp = Math.max(1, this.playerState.hp - this.cinderBacklashHp);
-      this.bossHp = Math.max(0, this.bossHp - Math.max(5, Math.floor(damage * 0.35)));
+      this.bossHp = Math.max(0, this.bossHp - Math.max(5, Math.floor(damage * 0.35 * blackFlashMultiplier)));
+      this.burnoutStacks += 1;
       this.handleBossRewardClaim();
       emitSoundEvent({ type: "danger" });
       this.emitBossRuntime();
       return;
     }
 
-    if (this.signatureActive) {
+    if (this.signatureActive && !this.antiDomainActive) {
       this.playerState.hp = Math.max(1, this.playerState.hp - 4);
-      this.playerState.ce = Math.max(0, this.playerState.ce - 3);
-      this.bossHp = Math.max(0, this.bossHp - Math.max(3, Math.floor(damage * 0.12)));
+      this.playerState.ce = Math.max(0, this.playerState.ce - ceCost);
+      this.bossHp = Math.max(0, this.bossHp - Math.max(3, Math.floor(damage * 0.12 * blackFlashMultiplier)));
+      this.burnoutStacks += 1;
       this.handleBossRewardClaim();
       emitSoundEvent({ type: "danger" });
       this.emitBossRuntime();
       return;
     }
 
-    this.bossHp = Math.max(0, this.bossHp - damage);
+    // Phase 2: Black Flash hit consumes a stack
+    let finalDamage = damage * blackFlashMultiplier;
+    if (blackFlashActive) {
+      this.blackFlashHitsRemaining -= 1;
+      this.playSceneFeedback("BLACK FLASH!", 0xff6b35);
+      emitSoundEvent({ type: "route_clear" });
+      // Reset burnout on Black Flash
+      this.burnoutStacks = Math.max(0, this.burnoutStacks - 1);
+    }
+
+    this.playerState.ce = Math.max(0, this.playerState.ce - ceCost);
+    this.bossHp = Math.max(0, this.bossHp - Math.floor(finalDamage));
+    this.burnoutStacks += 1;
+
+    // Phase 2: Trigger Black Flash window after CE use
+    if (!blackFlashActive) {
+      this.blackFlashWindow = true;
+      this.blackFlashWindowEnd = this.time.now + this.blackFlashWindowMs;
+      this.blackFlashHitsRemaining = 1;
+    }
+
     this.handleBossRewardClaim();
     emitSoundEvent({ type: this.bossHp === 0 ? "route_clear" : "skill_cast" });
     if (this.bossHp === 0) {
       this.playSceneFeedback(
-        this.currentRegionId === "veil_boss_vault"
+        isVeilBoss
           ? "Sanctum curse collapsed"
-          : this.currentRegionId === "cinder_boss_vault"
+          : isCinderBoss
             ? "Furnace core extinguished"
-            : this.currentRegionId === "night_boss_vault"
+            : isNightBoss
               ? "Midnight curse severed"
             : "Vault curse collapsed",
         0xb8f29b
@@ -644,7 +706,7 @@ export class BossScene extends Phaser.Scene {
     }
 
     this.rewardClaimed = true;
-    if (this.currentRegionId === "shatter_boss_vault") {
+    if (this.currentRegionId === "detention_center_boss_vault") {
       emitInventoryReward({
         rewardSource: "shatter_boss_scroll",
         regionId: this.currentRegionId,
@@ -653,7 +715,7 @@ export class BossScene extends Phaser.Scene {
         }
       });
     }
-    if (this.currentRegionId === "veil_boss_vault") {
+    if (this.currentRegionId === "barrier_shrine_boss_vault") {
       emitInventoryReward({
         rewardSource: "veil_boss_scroll",
         regionId: this.currentRegionId,
@@ -662,7 +724,7 @@ export class BossScene extends Phaser.Scene {
         }
       });
     }
-    if (this.currentRegionId === "cinder_boss_vault") {
+    if (this.currentRegionId === "shibuya_burn_sector_boss_vault") {
       emitInventoryReward({
         rewardSource: "cinder_boss_core",
         regionId: this.currentRegionId,
@@ -671,7 +733,7 @@ export class BossScene extends Phaser.Scene {
         }
       });
     }
-    if (this.currentRegionId === "night_boss_vault") {
+    if (this.currentRegionId === "collapsed_cathedral_barrier_boss_vault") {
       emitInventoryReward({
         rewardSource: "night_boss_scroll",
         regionId: this.currentRegionId,
@@ -689,22 +751,22 @@ export class BossScene extends Phaser.Scene {
 
     this.isTransitioning = true;
     const unlockedRegionIds =
-      this.currentRegionId === "shatter_boss_vault"
-        ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"]), "veil_shrine"])]
-        : this.currentRegionId === "veil_boss_vault"
-          ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"]), "veil_shrine", "cinder_ward"])]
-          : this.currentRegionId === "cinder_boss_vault"
-            ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"]), "veil_shrine", "cinder_ward", "night_cathedral"])]
-          : this.registry.get("playerProfile")?.unlockedRegionIds ?? ["shatter_block"];
+      this.currentRegionId === "detention_center_boss_vault"
+        ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"]), "barrier_shrine"])]
+        : this.currentRegionId === "barrier_shrine_boss_vault"
+          ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"]), "barrier_shrine", "shibuya_burn_sector"])]
+          : this.currentRegionId === "shibuya_burn_sector_boss_vault"
+            ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"]), "barrier_shrine", "shibuya_burn_sector", "collapsed_cathedral_barrier"])]
+          : this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"];
     const clearedRegionId =
-      this.currentRegionId === "shatter_boss_vault"
-        ? "shatter_block"
-        : this.currentRegionId === "veil_boss_vault"
-          ? "veil_shrine"
-          : this.currentRegionId === "cinder_boss_vault"
-            ? "cinder_ward"
-            : this.currentRegionId === "night_boss_vault"
-              ? "night_cathedral"
+      this.currentRegionId === "detention_center_boss_vault"
+        ? "detention_center"
+        : this.currentRegionId === "barrier_shrine_boss_vault"
+          ? "barrier_shrine"
+          : this.currentRegionId === "shibuya_burn_sector_boss_vault"
+            ? "shibuya_burn_sector"
+            : this.currentRegionId === "collapsed_cathedral_barrier_boss_vault"
+              ? "collapsed_cathedral_barrier"
             : null;
     const clearedRegionIds = [
       ...new Set([
@@ -766,6 +828,12 @@ export class BossScene extends Phaser.Scene {
       return;
     }
 
+    // Phase 2: Black Flash window timing
+    if (this.blackFlashWindow && this.time.now > this.blackFlashWindowEnd) {
+      this.blackFlashWindow = false;
+      this.blackFlashHitsRemaining = 0;
+    }
+
     const velocity = 165;
     this.player.body.setVelocity(0, 0);
     if (this.cursors.left.isDown || this.actionKeys.A.isDown) this.player.body.setVelocityX(-velocity);
@@ -779,9 +847,9 @@ export class BossScene extends Phaser.Scene {
       Phaser.Input.Keyboard.JustDown(this.skillKeys.J) ||
       Phaser.Input.Keyboard.JustDown(this.skillKeys.Q) ||
       Phaser.Input.Keyboard.JustDown(this.skillKeys.R);
-    const isVeilBoss = this.currentRegionId === "veil_boss_vault";
-    const isCinderBoss = this.currentRegionId === "cinder_boss_vault";
-    const isNightBoss = this.currentRegionId === "night_boss_vault";
+    const isVeilBoss = this.currentRegionId === "barrier_shrine_boss_vault";
+    const isCinderBoss = this.currentRegionId === "shibuya_burn_sector_boss_vault";
+    const isNightBoss = this.currentRegionId === "collapsed_cathedral_barrier_boss_vault";
 
     if ((isVeilBoss || isNightBoss) && this.bossHp > 0) {
       const cyclePosition = this.time.now % this.sanctumCycleMs;

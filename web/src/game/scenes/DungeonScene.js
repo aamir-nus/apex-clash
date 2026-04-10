@@ -51,7 +51,7 @@ export class DungeonScene extends Phaser.Scene {
     this.returnKey = null;
     this.interactKey = null;
     this.playerProfile = null;
-    this.selectedArchetype = "close_combat";
+    this.selectedArchetype = "striker";
     this.relicNode = null;
     this.miniboss = null;
     this.bossGate = null;
@@ -61,7 +61,7 @@ export class DungeonScene extends Phaser.Scene {
     this.minibossHp = 0;
     this.playerState = null;
     this.skillKeys = null;
-    this.currentRegionId = "shatter_dungeon";
+    this.currentRegionId = "detention_center_dungeon";
     this.isTransitioning = false;
     this.explorationBonus = null;
     this.sanctumShield = 0;
@@ -82,6 +82,13 @@ export class DungeonScene extends Phaser.Scene {
     this.feedbackText = null;
     this.feedbackWash = null;
     this.dungeonVariant = null;
+    // Phase 2: JJK Mechanics
+    this.burnoutStacks = 0;
+    this.lastCEUseTime = 0;
+    this.blackFlashWindow = false;
+    this.blackFlashWindowEnd = 0;
+    this.blackFlashHitsRemaining = 0;
+    this.blackFlashWindowMs = 500;
   }
 
   create() {
@@ -104,6 +111,8 @@ export class DungeonScene extends Phaser.Scene {
           maxHp: this.playerProfile?.computedStats?.hp ?? 100,
           ce: this.playerProfile?.computedStats?.ce ?? 60,
           maxCe: this.playerProfile?.computedStats?.ce ?? 60,
+          ceOutput: this.playerProfile?.computedStats?.ceOutput ?? 40,
+          ceReserve: this.playerProfile?.computedStats?.ceReserve ?? 20,
           level: this.playerProfile?.level ?? 1,
           xp: 0,
           xpToNextLevel: 30,
@@ -113,11 +122,15 @@ export class DungeonScene extends Phaser.Scene {
           pendingStatPoints: 0,
           archetype: this.playerProfile?.classType ?? this.selectedArchetype
         };
+    // Phase 2: Initialize JJK mechanics from session state
+    this.burnoutStacks = loadedSessionState.burnoutStacks ?? 0;
+    this.lastCEUseTime = loadedSessionState.lastCEUseTime ?? 0;
+    this.blackFlashHitsRemaining = loadedSessionState.blackFlashHitsRemaining ?? 0;
     this.relicClaimed = Boolean(loadedSessionState.dungeonRelicClaimed);
     this.minibossDefeated = Boolean(loadedSessionState.dungeonMinibossDefeated);
-    const isVeilDungeon = this.currentRegionId === "veil_dungeon";
-    const isCinderDungeon = this.currentRegionId === "cinder_dungeon";
-    const isNightDungeon = this.currentRegionId === "night_dungeon";
+    const isVeilDungeon = this.currentRegionId === "barrier_shrine_dungeon";
+    const isCinderDungeon = this.currentRegionId === "shibuya_burn_sector_dungeon";
+    const isNightDungeon = this.currentRegionId === "collapsed_cathedral_barrier_dungeon";
     const boonKind = this.explorationBonus?.kind ?? "none";
     const baseSanctumShield =
       boonKind === "technique" ? 18 : boonKind === "pressure" ? 24 : 30;
@@ -168,7 +181,7 @@ export class DungeonScene extends Phaser.Scene {
       fontSize: "12px"
     });
 
-    this.add.text(100, 86, this.dungeonVariant?.title ?? (isVeilDungeon ? "Veil Depth" : isCinderDungeon ? "Furnace Descent" : isNightDungeon ? "Night Ascent" : "Shatter Dungeon"), {
+    this.add.text(100, 86, this.dungeonVariant?.title ?? (isVeilDungeon ? "Barrier Depth" : isCinderDungeon ? "Burn Zone Descent" : isNightDungeon ? "Domain Ascent" : "Detention Center Dungeon"), {
       color: "#f6f1df",
       fontFamily: "monospace",
       fontSize: "28px"
@@ -345,6 +358,8 @@ export class DungeonScene extends Phaser.Scene {
     this.playerState.hp = Math.max(1, Math.round(this.playerState.maxHp * hpRatio));
     this.playerState.maxCe = stats.ce ?? this.playerState.maxCe;
     this.playerState.ce = Math.max(0, Math.round(this.playerState.maxCe * ceRatio));
+    this.playerState.ceOutput = stats.ceOutput ?? this.playerState.ceOutput;
+    this.playerState.ceReserve = stats.ceReserve ?? this.playerState.ceReserve;
     this.playerState.attack = stats.attack ?? this.playerState.attack;
     this.playerState.defense = stats.defense ?? this.playerState.defense;
     this.playerState.speed = stats.speed ?? this.playerState.speed;
@@ -354,9 +369,9 @@ export class DungeonScene extends Phaser.Scene {
 
   emitDungeonRuntime() {
     const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
-    const isVeilDungeon = this.currentRegionId === "veil_dungeon";
-    const isCinderDungeon = this.currentRegionId === "cinder_dungeon";
-    const isNightDungeon = this.currentRegionId === "night_dungeon";
+    const isVeilDungeon = this.currentRegionId === "barrier_shrine_dungeon";
+    const isCinderDungeon = this.currentRegionId === "shibuya_burn_sector_dungeon";
+    const isNightDungeon = this.currentRegionId === "collapsed_cathedral_barrier_dungeon";
     const encounterMix = formatEncounterMix(this.content, this.dungeonVariant);
     emitRuntimeUpdate({
       scene: {
@@ -494,7 +509,7 @@ export class DungeonScene extends Phaser.Scene {
         sanctumShield: isVeilDungeon ? this.sanctumShield : undefined,
         sanctumWindowOpen: isVeilDungeon ? this.sanctumWindowOpen : undefined,
         cinderWindowOpen: isCinderDungeon ? this.cinderWindowOpen : undefined,
-        unlockedRegionIds: this.playerProfile?.unlockedRegionIds ?? ["shatter_block"]
+        unlockedRegionIds: this.playerProfile?.unlockedRegionIds ?? ["detention_center"]
       },
       levelUp: {
         available: false,
@@ -562,18 +577,18 @@ export class DungeonScene extends Phaser.Scene {
     this.miniboss.setFillStyle(0xe56b6f, 0.82);
     emitSoundEvent({ type: "enemy_down" });
     this.playSceneFeedback(
-      this.currentRegionId === "veil_dungeon"
+      this.currentRegionId === "barrier_shrine_dungeon"
         ? `${this.dungeonVariant?.relicLabel ?? "Shrine sigil"} secured`
-        : this.currentRegionId === "cinder_dungeon"
+        : this.currentRegionId === "shibuya_burn_sector_dungeon"
           ? `${this.dungeonVariant?.relicLabel ?? "Ember core"} stabilized`
-          : this.currentRegionId === "night_dungeon"
+          : this.currentRegionId === "collapsed_cathedral_barrier_dungeon"
             ? `${this.dungeonVariant?.relicLabel ?? "Eclipse sigil"} anchored`
           : `${this.dungeonVariant?.relicLabel ?? "Relic shard"} secured`,
-      this.currentRegionId === "veil_dungeon"
+      this.currentRegionId === "barrier_shrine_dungeon"
         ? 0xe2b6ff
-        : this.currentRegionId === "cinder_dungeon"
+        : this.currentRegionId === "shibuya_burn_sector_dungeon"
           ? 0xffb36b
-          : this.currentRegionId === "night_dungeon"
+          : this.currentRegionId === "collapsed_cathedral_barrier_dungeon"
             ? 0xa9c4ff
           : 0x8fb9ff
     );
@@ -585,9 +600,9 @@ export class DungeonScene extends Phaser.Scene {
       return;
     }
 
-    const isVeilDungeon = this.currentRegionId === "veil_dungeon";
-    const isCinderDungeon = this.currentRegionId === "cinder_dungeon";
-    const isNightDungeon = this.currentRegionId === "night_dungeon";
+    const isVeilDungeon = this.currentRegionId === "barrier_shrine_dungeon";
+    const isCinderDungeon = this.currentRegionId === "shibuya_burn_sector_dungeon";
+    const isNightDungeon = this.currentRegionId === "collapsed_cathedral_barrier_dungeon";
     const damage = Math.max(10, Math.floor(this.playerState.attack * 0.8));
     this.player.setPosition(this.miniboss.x - 64, this.miniboss.y);
 
@@ -628,22 +643,22 @@ export class DungeonScene extends Phaser.Scene {
       this.minibossPulse?.stop();
       this.playerState.pendingStatPoints += 1;
       this.playSceneFeedback(
-        this.currentRegionId === "veil_dungeon"
+        this.currentRegionId === "barrier_shrine_dungeon"
           ? `${this.dungeonVariant?.minibossLabel ?? "Sanctum sentinel"} broken`
-          : this.currentRegionId === "cinder_dungeon"
+          : this.currentRegionId === "shibuya_burn_sector_dungeon"
             ? `${this.dungeonVariant?.minibossLabel ?? "Furnace sentinel"} broken`
-            : this.currentRegionId === "night_dungeon"
+            : this.currentRegionId === "collapsed_cathedral_barrier_dungeon"
               ? `${this.dungeonVariant?.minibossLabel ?? "Cathedral sentinel"} broken`
             : `${this.dungeonVariant?.minibossLabel ?? "Sentinel"} broken`,
         0xb8f29b
       );
       emitInventoryReward({
         rewardSource:
-          this.currentRegionId === "veil_dungeon"
+          this.currentRegionId === "barrier_shrine_dungeon"
             ? "veil_miniboss"
-            : this.currentRegionId === "cinder_dungeon"
+            : this.currentRegionId === "shibuya_burn_sector_dungeon"
               ? "cinder_miniboss"
-              : this.currentRegionId === "night_dungeon"
+              : this.currentRegionId === "collapsed_cathedral_barrier_dungeon"
                 ? "night_miniboss"
               : "dungeon_miniboss",
         regionId: this.currentRegionId,
@@ -691,12 +706,12 @@ export class DungeonScene extends Phaser.Scene {
 
     this.isTransitioning = true;
     this.player.setPosition(this.bossGate.x, this.bossGate.y);
-    this.registry.set("currentRegionId", this.currentRegionId === "veil_dungeon" ? "veil_boss_vault" : "shatter_boss_vault");
-    if (this.currentRegionId === "cinder_dungeon") {
-      this.registry.set("currentRegionId", "cinder_boss_vault");
+    this.registry.set("currentRegionId", this.currentRegionId === "barrier_shrine_dungeon" ? "barrier_shrine_boss_vault" : "detention_center_boss_vault");
+    if (this.currentRegionId === "shibuya_burn_sector_dungeon") {
+      this.registry.set("currentRegionId", "shibuya_burn_sector_boss_vault");
     }
-    if (this.currentRegionId === "night_dungeon") {
-      this.registry.set("currentRegionId", "night_boss_vault");
+    if (this.currentRegionId === "collapsed_cathedral_barrier_dungeon") {
+      this.registry.set("currentRegionId", "collapsed_cathedral_barrier_boss_vault");
     }
     emitTransitionUpdate({
       active: true,
@@ -725,13 +740,13 @@ export class DungeonScene extends Phaser.Scene {
     this.isTransitioning = true;
     this.registry.set(
       "currentRegionId",
-      this.currentRegionId === "veil_dungeon"
-        ? "veil_shrine"
-        : this.currentRegionId === "cinder_dungeon"
-          ? "cinder_ward"
-          : this.currentRegionId === "night_dungeon"
-            ? "night_cathedral"
-          : "shatter_block"
+      this.currentRegionId === "barrier_shrine_dungeon"
+        ? "barrier_shrine"
+        : this.currentRegionId === "shibuya_burn_sector_dungeon"
+          ? "shibuya_burn_sector"
+          : this.currentRegionId === "collapsed_cathedral_barrier_dungeon"
+            ? "collapsed_cathedral_barrier"
+          : "detention_center"
     );
     emitTransitionUpdate({
       active: true,
@@ -757,9 +772,9 @@ export class DungeonScene extends Phaser.Scene {
       return;
     }
 
-    const isVeilDungeon = this.currentRegionId === "veil_dungeon";
-    const isCinderDungeon = this.currentRegionId === "cinder_dungeon";
-    const isNightDungeon = this.currentRegionId === "night_dungeon";
+    const isVeilDungeon = this.currentRegionId === "barrier_shrine_dungeon";
+    const isCinderDungeon = this.currentRegionId === "shibuya_burn_sector_dungeon";
+    const isNightDungeon = this.currentRegionId === "collapsed_cathedral_barrier_dungeon";
     const velocity = 160;
     this.player.body.setVelocity(0, 0);
 

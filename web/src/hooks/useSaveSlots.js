@@ -17,7 +17,7 @@ export function useSaveSlots(selectedArchetype, runtime, authToken, onProfileSyn
   });
 
   const savePayload = useMemo(() => {
-    const regionId = runtime.regionId ?? "hub_blacksite";
+    const regionId = runtime.regionId ?? "hub_jujutsu_high";
 
     return {
       archetypeId: selectedArchetype,

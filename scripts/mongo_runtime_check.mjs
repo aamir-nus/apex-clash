@@ -126,10 +126,10 @@ async function run() {
       method: "PUT",
       headers: authHeaders,
       body: JSON.stringify({
-        regionId: "veil_shrine",
-        unlockedRegionIds: ["veil_shrine"],
+        regionId: "barrier_shrine",
+        unlockedRegionIds: ["barrier_shrine"],
         sessionState: {
-          clearedBossRegionId: "shatter_boss_vault"
+          clearedBossRegionId: "detention_center_boss_vault"
         }
       })
     });
@@ -138,7 +138,7 @@ async function run() {
       method: "POST",
       headers: authHeaders,
       body: JSON.stringify({
-        archetypeId: "close_combat",
+        archetypeId: "striker",
         label: "Mongo Runtime Probe"
       })
     });
@@ -152,9 +152,9 @@ async function run() {
     });
 
     assert(initialProfile.currentRegionId === "hub_blacksite", "Initial profile did not start at hub.");
-    assert(sessionProfile.currentRegionId === "veil_shrine", "Session update did not persist region.");
+    assert(sessionProfile.currentRegionId === "barrier_shrine", "Session update did not persist region.");
     assert(
-      sessionProfile.clearedRegionIds?.includes("shatter_block"),
+      sessionProfile.clearedRegionIds?.includes("detention_center"),
       "Session update did not derive Shatter clear into the Mongo-backed profile."
     );
     assert(
@@ -162,7 +162,7 @@ async function run() {
       "Mongo-backed save slot was not returned in the follow-up listing."
     );
     assert(
-      persistedProfile.currentRegionId === "veil_shrine",
+      persistedProfile.currentRegionId === "barrier_shrine",
       "Persisted profile fetch did not reflect the Mongo-backed session update."
     );
 

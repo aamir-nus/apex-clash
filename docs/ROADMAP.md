@@ -54,6 +54,7 @@ Current truth split:
   - save/resume, reward claim, quick bind, quick equip, and cleared-route tracking
   - backend-owned profile, loadout, progression, and reward contracts
   - longer browser proof for consumable use, crafting, snapshot/live resume, and manual sync
+  - JJK migration Phase 1 terminology pass and Phase 2 system pass
 - implemented but not polished enough to call release-ready:
   - launcher, HUD, route progression presentation, and inventory/moveset UX
   - combat presentation and scene dressing
@@ -66,7 +67,7 @@ Current truth split:
 
 Near-term `v3` work should bias toward:
 
-1. live Mongo persistence verification in real gameplay flows
+1. Phase 3 JJK content expansion on top of the completed terminology and system passes
 2. scene polish on the proven 4-route path: hub, region, dungeon, boss readability
 3. expanding from the current 4 authored region routes into broader dungeon content
 4. broader scroll, consumable, material, and progression reward loops
@@ -106,6 +107,7 @@ Current verified browser baseline:
 - moveset surfaces now expose combat role and build impact so scroll unlocks and rebound slots read as real build decisions
 - the live HUD now echoes bound-skill role language so combat readability does not depend on reopening the moveset panel
 - the live HUD now turns tonic, craft, and unlock state into explicit next-step guidance during active play
+- the current combat slice now includes Phase 2 JJK systems: CE Output vs CE Reserve, Black Flash timing windows, technique burnout, domain/anti-domain setup, and cursed tool identity passives
 - combat readability now has stronger threat markers, danger-state washes, and clearer vulnerability signaling on the proven path
 - the browser shell now uses route-specific field briefings and directive framing tied to the active route
 - the core route spaces now have stronger authored landmarks and chamber dressing without breaking the proven browser path
@@ -118,6 +120,11 @@ Current verified browser baseline:
 Current mechanic-hardening target:
 - broader reward pacing and authored content depth still need to reach the same UX bar beyond the current 12 dungeon layouts
 - the longer manual browser run is still the one open accountability item before Phase 1 is honestly closed
+
+Current JJK migration status:
+- Phase 1 terminology pass: complete
+- Phase 2 system pass: complete
+- Phase 3 content expansion: active next step
 
 ## Demo-Ready Bar
 

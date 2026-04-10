@@ -110,7 +110,7 @@ results.push(
     id: "req-class-contract",
     authUser,
     body: {
-      classType: "long_range"
+      classType: "projection_sorcerer"
     }
   })
 );
@@ -130,7 +130,7 @@ results.push(
     id: "req-equip-skills-contract",
     authUser,
     body: {
-      skillIds: ["shard_arc", "starfall_lance", "shard_arc"]
+      skillIds: ["fragment_arc", "meteor_lance", "fragment_arc"]
     }
   })
 );
@@ -166,7 +166,7 @@ results.push(
     authUser,
     body: {
       regionId: "shatter_dungeon",
-      unlockedRegionIds: ["shatter_block", "veil_shrine"],
+      unlockedRegionIds: ["detention_center", "barrier_shrine"],
       sessionState: {
         explorationBonus: {
           label: "Technique resonance",
@@ -217,7 +217,7 @@ results.push(
     id: "req-session-state-veil-dungeon",
     authUser,
     body: {
-      regionId: "veil_dungeon",
+      regionId: "barrier_shrine_dungeon",
       sessionState: {
         dungeonRelicClaimedRegionId: "shatter_dungeon"
       }
@@ -231,7 +231,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "veil_miniboss",
-      regionId: "veil_dungeon"
+      regionId: "barrier_shrine_dungeon"
     }
   })
 );
@@ -241,10 +241,10 @@ results.push(
     id: "req-session-state-veil-dungeon-cleared",
     authUser,
     body: {
-      regionId: "veil_dungeon",
+      regionId: "barrier_shrine_dungeon",
       sessionState: {
         dungeonRelicClaimed: true,
-        dungeonRelicClaimedRegionId: "veil_dungeon"
+        dungeonRelicClaimedRegionId: "barrier_shrine_dungeon"
       }
     }
   })
@@ -256,7 +256,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "veil_miniboss",
-      regionId: "veil_dungeon"
+      regionId: "barrier_shrine_dungeon"
     }
   })
 );
@@ -267,7 +267,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "veil_miniboss",
-      regionId: "veil_dungeon"
+      regionId: "barrier_shrine_dungeon"
     }
   })
 );
@@ -277,9 +277,9 @@ results.push(
     id: "req-session-state-cinder-dungeon-mismatch",
     authUser,
     body: {
-      regionId: "cinder_dungeon",
+      regionId: "shibuya_burn_sector_dungeon",
       sessionState: {
-        dungeonRelicClaimedRegionId: "veil_dungeon"
+        dungeonRelicClaimedRegionId: "barrier_shrine_dungeon"
       }
     }
   })
@@ -291,7 +291,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "cinder_miniboss",
-      regionId: "cinder_dungeon"
+      regionId: "shibuya_burn_sector_dungeon"
     }
   })
 );
@@ -301,10 +301,10 @@ results.push(
     id: "req-session-state-cinder-dungeon-cleared",
     authUser,
     body: {
-      regionId: "cinder_dungeon",
+      regionId: "shibuya_burn_sector_dungeon",
       sessionState: {
         dungeonRelicClaimed: true,
-        dungeonRelicClaimedRegionId: "cinder_dungeon"
+        dungeonRelicClaimedRegionId: "shibuya_burn_sector_dungeon"
       }
     }
   })
@@ -316,7 +316,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "cinder_miniboss",
-      regionId: "cinder_dungeon"
+      regionId: "shibuya_burn_sector_dungeon"
     }
   })
 );
@@ -327,7 +327,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "cinder_miniboss",
-      regionId: "cinder_dungeon"
+      regionId: "shibuya_burn_sector_dungeon"
     }
   })
 );
@@ -338,7 +338,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "shatter_boss_scroll",
-      regionId: "shatter_boss_vault"
+      regionId: "detention_center_boss_vault"
     }
   })
 );
@@ -348,9 +348,9 @@ results.push(
     id: "req-session-state-shatter-boss-cleared",
     authUser,
     body: {
-      regionId: "shatter_boss_vault",
+      regionId: "detention_center_boss_vault",
       sessionState: {
-        clearedBossRegionId: "shatter_boss_vault"
+        clearedBossRegionId: "detention_center_boss_vault"
       }
     }
   })
@@ -362,7 +362,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "shatter_boss_scroll",
-      regionId: "shatter_boss_vault"
+      regionId: "detention_center_boss_vault"
     }
   })
 );
@@ -373,7 +373,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "shatter_boss_scroll",
-      regionId: "shatter_boss_vault"
+      regionId: "detention_center_boss_vault"
     }
   })
 );
@@ -383,9 +383,9 @@ results.push(
     id: "req-session-state-veil-boss",
     authUser,
     body: {
-      regionId: "veil_boss_vault",
+      regionId: "barrier_shrine_boss_vault",
       sessionState: {
-        clearedBossRegionId: "shatter_boss_vault"
+        clearedBossRegionId: "detention_center_boss_vault"
       }
     }
   })
@@ -397,7 +397,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "veil_boss_scroll",
-      regionId: "veil_boss_vault"
+      regionId: "barrier_shrine_boss_vault"
     }
   })
 );
@@ -407,9 +407,9 @@ results.push(
     id: "req-session-state-veil-boss-cleared",
     authUser,
     body: {
-      regionId: "veil_boss_vault",
+      regionId: "barrier_shrine_boss_vault",
       sessionState: {
-        clearedBossRegionId: "veil_boss_vault"
+        clearedBossRegionId: "barrier_shrine_boss_vault"
       }
     }
   })
@@ -421,7 +421,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "veil_boss_scroll",
-      regionId: "veil_boss_vault"
+      regionId: "barrier_shrine_boss_vault"
     }
   })
 );
@@ -432,7 +432,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "veil_boss_scroll",
-      regionId: "veil_boss_vault"
+      regionId: "barrier_shrine_boss_vault"
     }
   })
 );
@@ -443,7 +443,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "cinder_boss_core",
-      regionId: "cinder_boss_vault"
+      regionId: "shibuya_burn_sector_boss_vault"
     }
   })
 );
@@ -453,9 +453,9 @@ results.push(
     id: "req-session-state-cinder-boss-cleared",
     authUser,
     body: {
-      regionId: "cinder_boss_vault",
+      regionId: "shibuya_burn_sector_boss_vault",
       sessionState: {
-        clearedBossRegionId: "cinder_boss_vault"
+        clearedBossRegionId: "shibuya_burn_sector_boss_vault"
       }
     }
   })
@@ -467,7 +467,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "cinder_boss_core",
-      regionId: "cinder_boss_vault"
+      regionId: "shibuya_burn_sector_boss_vault"
     }
   })
 );
@@ -478,7 +478,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "cinder_boss_core",
-      regionId: "cinder_boss_vault"
+      regionId: "shibuya_burn_sector_boss_vault"
     }
   })
 );
@@ -488,10 +488,10 @@ results.push(
     id: "req-session-state-night-dungeon-cleared",
     authUser,
     body: {
-      regionId: "night_dungeon",
+      regionId: "collapsed_cathedral_barrier_dungeon",
       sessionState: {
         dungeonRelicClaimed: true,
-        dungeonRelicClaimedRegionId: "night_dungeon"
+        dungeonRelicClaimedRegionId: "collapsed_cathedral_barrier_dungeon"
       }
     }
   })
@@ -503,7 +503,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "night_miniboss",
-      regionId: "night_dungeon"
+      regionId: "collapsed_cathedral_barrier_dungeon"
     }
   })
 );
@@ -513,9 +513,9 @@ results.push(
     id: "req-session-state-night-boss-cleared",
     authUser,
     body: {
-      regionId: "night_boss_vault",
+      regionId: "collapsed_cathedral_barrier_boss_vault",
       sessionState: {
-        clearedBossRegionId: "night_boss_vault"
+        clearedBossRegionId: "collapsed_cathedral_barrier_boss_vault"
       }
     }
   })
@@ -527,7 +527,7 @@ results.push(
     authUser,
     body: {
       rewardSource: "night_boss_scroll",
-      regionId: "night_boss_vault"
+      regionId: "collapsed_cathedral_barrier_boss_vault"
     }
   })
 );
@@ -584,7 +584,7 @@ results.push(
     authUser,
     body: {
       label: "Auth Owned Slot",
-      archetypeId: "long_range"
+      archetypeId: "projection_sorcerer"
     }
   })
 );
@@ -617,7 +617,7 @@ const assertions = results.map((entry) => {
   }
 
   if (entry.label === "PUT /player/profile/class") {
-    expectation = entry.payload?.data?.classType === "long_range" ? "OK" : "BUG";
+    expectation = entry.payload?.data?.classType === "projection_sorcerer" ? "OK" : "BUG";
   }
 
   if (entry.label === "POST /player/rewards/claim cinder miniboss relic mismatch") {
@@ -684,7 +684,7 @@ const assertions = results.map((entry) => {
     expectation =
       entry.payload?.data?.currentRegionId === "shatter_dungeon" &&
       Array.isArray(entry.payload?.data?.unlockedRegionIds) &&
-      entry.payload.data.unlockedRegionIds.includes("veil_shrine") &&
+      entry.payload.data.unlockedRegionIds.includes("barrier_shrine") &&
       entry.payload?.data?.sessionState?.dungeonRelicClaimed === true &&
       entry.payload?.data?.sessionState?.dungeonRelicClaimedRegionId === "shatter_dungeon"
         ? "OK"
@@ -697,7 +697,7 @@ const assertions = results.map((entry) => {
 
   if (entry.label === "PUT /player/session-state veil dungeon") {
     expectation =
-      entry.payload?.data?.currentRegionId === "veil_dungeon" &&
+      entry.payload?.data?.currentRegionId === "barrier_shrine_dungeon" &&
       entry.payload?.data?.sessionState?.dungeonRelicClaimedRegionId === "shatter_dungeon"
         ? "OK"
         : "BUG";
@@ -705,16 +705,16 @@ const assertions = results.map((entry) => {
 
   if (entry.label === "PUT /player/session-state veil dungeon cleared") {
     expectation =
-      entry.payload?.data?.currentRegionId === "veil_dungeon" &&
-      entry.payload?.data?.sessionState?.dungeonRelicClaimedRegionId === "veil_dungeon"
+      entry.payload?.data?.currentRegionId === "barrier_shrine_dungeon" &&
+      entry.payload?.data?.sessionState?.dungeonRelicClaimedRegionId === "barrier_shrine_dungeon"
         ? "OK"
         : "BUG";
   }
 
   if (entry.label === "PUT /player/session-state veil boss") {
     expectation =
-      entry.payload?.data?.currentRegionId === "veil_boss_vault" &&
-      entry.payload?.data?.sessionState?.clearedBossRegionId === "shatter_boss_vault"
+      entry.payload?.data?.currentRegionId === "barrier_shrine_boss_vault" &&
+      entry.payload?.data?.sessionState?.clearedBossRegionId === "detention_center_boss_vault"
         ? "OK"
         : "BUG";
   }
@@ -725,8 +725,8 @@ const assertions = results.map((entry) => {
 
   if (entry.label === "PUT /player/session-state shatter boss cleared") {
     expectation =
-      entry.payload?.data?.currentRegionId === "shatter_boss_vault" &&
-      entry.payload?.data?.sessionState?.clearedBossRegionId === "shatter_boss_vault"
+      entry.payload?.data?.currentRegionId === "detention_center_boss_vault" &&
+      entry.payload?.data?.sessionState?.clearedBossRegionId === "detention_center_boss_vault"
         ? "OK"
         : "BUG";
   }
@@ -746,8 +746,8 @@ const assertions = results.map((entry) => {
 
   if (entry.label === "PUT /player/session-state veil boss cleared") {
     expectation =
-      entry.payload?.data?.currentRegionId === "veil_boss_vault" &&
-      entry.payload?.data?.sessionState?.clearedBossRegionId === "veil_boss_vault"
+      entry.payload?.data?.currentRegionId === "barrier_shrine_boss_vault" &&
+      entry.payload?.data?.sessionState?.clearedBossRegionId === "barrier_shrine_boss_vault"
         ? "OK"
         : "BUG";
   }
@@ -814,8 +814,8 @@ const assertions = results.map((entry) => {
 
   if (entry.label === "PUT /player/session-state night dungeon cleared") {
     expectation =
-      entry.payload?.data?.currentRegionId === "night_dungeon" &&
-      entry.payload?.data?.sessionState?.dungeonRelicClaimedRegionId === "night_dungeon"
+      entry.payload?.data?.currentRegionId === "collapsed_cathedral_barrier_dungeon" &&
+      entry.payload?.data?.sessionState?.dungeonRelicClaimedRegionId === "collapsed_cathedral_barrier_dungeon"
         ? "OK"
         : "BUG";
   }
@@ -831,8 +831,8 @@ const assertions = results.map((entry) => {
 
   if (entry.label === "PUT /player/session-state night boss cleared") {
     expectation =
-      entry.payload?.data?.currentRegionId === "night_boss_vault" &&
-      entry.payload?.data?.sessionState?.clearedBossRegionId === "night_boss_vault"
+      entry.payload?.data?.currentRegionId === "collapsed_cathedral_barrier_boss_vault" &&
+      entry.payload?.data?.sessionState?.clearedBossRegionId === "collapsed_cathedral_barrier_boss_vault"
         ? "OK"
         : "BUG";
   }

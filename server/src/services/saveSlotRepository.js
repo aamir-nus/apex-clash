@@ -5,8 +5,8 @@ const defaultGuestSlot = {
   id: "slot-1",
   label: "Vertical Slice",
   level: 1,
-  regionId: "hub_blacksite",
-  archetypeId: "close_combat",
+  regionId: "hub_jujutsu_high",
+  archetypeId: "striker",
   ownerUserId: null,
   playerState: {
     level: 1,

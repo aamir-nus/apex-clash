@@ -23,10 +23,10 @@ const GameCanvas = lazy(() =>
 );
 
 const archetypeDescriptions = {
-  close_combat: "High melee pressure, stagger focus, gap closers.",
-  mid_range: "Hybrid spacing tools with balanced offense and mobility.",
-  long_range: "Projectile-heavy control build with fragile defenses.",
-  heavenly_restriction: "Weapon specialist with high body stats and low CE growth."
+  striker: "Melee pressure, Black Flash synergy, gap-close, combo finishers.",
+  technique_fighter: "Hybrid spacing, seals, slashes, barrier disruption, control tools.",
+  projection_sorcerer: "Ranged cursed technique casts, area denial, burst windows.",
+  heavenly_restriction: "Cursed tool mastery, low CE scaling, physical stat dominance."
 };
 
 const experiencePillars = [
@@ -36,38 +36,38 @@ const experiencePillars = [
 ];
 
 const routeToneById = {
-  shatter_block: "route-shatter",
-  veil_shrine: "route-veil",
-  cinder_ward: "route-cinder",
-  night_cathedral: "route-night"
+  detention_center: "route-shatter",
+  barrier_shrine: "route-veil",
+  shibuya_burn_sector: "route-cinder",
+  collapsed_cathedral_barrier: "route-night"
 };
 
 const routeBriefings = {
-  shatter_block: {
+  detention_center: {
     label: "Rupture Sweep",
     summary: "Broken streets, low-rank curse pressure, and the fastest first clear in the build.",
     directive: "Secure one boon fast, crack the relic room, and push cleanly into the first boss vault.",
     reward: "Boss scroll unlock + first route ladder break",
     hazard: "Fast breach pressure with the simplest first-run cadence",
-    unlock: "Opens Veil Shrine and broadens the scroll path"
+    unlock: "Opens Barrier Shrine and broadens the scroll path"
   },
-  veil_shrine: {
+  barrier_shrine: {
     label: "Sanctum Descent",
     summary: "A timing route built around sealed pressure, rupture windows, and scroll progression.",
     directive: "Strip the sanctum shield, respect the lane, then bind the scroll reward immediately.",
     reward: "Boss scroll unlock + sanctum reward gear",
     hazard: "Shielded cadence and punished off-window greed",
-    unlock: "Opens Cinder Ward and extends technique routing"
+    unlock: "Opens Shibuya Burn Sector and extends technique routing"
   },
-  cinder_ward: {
+  shibuya_burn_sector: {
     label: "Furnace Descent",
     summary: "Heat pressure, cooling breaches, and faster reward-to-equip conversion.",
     directive: "Stabilize the core, punish only on the breach, and extract with the emblem.",
     reward: "Boss-core gear payoff + material-heavy crafting route",
     hazard: "Heat cycling, breach windows, and faster chip damage",
-    unlock: "Opens Night Cathedral and pushes the final climb online"
+    unlock: "Opens Collapsed Cathedral Barrier and pushes the final climb online"
   },
-  night_cathedral: {
+  collapsed_cathedral_barrier: {
     label: "Final Ascent",
     summary: "A final-chapter climb through blackout cycles, cathedral seals, and the last scroll unlock of the current run.",
     directive: "Anchor the eclipse sigil, break the cathedral sentinel, then survive the final boss cadence cleanly.",
@@ -81,7 +81,7 @@ const onboardingStages = [
   {
     id: "deploy",
     label: "Deploy",
-    detail: "Lock Shatter Block, then leave Blacksite."
+    detail: "Lock Detention Center, then leave Tokyo Jujutsu High."
   },
   {
     id: "boon",
@@ -105,40 +105,40 @@ function isRouteCleared(regionId, clearedRegionIds, unlockedRegionIds) {
     return true;
   }
 
-  if (regionId === "shatter_block") {
-    return unlockedRegionIds.includes("veil_shrine") || unlockedRegionIds.includes("cinder_ward");
+  if (regionId === "detention_center") {
+    return unlockedRegionIds.includes("barrier_shrine") || unlockedRegionIds.includes("shibuya_burn_sector");
   }
 
-  if (regionId === "veil_shrine") {
-    return unlockedRegionIds.includes("cinder_ward");
+  if (regionId === "barrier_shrine") {
+    return unlockedRegionIds.includes("shibuya_burn_sector");
   }
 
-  if (regionId === "cinder_ward") {
-    return unlockedRegionIds.includes("night_cathedral");
+  if (regionId === "shibuya_burn_sector") {
+    return unlockedRegionIds.includes("collapsed_cathedral_barrier");
   }
 
   return false;
 }
 
 function mapRuntimeRegionToRouteId(regionId, selectedRegionId) {
-  if (!regionId || regionId === "hub_blacksite") {
+  if (!regionId || regionId === "hub_jujutsu_high") {
     return selectedRegionId;
   }
 
-  if (regionId === "shatter_dungeon" || regionId === "shatter_boss_vault") {
-    return "shatter_block";
+  if (regionId === "detention_center_dungeon" || regionId === "detention_center_boss_vault") {
+    return "detention_center";
   }
 
-  if (regionId === "veil_dungeon" || regionId === "veil_boss_vault") {
-    return "veil_shrine";
+  if (regionId === "barrier_shrine_dungeon" || regionId === "barrier_shrine_boss_vault") {
+    return "barrier_shrine";
   }
 
-  if (regionId === "cinder_dungeon" || regionId === "cinder_boss_vault") {
-    return "cinder_ward";
+  if (regionId === "shibuya_burn_sector_dungeon" || regionId === "shibuya_burn_sector_boss_vault") {
+    return "shibuya_burn_sector";
   }
 
-  if (regionId === "night_dungeon" || regionId === "night_boss_vault") {
-    return "night_cathedral";
+  if (regionId === "collapsed_cathedral_barrier_dungeon" || regionId === "collapsed_cathedral_barrier_boss_vault") {
+    return "collapsed_cathedral_barrier";
   }
 
   return regionId;
@@ -221,7 +221,7 @@ function buildSceneActions(scene, regionCards, selectedRegionId, encounterStatus
 
 function App() {
   const { content, status, error } = useBootstrapContent();
-  const [selectedArchetype, setSelectedArchetype] = useState("close_combat");
+  const [selectedArchetype, setSelectedArchetype] = useState("striker");
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [saveStatus, setSaveStatus] = useState("");
   const [firstRunTutorial, setFirstRunTutorial] = useState(() => {
@@ -274,7 +274,7 @@ function App() {
   const readyCraftRecipes = playerProfile.profile?.craftRecipes?.filter((recipe) => recipe.canCraft) ?? [];
   const unlockedRegionIds = [
     ...new Set([
-      ...(playerProfile.profile?.unlockedRegionIds ?? ["shatter_block"]),
+      ...(playerProfile.profile?.unlockedRegionIds ?? ["detention_center"]),
       ...(runtime.sessionState?.unlockedRegionIds ?? [])
     ])
   ];
@@ -305,7 +305,7 @@ function App() {
       ? runtime.selectedRegionId
       : mapRuntimeRegionToRouteId(runtime.regionId, runtime.selectedRegionId);
   const highlightedRoute = routeTracker.find((route) => route.id === highlightedRouteId) ?? routeTracker[0];
-  const highlightedBriefing = routeBriefings[highlightedRoute?.id] ?? routeBriefings.shatter_block;
+  const highlightedBriefing = routeBriefings[highlightedRoute?.id] ?? routeBriefings.detention_center;
   const onboardingState = (() => {
     if (!firstRunTutorial) {
       return null;

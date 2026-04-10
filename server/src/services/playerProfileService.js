@@ -14,13 +14,13 @@ function getSkillDefinitions() {
 
 function getStarterLoadout(classType) {
   switch (classType) {
-    case "mid_range":
+    case "technique_fighter":
       return { weapon: "pulse_tanto", charm: "focus_charm" };
-    case "long_range":
+    case "projection_sorcerer":
       return { weapon: "ritual_focus", charm: "focus_charm" };
     case "heavenly_restriction":
       return { weapon: "grave_polearm", charm: "hunter_sash" };
-    case "close_combat":
+    case "striker":
     default:
       return { weapon: "breach_blade", charm: "rust_talisman" };
   }
@@ -28,28 +28,28 @@ function getStarterLoadout(classType) {
 
 function getStarterSkills(classType) {
   switch (classType) {
-    case "mid_range":
-      return ["shard_arc", "veil_sweep"];
-    case "long_range":
-      return ["shard_arc", "starfall_lance"];
+    case "technique_fighter":
+      return ["fragment_arc", "curtain_sweep"];
+    case "projection_sorcerer":
+      return ["fragment_arc", "meteor_lance"];
     case "heavenly_restriction":
-      return ["predator_sense", "bone_breaker"];
-    case "close_combat":
+      return ["killer_instinct", "bone_splitter"];
+    case "striker":
     default:
-      return ["cleave_step", "iron_maelstrom"];
+      return ["severing_step", "cursed_output_spiral"];
   }
 }
 
 function getRewardItemId(classType, rewardSource) {
   if (rewardSource === "dungeon_miniboss") {
     switch (classType) {
-      case "mid_range":
+      case "technique_fighter":
         return "echo_band";
-      case "long_range":
+      case "projection_sorcerer":
         return "prism_seal";
       case "heavenly_restriction":
         return "butcher_wrap";
-      case "close_combat":
+      case "striker":
       default:
         return "siege_anklet";
     }
@@ -57,13 +57,13 @@ function getRewardItemId(classType, rewardSource) {
 
   if (rewardSource === "veil_miniboss") {
     switch (classType) {
-      case "mid_range":
+      case "technique_fighter":
         return "glass_veil_knot";
-      case "long_range":
+      case "projection_sorcerer":
         return "astral_prism";
       case "heavenly_restriction":
         return "gravebinder_strap";
-      case "close_combat":
+      case "striker":
       default:
         return "cataclysm_locket";
     }
@@ -71,13 +71,13 @@ function getRewardItemId(classType, rewardSource) {
 
   if (rewardSource === "cinder_miniboss") {
     switch (classType) {
-      case "mid_range":
+      case "technique_fighter":
         return "ember_knot";
-      case "long_range":
+      case "projection_sorcerer":
         return "flare_prism";
       case "heavenly_restriction":
         return "ash_runner_wrap";
-      case "close_combat":
+      case "striker":
       default:
         return "furnace_heart";
     }
@@ -85,13 +85,13 @@ function getRewardItemId(classType, rewardSource) {
 
   if (rewardSource === "night_miniboss") {
     switch (classType) {
-      case "mid_range":
+      case "technique_fighter":
         return "cathedral_knot";
-      case "long_range":
+      case "projection_sorcerer":
         return "moonwire_prism";
       case "heavenly_restriction":
         return "stalker_shroud";
-      case "close_combat":
+      case "striker":
       default:
         return "night_iron_chain";
     }
@@ -99,13 +99,13 @@ function getRewardItemId(classType, rewardSource) {
 
   if (rewardSource === "cinder_boss_core") {
     switch (classType) {
-      case "mid_range":
+      case "technique_fighter":
         return "phoenix_loop";
-      case "long_range":
+      case "projection_sorcerer":
         return "sunflare_prism";
       case "heavenly_restriction":
         return "kiln_tread";
-      case "close_combat":
+      case "striker":
       default:
         return "caldera_emblem";
     }
@@ -117,43 +117,43 @@ function getRewardItemId(classType, rewardSource) {
 function getRewardSkillId(classType, rewardSource) {
   if (rewardSource === "shatter_boss_scroll") {
     switch (classType) {
-      case "mid_range":
-        return "thread_lance";
-      case "long_range":
+      case "technique_fighter":
+        return "binding_thread_lance";
+      case "projection_sorcerer":
         return "comet_array";
       case "heavenly_restriction":
-        return "predator_dive";
-      case "close_combat":
+        return "hunters_dive";
+      case "striker":
       default:
-        return "sever_flash";
+        return "flash_sever";
     }
   }
 
   if (rewardSource === "veil_boss_scroll") {
     switch (classType) {
-      case "mid_range":
-        return "mirror_break";
-      case "long_range":
-        return "void_pulse";
+      case "technique_fighter":
+        return "barrier_fracture";
+      case "projection_sorcerer":
+        return "vacuum_pulse";
       case "heavenly_restriction":
-        return "reaper_drive";
-      case "close_combat":
+        return "execution_drive";
+      case "striker":
       default:
-        return "rupture_arc";
+        return "split_arc";
     }
   }
 
   if (rewardSource === "night_boss_scroll") {
     switch (classType) {
-      case "mid_range":
-        return "eclipse_weave";
-      case "long_range":
-        return "black_starfall";
+      case "technique_fighter":
+        return "shadow_weave";
+      case "projection_sorcerer":
+        return "black_flash_cascade";
       case "heavenly_restriction":
-        return "apex_predator";
-      case "close_combat":
+        return "apex_instinct";
+      case "striker":
       default:
-        return "moon_cleave";
+        return "moon_sever";
     }
   }
 
@@ -199,14 +199,14 @@ function getCraftRecipes() {
 }
 
 function mapBossVaultToClearedRegion(regionId) {
-  return regionId === "shatter_boss_vault"
-    ? "shatter_block"
-    : regionId === "veil_boss_vault"
-      ? "veil_shrine"
-      : regionId === "cinder_boss_vault"
-        ? "cinder_ward"
-        : regionId === "night_boss_vault"
-          ? "night_cathedral"
+  return regionId === "detention_center_boss_vault"
+    ? "detention_center"
+    : regionId === "barrier_shrine_boss_vault"
+      ? "barrier_shrine"
+      : regionId === "shibuya_burn_sector_boss_vault"
+        ? "shibuya_burn_sector"
+        : regionId === "collapsed_cathedral_barrier_boss_vault"
+          ? "collapsed_cathedral_barrier"
         : null;
 }
 
@@ -224,7 +224,13 @@ const ROUTE_STATE_KEYS = [
   "bossCleared",
   "bossRewardClaimed",
   "clearedBossRegionId",
-  "signatureActive"
+  "signatureActive",
+  // Phase 2: JJK Mechanics
+  "burnoutStacks",
+  "blackFlashHitsRemaining",
+  "lastCEUseTime",
+  "domainActive",
+  "antiDomainActive"
 ];
 
 const DUNGEON_AND_BOSS_STATE_KEYS = [
@@ -253,11 +259,11 @@ const BOSS_STATE_KEYS = [
 function pruneSessionStateForRegion(existingSessionState = {}, regionId) {
   const nextSessionState = { ...(existingSessionState ?? {}) };
   const keysToRemove =
-    regionId === "hub_blacksite"
+    regionId === "hub_jujutsu_high"
       ? ROUTE_STATE_KEYS
-      : regionId.endsWith("_block") || regionId.endsWith("_shrine") || regionId.endsWith("_ward")
+      : regionId.endsWith("_dungeon") || regionId.endsWith("_center") || regionId.endsWith("_shrine") || regionId.endsWith("_sector") || regionId.endsWith("_barrier")
         ? DUNGEON_AND_BOSS_STATE_KEYS
-        : regionId.endsWith("_dungeon")
+        : regionId.endsWith("_boss_vault")
           ? BOSS_STATE_KEYS
           : [];
 
@@ -282,14 +288,14 @@ function mergeSessionState(existingSessionState = {}, incomingSessionState = {},
 function isRewardContextValid(rewardSource, regionId, profile) {
   const effectiveRegionId = regionId ?? profile.currentRegionId;
   const allowedRegionIdsByReward = {
-    dungeon_miniboss: ["shatter_dungeon"],
-    veil_miniboss: ["veil_dungeon"],
-    cinder_miniboss: ["cinder_dungeon"],
-    night_miniboss: ["night_dungeon"],
-    shatter_boss_scroll: ["shatter_boss_vault"],
-    veil_boss_scroll: ["veil_boss_vault"],
-    cinder_boss_core: ["cinder_boss_vault"],
-    night_boss_scroll: ["night_boss_vault"]
+    dungeon_miniboss: ["detention_center_dungeon"],
+    veil_miniboss: ["barrier_shrine_dungeon"],
+    cinder_miniboss: ["shibuya_burn_sector_dungeon"],
+    night_miniboss: ["collapsed_cathedral_barrier_dungeon"],
+    shatter_boss_scroll: ["detention_center_boss_vault"],
+    veil_boss_scroll: ["barrier_shrine_boss_vault"],
+    cinder_boss_core: ["shibuya_burn_sector_boss_vault"],
+    night_boss_scroll: ["collapsed_cathedral_barrier_boss_vault"]
   };
 
   const allowedRegionIds = allowedRegionIdsByReward[rewardSource];
@@ -336,9 +342,23 @@ function computeStatsWithBuffs(classType, equippedItemIds, statAllocations = {},
   const equippedItems = items.filter((item) => Object.values(equippedItemIds).includes(item.id));
   const activeBuffItems = items.filter((item) => activeBuffItemIds.includes(item.id));
 
+  // Handle CE Output vs Reserve split from class base stats
+  let baseCE = (baseStats.ceOutput ?? 0) + (baseStats.ceReserve ?? 0);
+  let ceOutput = baseStats.ceOutput ?? baseStats.ce ?? 0;
+  let ceReserve = baseStats.ceReserve ?? 0;
+
   for (const item of [...equippedItems, ...activeBuffItems]) {
     for (const [key, value] of Object.entries(item.statModifiers ?? {})) {
-      baseStats[key] = (baseStats[key] ?? 0) + value;
+      if (key === "ceOutput") {
+        ceOutput += value;
+      } else if (key === "ceReserve") {
+        ceReserve += value;
+      } else if (key === "ce") {
+        baseCE += value;
+        ceOutput += value;
+      } else {
+        baseStats[key] = (baseStats[key] ?? 0) + value;
+      }
     }
   }
 
@@ -346,18 +366,23 @@ function computeStatsWithBuffs(classType, equippedItemIds, statAllocations = {},
   baseStats.defense = (baseStats.defense ?? 0) + (statAllocations.defense ?? 0);
   baseStats.hp = (baseStats.hp ?? 0) + (statAllocations.defense ?? 0) * 10;
   baseStats.speed = (baseStats.speed ?? 0) + (statAllocations.speed ?? 0);
-  baseStats.ce = (baseStats.ce ?? 0) + (statAllocations.attack ?? 0) * 4;
+  ceOutput += (statAllocations.attack ?? 0) * 4;
+  ceReserve += (statAllocations.technique ?? 0) * 2;
 
   return {
     hp: baseStats.hp ?? 0,
-    ce: baseStats.ce ?? 0,
+    ce: ceOutput + ceReserve,
+    ceOutput,
+    ceReserve,
     attack: baseStats.attack ?? 0,
     defense: baseStats.defense ?? 0,
     speed: baseStats.speed ?? 0,
     technique: baseStats.technique ?? 0,
     perception: baseStats.perception ?? 0,
     crit: baseStats.crit ?? 0,
-    poise: baseStats.poise ?? 0
+    poise: baseStats.poise ?? 0,
+    blackFlashAffinity: classDefinition?.blackFlashAffinity ?? 1.0,
+    burnoutThreshold: classDefinition?.burnoutThreshold ?? 3
   };
 }
 
@@ -424,7 +449,7 @@ function getXpThreshold(level) {
   return 30 + (level - 1) * 20;
 }
 
-function buildProfile(userId, classType = "close_combat") {
+function buildProfile(userId, classType = "striker") {
   const equippedItemIds = getStarterLoadout(classType);
   const equippedSkillIds = getStarterSkills(classType);
   const statAllocations = {
@@ -437,8 +462,8 @@ function buildProfile(userId, classType = "close_combat") {
   return {
     userId,
     classType,
-    currentRegionId: "hub_blacksite",
-    unlockedRegionIds: ["shatter_block"],
+    currentRegionId: "hub_jujutsu_high",
+    unlockedRegionIds: ["detention_center"],
     clearedRegionIds: [],
     level: 1,
     xp: 0,
@@ -489,7 +514,7 @@ function serializeProfile(profile) {
     userId: profile.userId,
     classType: profile.classType,
     currentRegionId: profile.currentRegionId,
-    unlockedRegionIds: profile.unlockedRegionIds ?? ["shatter_block"],
+    unlockedRegionIds: profile.unlockedRegionIds ?? ["detention_center"],
     clearedRegionIds: profile.clearedRegionIds ?? [],
     level: profile.level,
     xp: profile.xp,
@@ -639,7 +664,7 @@ export async function updatePlayerSessionState(userId, sessionUpdate = {}) {
   profile.currentRegionId = sessionUpdate.regionId ?? profile.currentRegionId;
   profile.unlockedRegionIds = [
     ...new Set([
-      ...(profile.unlockedRegionIds ?? ["shatter_block"]),
+      ...(profile.unlockedRegionIds ?? ["detention_center"]),
       ...(sessionUpdate.unlockedRegionIds ?? [])
     ])
   ];

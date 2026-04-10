@@ -1,8 +1,8 @@
 [
   {
-    "id": "cleave_step",
-    "name": "Cleave Step",
-    "classRestrictions": ["close_combat"],
+    "id": "severing_step",
+    "name": "Severing Step",
+    "classRestrictions": ["striker"],
     "damageType": "physical",
     "cost": 12,
     "cooldown": 5,
@@ -10,9 +10,9 @@
     "range": 1
   },
   {
-    "id": "iron_maelstrom",
-    "name": "Iron Maelstrom",
-    "classRestrictions": ["close_combat"],
+    "id": "cursed_output_spiral",
+    "name": "Cursed Output: Iron Spiral",
+    "classRestrictions": ["striker"],
     "damageType": "physical",
     "cost": 18,
     "cooldown": 8,
@@ -20,9 +20,9 @@
     "range": 2
   },
   {
-    "id": "rupture_arc",
-    "name": "Rupture Arc",
-    "classRestrictions": ["close_combat"],
+    "id": "split_arc",
+    "name": "Split Arc",
+    "classRestrictions": ["striker"],
     "damageType": "physical",
     "cost": 22,
     "cooldown": 11,
@@ -30,9 +30,9 @@
     "range": 2
   },
   {
-    "id": "sever_flash",
-    "name": "Sever Flash",
-    "classRestrictions": ["close_combat"],
+    "id": "flash_sever",
+    "name": "Flash Sever",
+    "classRestrictions": ["striker"],
     "damageType": "physical",
     "cost": 20,
     "cooldown": 9,
@@ -40,9 +40,9 @@
     "range": 2
   },
   {
-    "id": "shard_arc",
-    "name": "Shard Arc",
-    "classRestrictions": ["mid_range", "long_range"],
+    "id": "fragment_arc",
+    "name": "Fragment Arc",
+    "classRestrictions": ["technique_fighter", "projection_sorcerer"],
     "damageType": "cursed",
     "cost": 16,
     "cooldown": 6,
@@ -50,9 +50,9 @@
     "range": 5
   },
   {
-    "id": "veil_sweep",
-    "name": "Veil Sweep",
-    "classRestrictions": ["mid_range"],
+    "id": "curtain_sweep",
+    "name": "Curtain Sweep",
+    "classRestrictions": ["technique_fighter"],
     "damageType": "cursed",
     "cost": 12,
     "cooldown": 4,
@@ -60,9 +60,9 @@
     "range": 2
   },
   {
-    "id": "mirror_break",
-    "name": "Mirror Break",
-    "classRestrictions": ["mid_range"],
+    "id": "barrier_fracture",
+    "name": "Barrier Fracture",
+    "classRestrictions": ["technique_fighter"],
     "damageType": "cursed",
     "cost": 20,
     "cooldown": 10,
@@ -70,9 +70,9 @@
     "range": 3
   },
   {
-    "id": "thread_lance",
-    "name": "Thread Lance",
-    "classRestrictions": ["mid_range"],
+    "id": "binding_thread_lance",
+    "name": "Binding Thread: Lance",
+    "classRestrictions": ["technique_fighter"],
     "damageType": "cursed",
     "cost": 18,
     "cooldown": 7,
@@ -80,9 +80,9 @@
     "range": 4
   },
   {
-    "id": "starfall_lance",
-    "name": "Starfall Lance",
-    "classRestrictions": ["long_range"],
+    "id": "meteor_lance",
+    "name": "Meteor Lance",
+    "classRestrictions": ["projection_sorcerer"],
     "damageType": "cursed",
     "cost": 24,
     "cooldown": 9,
@@ -90,9 +90,9 @@
     "range": 7
   },
   {
-    "id": "void_pulse",
-    "name": "Void Pulse",
-    "classRestrictions": ["long_range"],
+    "id": "vacuum_pulse",
+    "name": "Vacuum Pulse",
+    "classRestrictions": ["projection_sorcerer"],
     "damageType": "cursed",
     "cost": 28,
     "cooldown": 12,
@@ -102,7 +102,7 @@
   {
     "id": "comet_array",
     "name": "Comet Array",
-    "classRestrictions": ["long_range"],
+    "classRestrictions": ["projection_sorcerer"],
     "damageType": "cursed",
     "cost": 20,
     "cooldown": 8,
@@ -110,8 +110,8 @@
     "range": 6
   },
   {
-    "id": "predator_sense",
-    "name": "Predator Sense",
+    "id": "killer_instinct",
+    "name": "Killer Instinct",
     "classRestrictions": ["heavenly_restriction"],
     "damageType": "utility",
     "cost": 0,
@@ -120,8 +120,8 @@
     "range": 0
   },
   {
-    "id": "bone_breaker",
-    "name": "Bone Breaker",
+    "id": "bone_splitter",
+    "name": "Bone Splitter",
     "classRestrictions": ["heavenly_restriction"],
     "damageType": "physical",
     "cost": 0,
@@ -130,8 +130,8 @@
     "range": 2
   },
   {
-    "id": "reaper_drive",
-    "name": "Reaper Drive",
+    "id": "execution_drive",
+    "name": "Execution Drive",
     "classRestrictions": ["heavenly_restriction"],
     "damageType": "physical",
     "cost": 0,
@@ -140,8 +140,8 @@
     "range": 3
   },
   {
-    "id": "predator_dive",
-    "name": "Predator Dive",
+    "id": "hunters_dive",
+    "name": "Hunter's Dive",
     "classRestrictions": ["heavenly_restriction"],
     "damageType": "physical",
     "cost": 0,
@@ -150,9 +150,9 @@
     "range": 3
   },
   {
-    "id": "moon_cleave",
-    "name": "Moon Cleave",
-    "classRestrictions": ["close_combat"],
+    "id": "moon_sever",
+    "name": "Moon Sever",
+    "classRestrictions": ["striker"],
     "damageType": "physical",
     "cost": 24,
     "cooldown": 10,
@@ -160,9 +160,9 @@
     "range": 3
   },
   {
-    "id": "eclipse_weave",
-    "name": "Eclipse Weave",
-    "classRestrictions": ["mid_range"],
+    "id": "shadow_weave",
+    "name": "Shadow Weave",
+    "classRestrictions": ["technique_fighter"],
     "damageType": "cursed",
     "cost": 24,
     "cooldown": 10,
@@ -170,9 +170,9 @@
     "range": 4
   },
   {
-    "id": "black_starfall",
-    "name": "Black Starfall",
-    "classRestrictions": ["long_range"],
+    "id": "black_flash_cascade",
+    "name": "Black Flash Cascade",
+    "classRestrictions": ["projection_sorcerer"],
     "damageType": "cursed",
     "cost": 30,
     "cooldown": 13,
@@ -180,13 +180,92 @@
     "range": 7
   },
   {
-    "id": "apex_predator",
-    "name": "Apex Predator",
+    "id": "apex_instinct",
+    "name": "Apex Instinct",
     "classRestrictions": ["heavenly_restriction"],
     "damageType": "physical",
     "cost": 0,
     "cooldown": 10,
     "castType": "dash_attack",
     "range": 4
+  },
+  {
+    "id": "simple_domain",
+    "name": "Simple Domain",
+    "classRestrictions": ["technique_fighter"],
+    "damageType": "utility",
+    "cost": 25,
+    "cooldown": 15,
+    "castType": "buff",
+    "range": 0,
+    "tags": ["anti_domain", "defensive"]
+  },
+  {
+    "id": "reverse_ct",
+    "name": "Reverse Cursed Technique",
+    "classRestrictions": ["technique_fighter"],
+    "damageType": "utility",
+    "cost": 18,
+    "cooldown": 12,
+    "castType": "heal",
+    "range": 0,
+    "tags": ["healing", "ce_restoration"]
+  },
+  {
+    "id": "curtain_barrier",
+    "name": "Curtain Barrier",
+    "classRestrictions": ["technique_fighter"],
+    "damageType": "utility",
+    "cost": 15,
+    "cooldown": 8,
+    "castType": "buff",
+    "range": 3,
+    "tags": ["zone_control", "barrier"]
+  },
+  {
+    "id": "black_flash",
+    "name": "Black Flash",
+    "classRestrictions": ["striker"],
+    "damageType": "physical",
+    "cost": 0,
+    "cooldown": 0,
+    "castType": "passive_trigger",
+    "range": 1,
+    "tags": ["timing_based", "damage_amplifier"],
+    "notes": "Triggers on hit within timing window after CE use"
+  },
+  {
+    "id": "domain_expansion",
+    "name": "Domain Expansion",
+    "classRestrictions": ["projection_sorcerer"],
+    "damageType": "cursed",
+    "cost": 50,
+    "cooldown": 30,
+    "castType": "aoe_burst",
+    "range": 8,
+    "tags": ["domain", "high_damage"],
+    "notes": "Ultimate technique - guaranteed hit within domain"
+  },
+  {
+    "id": "ce_reinforcement",
+    "name": "CE Reinforcement",
+    "classRestrictions": ["striker"],
+    "damageType": "physical",
+    "cost": 10,
+    "cooldown": 6,
+    "castType": "buff",
+    "range": 0,
+    "tags": ["self_buff", "black_flash_setup"]
+  },
+  {
+    "id": "tool_mastery",
+    "name": "Cursed Tool Mastery",
+    "classRestrictions": ["heavenly_restriction"],
+    "damageType": "physical",
+    "cost": 0,
+    "cooldown": 0,
+    "castType": "passive",
+    "range": 0,
+    "tags": ["passive", "tool_bonus"]
   }
 ]

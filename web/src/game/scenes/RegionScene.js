@@ -41,7 +41,7 @@ export class RegionScene extends Phaser.Scene {
     super("RegionScene");
     this.content = {};
     this.dungeonVariant = null;
-    this.selectedArchetype = "close_combat";
+    this.selectedArchetype = "striker";
     this.enterKey = null;
     this.returnKey = null;
     this.cursors = null;
@@ -57,7 +57,7 @@ export class RegionScene extends Phaser.Scene {
     this.discoveryFeed = [];
     this.nextFeedId = 1;
     this.explorationBonus = null;
-    this.currentRegionId = "shatter_block";
+    this.currentRegionId = "detention_center";
     this.isTransitioning = false;
     this.firstRunTutorial = false;
     this.unsubscribeControlCommands = null;
@@ -68,10 +68,10 @@ export class RegionScene extends Phaser.Scene {
 
   create() {
     this.content = this.registry.get("content") ?? {};
-    this.selectedArchetype = this.registry.get("selectedArchetype") ?? "close_combat";
+    this.selectedArchetype = this.registry.get("selectedArchetype") ?? "striker";
     this.playerProfile = this.registry.get("playerProfile") ?? null;
     this.firstRunTutorial = this.registry.get("firstRunTutorial") ?? false;
-    this.currentRegionId = this.registry.get("currentRegionId") ?? this.playerProfile?.currentRegionId ?? "shatter_block";
+    this.currentRegionId = this.registry.get("currentRegionId") ?? this.playerProfile?.currentRegionId ?? "detention_center";
     this.isTransitioning = false;
     this.input.keyboard.resetKeys();
     this.combatSnapshot = this.registry.get("combatSnapshot") ?? null;
@@ -87,13 +87,13 @@ export class RegionScene extends Phaser.Scene {
       this.registry.set("explorationBonus", this.explorationBonus);
     }
     const dungeonRegionId =
-      this.currentRegionId === "veil_shrine"
-        ? "veil_dungeon"
-        : this.currentRegionId === "cinder_ward"
-          ? "cinder_dungeon"
-          : this.currentRegionId === "night_cathedral"
-            ? "night_dungeon"
-            : "shatter_dungeon";
+      this.currentRegionId === "barrier_shrine"
+        ? "barrier_shrine_dungeon"
+        : this.currentRegionId === "shibuya_burn_sector"
+          ? "shibuya_burn_sector_dungeon"
+          : this.currentRegionId === "collapsed_cathedral_barrier"
+            ? "collapsed_cathedral_barrier_dungeon"
+            : "detention_center_dungeon";
     this.dungeonVariant = selectDungeonVariant(dungeonRegionId, this.content.dungeons ?? [], this.combatSnapshot);
     this.registry.set("loadedSessionSummary", null);
     this.enterKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
@@ -102,7 +102,7 @@ export class RegionScene extends Phaser.Scene {
     this.actionKeys = this.input.keyboard.addKeys("W,A,S,D");
 
     const regionTheme =
-      this.currentRegionId === "veil_shrine"
+      this.currentRegionId === "barrier_shrine"
         ? {
             bg: 0x161220,
             frame: 0x2d2342,
@@ -111,11 +111,11 @@ export class RegionScene extends Phaser.Scene {
             gateStroke: 0xf0d2ff,
             accentFill: 0x1b2e28,
             accentStroke: 0x6fd1b1,
-            title: "Veil Shrine",
+            title: "Barrier Shrine",
             copy:
-              "Move with WASD or arrows.\nWalk into the violet gate area and press E to enter the shrine depth.\nPress H to return to the hub."
+              "Move with WASD or arrows.\nWalk into the violet gate area and press E to enter the barrier depth.\nPress H to return to the hub."
           }
-        : this.currentRegionId === "cinder_ward"
+        : this.currentRegionId === "shibuya_burn_sector"
           ? {
               bg: 0x22130f,
               frame: 0x3f2318,
@@ -124,11 +124,11 @@ export class RegionScene extends Phaser.Scene {
               gateStroke: 0xffd4a3,
               accentFill: 0x3b1d18,
               accentStroke: 0xff8a5b,
-              title: "Cinder Ward",
+              title: "Shibuya Burn Sector",
               copy:
-                "Move with WASD or arrows.\nWalk into the ember gate area and press E to enter the furnace descent.\nPress H to return to the hub."
+                "Move with WASD or arrows.\nWalk into the ember gate area and press E to enter the burn zone.\nPress H to return to the hub."
             }
-        : this.currentRegionId === "night_cathedral"
+        : this.currentRegionId === "collapsed_cathedral_barrier"
           ? {
               bg: 0x0c1022,
               frame: 0x171f3d,
@@ -137,9 +137,9 @@ export class RegionScene extends Phaser.Scene {
               gateStroke: 0xd7e3ff,
               accentFill: 0x1c1730,
               accentStroke: 0x8e9cff,
-              title: "Night Cathedral",
+              title: "Collapsed Cathedral Barrier",
               copy:
-                "Move with WASD or arrows.\nWalk into the moon gate area and press E to enter the final ascent.\nPress H to return to the hub."
+                "Move with WASD or arrows.\nWalk into the moon gate area and press E to enter the domain.\nPress H to return to the hub."
             }
         : {
             bg: 0x101f14,
@@ -149,7 +149,7 @@ export class RegionScene extends Phaser.Scene {
             gateStroke: 0xb8f29b,
             accentFill: 0x13283a,
             accentStroke: 0x31556f,
-            title: "Shatter Block",
+            title: "Detention Center",
             copy:
               "Move with WASD or arrows.\nWalk into the green gate area and press E to enter the dungeon.\nPress H to return to the hub."
           };
@@ -193,12 +193,12 @@ export class RegionScene extends Phaser.Scene {
       fontFamily: "monospace",
       fontSize: "12px"
     });
-    this.add.text(224, 350, this.currentRegionId === "veil_shrine" ? "Veil residue" : this.currentRegionId === "cinder_ward" ? "Heat fractures" : this.currentRegionId === "night_cathedral" ? "Cathedral hush" : "Collapse traces", {
+    this.add.text(224, 350, this.currentRegionId === "barrier_shrine" ? "Veil residue" : this.currentRegionId === "shibuya_burn_sector" ? "Heat fractures" : this.currentRegionId === "collapsed_cathedral_barrier" ? "Domain hush" : "Collapse traces", {
       color: "#c6d2dc",
       fontFamily: "monospace",
       fontSize: "12px"
     });
-    this.add.text(612, 350, this.currentRegionId === "veil_shrine" ? "Shrine descent" : this.currentRegionId === "cinder_ward" ? "Furnace descent" : this.currentRegionId === "night_cathedral" ? "Final ascent" : "Dungeon breach", {
+    this.add.text(612, 350, this.currentRegionId === "barrier_shrine" ? "Barrier descent" : this.currentRegionId === "shibuya_burn_sector" ? "Burn zone descent" : this.currentRegionId === "collapsed_cathedral_barrier" ? "Domain ascent" : "Dungeon breach", {
       color: "#ffd98b",
       fontFamily: "monospace",
       fontSize: "12px"
@@ -209,7 +209,7 @@ export class RegionScene extends Phaser.Scene {
       fontFamily: "monospace",
       fontSize: "28px"
     });
-    this.add.text(100, 114, `Route pressure: ${this.currentRegionId === "veil_shrine" ? "sanctum descent" : this.currentRegionId === "cinder_ward" ? "furnace descent" : this.currentRegionId === "night_cathedral" ? "final ascent" : "rupture sweep"}`, {
+    this.add.text(100, 114, `Route pressure: ${this.currentRegionId === "barrier_shrine" ? "barrier descent" : this.currentRegionId === "shibuya_burn_sector" ? "burn zone descent" : this.currentRegionId === "collapsed_cathedral_barrier" ? "domain ascent" : "rupture sweep"}`, {
       color: "#ffd98b",
       fontFamily: "monospace",
       fontSize: "13px"
@@ -337,9 +337,9 @@ export class RegionScene extends Phaser.Scene {
     };
     const shouldRevealCache = isHeavenly || snapshot.damageTaken >= 12 || snapshot.style === "pressured";
     const shouldRevealTechniqueNode =
-      !isHeavenly && (snapshot.skillsUsed >= snapshot.basicsUsed || this.selectedArchetype !== "close_combat");
+      !isHeavenly && (snapshot.skillsUsed >= snapshot.basicsUsed || this.selectedArchetype !== "striker");
     const shouldRevealPredatorNode =
-      snapshot.kills >= 2 || this.selectedArchetype === "close_combat" || isHeavenly;
+      snapshot.kills >= 2 || this.selectedArchetype === "striker" || isHeavenly;
 
     const definitions = [
       shouldRevealCache
@@ -459,12 +459,12 @@ export class RegionScene extends Phaser.Scene {
     const nextDungeon = this.dungeonVariant?.name ?? "Standard ingress";
     const encounterMix = formatEncounterMix(this.content, this.dungeonVariant);
     const gateLabel =
-      this.currentRegionId === "veil_shrine"
-        ? "sanctum descent"
-        : this.currentRegionId === "cinder_ward"
-          ? "furnace descent"
-          : this.currentRegionId === "night_cathedral"
-            ? "final ascent"
+      this.currentRegionId === "barrier_shrine"
+        ? "barrier descent"
+        : this.currentRegionId === "shibuya_burn_sector"
+          ? "burn zone descent"
+          : this.currentRegionId === "collapsed_cathedral_barrier"
+            ? "domain ascent"
           : "dungeon ingress";
     emitRuntimeUpdate({
       scene: {
@@ -533,7 +533,7 @@ export class RegionScene extends Phaser.Scene {
       sessionState: {
         explorationBonus: this.explorationBonus,
         combatSnapshot: this.combatSnapshot,
-        unlockedRegionIds: this.playerProfile?.unlockedRegionIds ?? ["shatter_block"]
+        unlockedRegionIds: this.playerProfile?.unlockedRegionIds ?? ["detention_center"]
       },
       combatFeed: [
         { id: 1, message: `Exploration boon: ${bonusText}` },
@@ -624,26 +624,26 @@ export class RegionScene extends Phaser.Scene {
     this.player.setPosition(this.gateZone.x, this.gateZone.y);
     this.registry.set(
       "currentRegionId",
-      this.currentRegionId === "veil_shrine"
-        ? "veil_dungeon"
-        : this.currentRegionId === "cinder_ward"
-          ? "cinder_dungeon"
-          : this.currentRegionId === "night_cathedral"
-            ? "night_dungeon"
-          : "shatter_dungeon"
+      this.currentRegionId === "barrier_shrine"
+        ? "barrier_shrine_dungeon"
+        : this.currentRegionId === "shibuya_burn_sector"
+          ? "shibuya_burn_sector_dungeon"
+          : this.currentRegionId === "collapsed_cathedral_barrier"
+            ? "collapsed_cathedral_barrier_dungeon"
+          : "detention_center_dungeon"
     );
     emitSoundEvent({ type: "skill_cast" });
     emitTransitionUpdate({
       active: true,
       label: "Dungeon ingress",
       detail:
-        this.currentRegionId === "veil_shrine"
-          ? "Dropping into the Veil Depth..."
-          : this.currentRegionId === "cinder_ward"
-            ? "Dropping into the furnace descent..."
-            : this.currentRegionId === "night_cathedral"
-              ? "Climbing into the cathedral ascent..."
-            : "Dropping into the Shatter Dungeon..."
+        this.currentRegionId === "barrier_shrine"
+          ? "Dropping into the Barrier Depth..."
+          : this.currentRegionId === "shibuya_burn_sector"
+            ? "Dropping into the Burn Zone..."
+            : this.currentRegionId === "collapsed_cathedral_barrier"
+              ? "Climbing into the Domain..."
+            : "Dropping into the Detention Center Dungeon..."
     });
     this.time.delayedCall(220, () => {
       emitSceneUpdate({
@@ -672,14 +672,14 @@ export class RegionScene extends Phaser.Scene {
       enemiesRemaining: 0,
       combatFeed: [],
       sessionState: {
-        unlockedRegionIds: this.playerProfile?.unlockedRegionIds ?? ["shatter_block"]
+        unlockedRegionIds: this.playerProfile?.unlockedRegionIds ?? ["detention_center"]
       }
     });
-    this.registry.set("currentRegionId", "hub_blacksite");
+    this.registry.set("currentRegionId", "hub_jujutsu_high");
     emitTransitionUpdate({
       active: true,
       label: "Returning to hub",
-      detail: "Pulling back to Blacksite..."
+      detail: "Returning to Tokyo Jujutsu High..."
     });
     this.time.delayedCall(220, () => {
       emitSceneUpdate({
@@ -765,12 +765,12 @@ export class RegionScene extends Phaser.Scene {
       nearestPoint.marker.setAlpha(1);
     } else if (insideGate) {
       this.poiPrompt =
-        this.currentRegionId === "veil_shrine"
-          ? "Press E to enter the sanctum descent"
-          : this.currentRegionId === "cinder_ward"
-            ? "Press E to enter the furnace descent"
-            : this.currentRegionId === "night_cathedral"
-              ? "Press E to enter the final ascent"
+        this.currentRegionId === "barrier_shrine"
+          ? "Press E to enter the barrier descent"
+          : this.currentRegionId === "shibuya_burn_sector"
+            ? "Press E to enter the burn zone"
+            : this.currentRegionId === "collapsed_cathedral_barrier"
+              ? "Press E to enter the domain"
             : "Press E to enter the dungeon";
       this.gateMarker.setAlpha(1);
     } else {

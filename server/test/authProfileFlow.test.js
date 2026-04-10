@@ -59,7 +59,7 @@ test("auth-owned save slots are isolated from guest slot listings", async () => 
     {
       id: "req-auth-save-create",
       authUser,
-      body: { label: "Private Slot", archetypeId: "close_combat" }
+      body: { label: "Private Slot", archetypeId: "striker" }
     },
     createSaveResponse
   );

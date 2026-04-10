@@ -1,11 +1,11 @@
 import Phaser from "phaser";
 
 function getSceneFromRegionId(regionId) {
-  return regionId === "shatter_boss_vault" || regionId === "veil_boss_vault" || regionId === "cinder_boss_vault" || regionId === "night_boss_vault"
+  return regionId === "detention_center_boss_vault" || regionId === "barrier_shrine_boss_vault" || regionId === "shibuya_burn_sector_boss_vault" || regionId === "collapsed_cathedral_barrier_boss_vault"
     ? "BossScene"
-    : regionId === "shatter_dungeon" || regionId === "veil_dungeon" || regionId === "cinder_dungeon" || regionId === "night_dungeon"
+    : regionId === "detention_center_dungeon" || regionId === "barrier_shrine_dungeon" || regionId === "shibuya_burn_sector_dungeon" || regionId === "collapsed_cathedral_barrier_dungeon"
       ? "DungeonScene"
-      : regionId === "shatter_block" || regionId === "veil_shrine" || regionId === "cinder_ward" || regionId === "night_cathedral"
+      : regionId === "detention_center" || regionId === "barrier_shrine" || regionId === "shibuya_burn_sector" || regionId === "collapsed_cathedral_barrier"
         ? "RegionScene"
         : "HubScene";
 }
@@ -28,7 +28,7 @@ function buildLoadedPlayerState(profile, fallbackArchetype) {
     defense: stats.defense ?? 8,
     speed: stats.speed ?? 10,
     pendingStatPoints: profile.pendingStatPoints ?? 0,
-    archetype: profile.classType ?? fallbackArchetype ?? "close_combat"
+    archetype: profile.classType ?? fallbackArchetype ?? "striker"
   };
 }
 
@@ -53,7 +53,7 @@ export class BootScene extends Phaser.Scene {
     this.registry.set("playerProfile", playerProfile);
     this.registry.set("activeSave", activeSave);
     this.registry.set("firstRunTutorial", firstRunTutorial);
-    this.registry.set("currentRegionId", "hub_blacksite");
+    this.registry.set("currentRegionId", "hub_jujutsu_high");
     this.registry.set("resumeSource", "fresh-start");
 
     if (activeSave) {
@@ -61,16 +61,16 @@ export class BootScene extends Phaser.Scene {
       this.registry.set("selectedArchetype", activeSave.archetypeId ?? selectedArchetype);
       this.registry.set("loadedPlayerState", activeSave.playerState ?? null);
       this.registry.set("loadedSessionSummary", activeSave.sessionSummary ?? null);
-      this.registry.set("currentRegionId", activeSave.regionId ?? "hub_blacksite");
+      this.registry.set("currentRegionId", activeSave.regionId ?? "hub_jujutsu_high");
       this.scene.start(getSceneFromRegionId(activeSave.regionId));
       return;
     }
 
     const profile = playerProfile ?? null;
     const sessionState = profile?.sessionState ?? {};
-    const currentRegionId = profile?.currentRegionId ?? "hub_blacksite";
+    const currentRegionId = profile?.currentRegionId ?? "hub_jujutsu_high";
     const hasSessionState = Object.keys(sessionState).length > 0;
-    const shouldResumeFromProfile = profile && (currentRegionId !== "hub_blacksite" || hasSessionState);
+    const shouldResumeFromProfile = profile && (currentRegionId !== "hub_jujutsu_high" || hasSessionState);
 
     if (shouldResumeFromProfile) {
       this.registry.set("resumeSource", "profile-session");

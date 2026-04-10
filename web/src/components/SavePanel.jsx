@@ -16,7 +16,7 @@ export function SavePanel({
   const resumeModeLabel = usingSnapshot ? `save snapshot (${selectedSlotId})` : "live profile session";
   const resumeConsequence = usingSnapshot
     ? `You will reopen the pinned checkpoint at ${activeSave?.regionId ?? "the saved region"} and ignore newer live route drift.`
-    : `You will reopen the latest backend-owned route state at ${profileResumeRegion || "hub_blacksite"}.`;
+    : `You will reopen the latest backend-owned route state at ${profileResumeRegion || "hub_jujutsu_high"}.`;
 
   return (
     <aside className="panel">
@@ -39,7 +39,7 @@ export function SavePanel({
           type="button"
         >
           <strong>Live Profile Resume</strong>
-          <span>{profileResumeRegion || "hub_blacksite"}</span>
+          <span>{profileResumeRegion || "hub_jujutsu_high"}</span>
           <small>Use backend session state</small>
           <small className="slot-impact">Tracks the newest unlocked route and live session sync.</small>
         </button>

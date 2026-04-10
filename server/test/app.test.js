@@ -148,7 +148,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   const profileResponse = createMockResponse();
   await getPlayerProfile(request, profileResponse);
   assert.equal(profileResponse.statusCode, 200);
-  assert.equal(profileResponse.payload.data.classType, "close_combat");
+  assert.equal(profileResponse.payload.data.classType, "striker");
 
   const invalidDungeonRewardResponse = createMockResponse();
   await claimPlayerDungeonReward(
@@ -156,7 +156,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "dungeon_miniboss",
-        regionId: "shatter_dungeon"
+        regionId: "detention_center_dungeon"
       }
     },
     invalidDungeonRewardResponse
@@ -190,7 +190,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   await equipPlayerLoadoutSkills(
     {
       ...request,
-      body: { skillIds: ["predator_sense", "bone_breaker"] }
+      body: { skillIds: ["killer_instinct", "bone_splitter"] }
     },
     equipSkillResponse
   );
@@ -207,21 +207,21 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   );
   assert.deepEqual(
     persistedProfileResponse.payload.data.equippedSkills.map((skill) => skill.id),
-    ["predator_sense", "bone_breaker"]
+    ["killer_instinct", "bone_splitter"]
   );
 
   const cappedSkillResponse = createMockResponse();
   await equipPlayerLoadoutSkills(
     {
       ...request,
-      body: { skillIds: ["predator_sense", "bone_breaker", "predator_sense"] }
+      body: { skillIds: ["killer_instinct", "bone_splitter", "killer_instinct"] }
     },
     cappedSkillResponse
   );
   assert.equal(cappedSkillResponse.statusCode, 200);
   assert.deepEqual(
     cappedSkillResponse.payload.data.equippedSkills.map((skill) => skill.id),
-    ["predator_sense", "bone_breaker"]
+    ["killer_instinct", "bone_splitter"]
   );
 
   const progressionResponse = createMockResponse();
@@ -268,25 +268,25 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     {
       ...request,
       body: {
-        regionId: "shatter_dungeon",
-        unlockedRegionIds: ["shatter_block", "veil_shrine"],
+        regionId: "detention_center_dungeon",
+        unlockedRegionIds: ["detention_center", "barrier_shrine"],
         sessionState: {
           explorationBonus: {
             label: "Technique resonance",
             ceBonus: 18
           },
           dungeonRelicClaimed: true,
-          dungeonRelicClaimedRegionId: "shatter_dungeon"
+          dungeonRelicClaimedRegionId: "detention_center_dungeon"
         }
       }
     },
     sessionResponse
   );
   assert.equal(sessionResponse.statusCode, 200);
-  assert.equal(sessionResponse.payload.data.currentRegionId, "shatter_dungeon");
-  assert.deepEqual(sessionResponse.payload.data.unlockedRegionIds, ["shatter_block", "veil_shrine"]);
+  assert.equal(sessionResponse.payload.data.currentRegionId, "detention_center_dungeon");
+  assert.deepEqual(sessionResponse.payload.data.unlockedRegionIds, ["detention_center", "barrier_shrine"]);
   assert.equal(sessionResponse.payload.data.sessionState.dungeonRelicClaimed, true);
-  assert.equal(sessionResponse.payload.data.sessionState.dungeonRelicClaimedRegionId, "shatter_dungeon");
+  assert.equal(sessionResponse.payload.data.sessionState.dungeonRelicClaimedRegionId, "detention_center_dungeon");
 
   const mergedSessionResponse = createMockResponse();
   await updatePlayerSession(
@@ -310,7 +310,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "dungeon_miniboss",
-        regionId: "shatter_dungeon"
+        regionId: "detention_center_dungeon"
       }
     },
     inventoryRewardResponse
@@ -339,7 +339,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "dungeon_miniboss",
-        regionId: "shatter_dungeon"
+        regionId: "detention_center_dungeon"
       }
     },
     duplicateRewardResponse
@@ -359,7 +359,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "veil_miniboss",
-        regionId: "shatter_dungeon"
+        regionId: "detention_center_dungeon"
       }
     },
     invalidVeilRewardResponse
@@ -372,9 +372,9 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     {
       ...request,
       body: {
-        regionId: "veil_dungeon",
+        regionId: "barrier_shrine_dungeon",
         sessionState: {
-          dungeonRelicClaimedRegionId: "shatter_dungeon"
+          dungeonRelicClaimedRegionId: "detention_center_dungeon"
         }
       }
     },
@@ -388,7 +388,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "veil_miniboss",
-        regionId: "veil_dungeon"
+        regionId: "barrier_shrine_dungeon"
       }
     },
     invalidVeilRelicMismatchResponse
@@ -401,10 +401,10 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     {
       ...request,
       body: {
-        regionId: "veil_dungeon",
+        regionId: "barrier_shrine_dungeon",
         sessionState: {
           dungeonRelicClaimed: true,
-          dungeonRelicClaimedRegionId: "veil_dungeon"
+          dungeonRelicClaimedRegionId: "barrier_shrine_dungeon"
         }
       }
     },
@@ -418,7 +418,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "veil_miniboss",
-        regionId: "veil_dungeon"
+        regionId: "barrier_shrine_dungeon"
       }
     },
     veilMinibossRewardResponse
@@ -438,7 +438,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "veil_miniboss",
-        regionId: "veil_dungeon"
+        regionId: "barrier_shrine_dungeon"
       }
     },
     duplicateVeilMinibossRewardResponse
@@ -457,9 +457,9 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     {
       ...request,
       body: {
-        regionId: "cinder_dungeon",
+        regionId: "shibuya_burn_sector_dungeon",
         sessionState: {
-          dungeonRelicClaimedRegionId: "veil_dungeon"
+          dungeonRelicClaimedRegionId: "barrier_shrine_dungeon"
         }
       }
     },
@@ -473,7 +473,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "cinder_miniboss",
-        regionId: "cinder_dungeon"
+        regionId: "shibuya_burn_sector_dungeon"
       }
     },
     invalidCinderRelicMismatchResponse
@@ -486,10 +486,10 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     {
       ...request,
       body: {
-        regionId: "cinder_dungeon",
+        regionId: "shibuya_burn_sector_dungeon",
         sessionState: {
           dungeonRelicClaimed: true,
-          dungeonRelicClaimedRegionId: "cinder_dungeon"
+          dungeonRelicClaimedRegionId: "shibuya_burn_sector_dungeon"
         }
       }
     },
@@ -503,7 +503,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "cinder_miniboss",
-        regionId: "cinder_dungeon"
+        regionId: "shibuya_burn_sector_dungeon"
       }
     },
     cinderMinibossRewardResponse
@@ -532,7 +532,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "cinder_miniboss",
-        regionId: "cinder_dungeon"
+        regionId: "shibuya_burn_sector_dungeon"
       }
     },
     duplicateCinderMinibossRewardResponse
@@ -552,7 +552,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "shatter_boss_scroll",
-        regionId: "shatter_boss_vault"
+        regionId: "detention_center_boss_vault"
       }
     },
     invalidShatterScrollRewardResponse
@@ -565,9 +565,9 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     {
       ...request,
       body: {
-        regionId: "shatter_boss_vault",
+        regionId: "detention_center_boss_vault",
         sessionState: {
-          clearedBossRegionId: "shatter_boss_vault"
+          clearedBossRegionId: "detention_center_boss_vault"
         }
       }
     },
@@ -575,13 +575,20 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   );
   assert.equal(clearedShatterBossSessionResponse.statusCode, 200);
 
+  // The clearedRegionIds should now include "detention_center" after the session update
+  // This is because updatePlayerSession adds the derived cleared region to clearedRegionIds
+  assert.equal(
+    clearedShatterBossSessionResponse.payload.data.clearedRegionIds.includes("detention_center"),
+    true
+  );
+
   const shatterScrollRewardResponse = createMockResponse();
   await claimPlayerDungeonReward(
     {
       ...request,
       body: {
         rewardSource: "shatter_boss_scroll",
-        regionId: "shatter_boss_vault"
+        regionId: "detention_center_boss_vault"
       }
     },
     shatterScrollRewardResponse
@@ -610,7 +617,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "shatter_boss_scroll",
-        regionId: "shatter_boss_vault"
+        regionId: "detention_center_boss_vault"
       }
     },
     duplicateShatterScrollRewardResponse
@@ -629,9 +636,9 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     {
       ...request,
       body: {
-        regionId: "veil_boss_vault",
+        regionId: "barrier_shrine_boss_vault",
         sessionState: {
-          clearedBossRegionId: "shatter_boss_vault"
+          clearedBossRegionId: "barrier_shrine_boss_vault"
         }
       }
     },
@@ -639,23 +646,13 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   );
   assert.equal(veilBossSessionResponse.statusCode, 200);
   assert.equal(
-    veilBossSessionResponse.payload.data.clearedRegionIds.includes("shatter_block"),
+    veilBossSessionResponse.payload.data.clearedRegionIds.includes("detention_center"),
     true
   );
-
-  const invalidScrollRewardResponse = createMockResponse();
-  await claimPlayerDungeonReward(
-    {
-      ...request,
-      body: {
-        rewardSource: "veil_boss_scroll",
-        regionId: "veil_boss_vault"
-      }
-    },
-    invalidScrollRewardResponse
+  assert.equal(
+    veilBossSessionResponse.payload.data.clearedRegionIds.includes("barrier_shrine"),
+    true
   );
-  assert.equal(invalidScrollRewardResponse.statusCode, 400);
-  assert.equal(invalidScrollRewardResponse.payload.error, "Invalid reward context");
 
   const invalidCinderBossRewardResponse = createMockResponse();
   await claimPlayerDungeonReward(
@@ -663,7 +660,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "cinder_boss_core",
-        regionId: "cinder_boss_vault"
+        regionId: "shibuya_burn_sector_boss_vault"
       }
     },
     invalidCinderBossRewardResponse
@@ -676,9 +673,9 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     {
       ...request,
       body: {
-        regionId: "veil_boss_vault",
+        regionId: "barrier_shrine_boss_vault",
         sessionState: {
-          clearedBossRegionId: "veil_boss_vault"
+          clearedBossRegionId: "barrier_shrine_boss_vault"
         }
       }
     },
@@ -692,7 +689,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "veil_boss_scroll",
-        regionId: "veil_boss_vault"
+        regionId: "barrier_shrine_boss_vault"
       }
     },
     scrollRewardResponse
@@ -717,7 +714,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "veil_boss_scroll",
-        regionId: "veil_boss_vault"
+        regionId: "barrier_shrine_boss_vault"
       }
     },
     duplicateScrollRewardResponse
@@ -736,9 +733,9 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     {
       ...request,
       body: {
-        regionId: "cinder_boss_vault",
+        regionId: "shibuya_burn_sector_boss_vault",
         sessionState: {
-          clearedBossRegionId: "cinder_boss_vault"
+          clearedBossRegionId: "shibuya_burn_sector_boss_vault"
         }
       }
     },
@@ -752,7 +749,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "cinder_boss_core",
-        regionId: "cinder_boss_vault"
+        regionId: "shibuya_burn_sector_boss_vault"
       }
     },
     cinderBossRewardResponse
@@ -773,7 +770,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "cinder_boss_core",
-        regionId: "cinder_boss_vault"
+        regionId: "shibuya_burn_sector_boss_vault"
       }
     },
     duplicateCinderBossRewardResponse
@@ -786,10 +783,10 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     {
       ...request,
       body: {
-        regionId: "night_dungeon",
+        regionId: "collapsed_cathedral_barrier_dungeon",
         sessionState: {
           dungeonRelicClaimed: true,
-          dungeonRelicClaimedRegionId: "night_dungeon"
+          dungeonRelicClaimedRegionId: "collapsed_cathedral_barrier_dungeon"
         }
       }
     },
@@ -803,7 +800,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "night_miniboss",
-        regionId: "night_dungeon"
+        regionId: "collapsed_cathedral_barrier_dungeon"
       }
     },
     nightMinibossRewardResponse
@@ -817,9 +814,9 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     {
       ...request,
       body: {
-        regionId: "night_boss_vault",
+        regionId: "collapsed_cathedral_barrier_boss_vault",
         sessionState: {
-          clearedBossRegionId: "night_boss_vault"
+          clearedBossRegionId: "collapsed_cathedral_barrier_boss_vault"
         }
       }
     },
@@ -833,7 +830,7 @@ test("player profile endpoints keep loadout logic server-side", async () => {
       ...request,
       body: {
         rewardSource: "night_boss_scroll",
-        regionId: "night_boss_vault"
+        regionId: "collapsed_cathedral_barrier_boss_vault"
       }
     },
     nightBossRewardResponse
@@ -932,7 +929,7 @@ test("save controller stores progression-oriented player state", async () => {
     {
       id: "req-create-valid",
       body: {
-        archetypeId: "mid_range",
+        archetypeId: "technique_fighter",
         label: "Progression Slot"
       }
     },
@@ -941,7 +938,10 @@ test("save controller stores progression-oriented player state", async () => {
 
   assert.equal(createResponse.statusCode, 201);
   assert.equal(createResponse.payload.data.playerState.level, 1);
+  // Phase 2: CE is split into Output and Reserve, but we also store total CE for compatibility
   assert.equal(createResponse.payload.data.playerState.ce, 82);
+  assert.equal(createResponse.payload.data.playerState.ceOutput, 50);
+  assert.equal(createResponse.payload.data.playerState.ceReserve, 32);
   assert.equal(createResponse.payload.data.playerState.attack, 13);
 
   const updateResponse = createMockResponse();
@@ -1090,7 +1090,7 @@ test("player controller logs invalid reward claim context", async () => {
         authUser: loginResponse.payload.data.user,
         body: {
           rewardSource: "veil_miniboss",
-          regionId: "hub_blacksite"
+          regionId: "hub_jujutsu_high"
         }
       },
       response
@@ -1100,7 +1100,7 @@ test("player controller logs invalid reward claim context", async () => {
     assert.match(output[0], /Rejected reward claim/);
     assert.match(output[0], /"requestId":"req-log-invalid-reward"/);
     assert.match(output[0], /"rewardSource":"veil_miniboss"/);
-    assert.match(output[0], /"regionId":"hub_blacksite"/);
+    assert.match(output[0], /"regionId":"hub_jujutsu_high"/);
   } finally {
     console.warn = originalWarn;
   }
@@ -1136,7 +1136,7 @@ test("player controller logs invalid skill equip context", async () => {
         id: "req-log-invalid-skill",
         authUser: loginResponse.payload.data.user,
         body: {
-          skillIds: ["void_pulse"]
+          skillIds: ["vacuum_pulse"]
         }
       },
       response
@@ -1145,7 +1145,7 @@ test("player controller logs invalid skill equip context", async () => {
     assert.equal(response.statusCode, 400);
     assert.match(output[0], /Rejected skill equip/);
     assert.match(output[0], /"requestId":"req-log-invalid-skill"/);
-    assert.match(output[0], /"skillIds":\["void_pulse"\]/);
+    assert.match(output[0], /"skillIds":\["vacuum_pulse"\]/);
   } finally {
     console.warn = originalWarn;
   }

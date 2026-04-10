@@ -1,7 +1,7 @@
 [
   {
     "id": "crawler_grade_4",
-    "name": "Crawl Maw",
+    "name": "Crawling Curse",
     "curseGrade": 4,
     "aiTier": "fsm",
     "moveset": ["lunge_bite"],
@@ -13,7 +13,7 @@
   },
   {
     "id": "shrieker_grade_3",
-    "name": "Shrieker Wisp",
+    "name": "Wailing Curse",
     "curseGrade": 3,
     "aiTier": "fsm",
     "moveset": ["pulse_bolt"],
@@ -25,7 +25,7 @@
   },
   {
     "id": "warden_grade_2",
-    "name": "Ashen Warden",
+    "name": "Guardian Curse",
     "curseGrade": 2,
     "aiTier": "fsm_utility",
     "moveset": ["ground_slam", "guard_shift"],
@@ -37,7 +37,7 @@
   },
   {
     "id": "glass_hound_grade_3",
-    "name": "Glass Hound",
+    "name": "Fang Curse",
     "curseGrade": 3,
     "aiTier": "fsm",
     "moveset": ["fracture_dash", "snap_bite"],
@@ -49,7 +49,7 @@
   },
   {
     "id": "breaker_grade_2",
-    "name": "Collapse Breaker",
+    "name": "Riot Curse",
     "curseGrade": 2,
     "aiTier": "fsm_utility",
     "moveset": ["wall_rush", "guard_shift"],
@@ -61,7 +61,7 @@
   },
   {
     "id": "cantor_grade_2",
-    "name": "Sanctum Cantor",
+    "name": "Chanting Curse",
     "curseGrade": 2,
     "aiTier": "fsm_utility",
     "moveset": ["seal_pulse", "rupture_call"],
@@ -73,7 +73,7 @@
   },
   {
     "id": "seal_leech_grade_3",
-    "name": "Seal Leech",
+    "name": "Leech Curse",
     "curseGrade": 3,
     "aiTier": "fsm",
     "moveset": ["drain_spit", "cling_burst"],
@@ -85,7 +85,7 @@
   },
   {
     "id": "kiln_imp_grade_3",
-    "name": "Kiln Imp",
+    "name": "Ember Curse",
     "curseGrade": 3,
     "aiTier": "fsm",
     "moveset": ["ember_spit", "heat_hop"],
@@ -97,7 +97,7 @@
   },
   {
     "id": "slag_brute_grade_2",
-    "name": "Slag Brute",
+    "name": "Blaze Curse",
     "curseGrade": 2,
     "aiTier": "fsm_utility",
     "moveset": ["melt_slam", "furnace_guard"],
@@ -109,7 +109,7 @@
   },
   {
     "id": "nocturne_feeder_grade_3",
-    "name": "Nocturne Feeder",
+    "name": "Night Feeder Curse",
     "curseGrade": 3,
     "aiTier": "fsm",
     "moveset": ["hush_bite", "shade_skip"],
@@ -121,7 +121,7 @@
   },
   {
     "id": "eclipse_monk_grade_2",
-    "name": "Eclipse Monk",
+    "name": "Ritual Curse",
     "curseGrade": 2,
     "aiTier": "fsm_utility",
     "moveset": ["choir_pulse", "blindstep"],
@@ -133,7 +133,7 @@
   },
   {
     "id": "cathedral_giant_grade_1",
-    "name": "Cathedral Giant",
+    "name": "Great Cathedral Curse",
     "curseGrade": 1,
     "aiTier": "utility_reactive",
     "moveset": ["grave_slam", "eclipse_guard"],

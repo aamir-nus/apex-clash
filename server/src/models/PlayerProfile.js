@@ -3,9 +3,9 @@ import mongoose from "mongoose";
 const playerProfileSchema = new mongoose.Schema(
   {
     userId: { type: String, required: true, unique: true },
-    classType: { type: String, required: true, default: "close_combat" },
-    currentRegionId: { type: String, required: true, default: "hub_blacksite" },
-    unlockedRegionIds: { type: [String], required: true, default: ["shatter_block"] },
+    classType: { type: String, required: true, default: "striker" },
+    currentRegionId: { type: String, required: true, default: "hub_jujutsu_high" },
+    unlockedRegionIds: { type: [String], required: true, default: ["detention_center"] },
     clearedRegionIds: { type: [String], required: true, default: [] },
     level: { type: Number, required: true, default: 1 },
     xp: { type: Number, required: true, default: 0 },

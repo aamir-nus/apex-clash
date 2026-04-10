@@ -178,8 +178,8 @@ async function run() {
     metrics.liveResumeDefault = true;
 
     const transitionStartedAt = Date.now();
-    await page.getByRole("button", { name: "Shatter Block", exact: true }).click();
-    await page.getByRole("button", { name: /Deploy To Shatter Block/ }).click();
+    await page.getByRole("button", { name: "Detention Center", exact: true }).click();
+    await page.getByRole("button", { name: /Deploy To Detention Center/ }).click();
     await page.getByText("Scene: Region").waitFor();
     metrics.transitionToRegionMs = Date.now() - transitionStartedAt;
 
@@ -237,14 +237,14 @@ async function run() {
     const extractStartedAt = Date.now();
     await page.getByRole("button", { name: "Extract" }).click();
     await page.getByText("Scene: Hub").waitFor();
-    await page.getByRole("button", { name: "Veil Shrine", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Barrier Shrine", exact: true }).waitFor();
     metrics.extractToHubMs = Date.now() - extractStartedAt;
 
     const veilDeployStartedAt = Date.now();
-    await page.getByRole("button", { name: "Veil Shrine", exact: true }).click();
-    await page.getByRole("button", { name: /Deploy To Veil Shrine/ }).click();
+    await page.getByRole("button", { name: "Barrier Shrine", exact: true }).click();
+    await page.getByRole("button", { name: /Deploy To Barrier Shrine/ }).click();
     await page.getByText("Scene: Region").waitFor();
-    await page.getByText("Route pressure: sanctum descent").waitFor();
+    await page.getByText("Route pressure: barrier descent").waitFor();
     metrics.transitionToVeilRegionMs = Date.now() - veilDeployStartedAt;
 
     const veilBoonStartedAt = Date.now();
@@ -296,25 +296,36 @@ async function run() {
       await delay(300);
     }
     await objectiveBanner(page).getByText("Extract with the clear").waitFor();
-    await page.getByText("New scroll: Rupture Arc").waitFor();
+    await page.getByText(/^New scroll:/).waitFor();
     metrics.veilBossClearMs = Date.now() - veilBossClearStartedAt;
 
     const quickBindStartedAt = Date.now();
+    const movesetPanel = page.locator("section.panel", {
+      has: page.getByRole("heading", { name: "Moveset" })
+    });
+    const inventoryPanel = page.locator("section.panel", {
+      has: page.getByRole("heading", { name: "Inventory" })
+    });
+    const veilRewardName = (
+      (await movesetPanel.locator(".reward-card strong").textContent()) ?? ""
+    ).replace("New scroll: ", "").trim();
     await page.getByRole("button", { name: "Quick bind" }).click();
-    await page.locator(".loadout-chip.skill-chip", { hasText: "Rupture Arc" }).first().waitFor();
+    if (veilRewardName) {
+      await page.locator(".loadout-chip.skill-chip", { hasText: veilRewardName }).first().waitFor();
+    }
     metrics.quickBindRewardMs = Date.now() - quickBindStartedAt;
 
     const veilExtractStartedAt = Date.now();
     await page.getByRole("button", { name: "Extract" }).click();
     await page.getByText("Scene: Hub").waitFor();
-    await page.getByRole("button", { name: "Cinder Ward", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Shibuya Burn Sector", exact: true }).waitFor();
     metrics.extractFromVeilMs = Date.now() - veilExtractStartedAt;
 
     const cinderDeployStartedAt = Date.now();
-    await page.getByRole("button", { name: "Cinder Ward", exact: true }).click();
-    await page.getByRole("button", { name: /Deploy To Cinder Ward/ }).click();
+    await page.getByRole("button", { name: "Shibuya Burn Sector", exact: true }).click();
+    await page.getByRole("button", { name: /Deploy To Shibuya Burn Sector/ }).click();
     await page.getByText("Scene: Region").waitFor();
-    await page.getByText("Route pressure: furnace descent").waitFor();
+    await page.getByText("Route pressure: burn zone descent").waitFor();
     metrics.transitionToCinderRegionMs = Date.now() - cinderDeployStartedAt;
 
     const cinderBoonStartedAt = Date.now();
@@ -366,12 +377,17 @@ async function run() {
       await delay(300);
     }
     await objectiveBanner(page).getByText("Extract with the clear").waitFor();
-    await page.getByText("New reward: Caldera Emblem").waitFor();
+    await page.getByText(/^New reward:/).waitFor();
     metrics.cinderBossClearMs = Date.now() - cinderBossClearStartedAt;
 
     const cinderQuickEquipStartedAt = Date.now();
+    const cinderRewardName = (
+      (await inventoryPanel.locator(".reward-card strong").textContent()) ?? ""
+    ).replace("New reward: ", "").trim();
     await page.getByRole("button", { name: "Quick equip" }).click();
-    await page.locator(".loadout-chip", { hasText: "Caldera Emblem" }).first().waitFor();
+    if (cinderRewardName) {
+      await page.locator(".loadout-chip", { hasText: cinderRewardName }).first().waitFor();
+    }
     metrics.cinderQuickEquipMs = Date.now() - cinderQuickEquipStartedAt;
 
     const cinderExtractStartedAt = Date.now();
@@ -379,13 +395,13 @@ async function run() {
     await page.getByText("Scene: Hub").waitFor();
     metrics.extractFromCinderMs = Date.now() - cinderExtractStartedAt;
 
-    await page.getByRole("button", { name: "Night Cathedral", exact: true }).waitFor();
+    await page.getByRole("button", { name: "Collapsed Cathedral Barrier", exact: true }).waitFor();
 
     const nightDeployStartedAt = Date.now();
-    await page.getByRole("button", { name: "Night Cathedral", exact: true }).click();
-    await page.getByRole("button", { name: /Deploy To Night Cathedral/ }).click();
+    await page.getByRole("button", { name: "Collapsed Cathedral Barrier", exact: true }).click();
+    await page.getByRole("button", { name: /Deploy To Collapsed Cathedral Barrier/ }).click();
     await page.getByText("Scene: Region").waitFor();
-    await page.getByText("Route pressure: final ascent").waitFor();
+    await page.getByText("Route pressure: domain ascent").waitFor();
     metrics.transitionToNightRegionMs = Date.now() - nightDeployStartedAt;
 
     const nightBoonStartedAt = Date.now();
@@ -437,12 +453,17 @@ async function run() {
       await delay(300);
     }
     await objectiveBanner(page).getByText("Extract with the clear").waitFor();
-    await page.getByText("New scroll: Moon Cleave").waitFor();
+    await page.getByText(/^New scroll:/).waitFor();
     metrics.nightBossClearMs = Date.now() - nightBossClearStartedAt;
 
     const nightQuickBindStartedAt = Date.now();
+    const nightRewardName = (
+      (await movesetPanel.locator(".reward-card strong").textContent()) ?? ""
+    ).replace("New scroll: ", "").trim();
     await page.getByRole("button", { name: "Quick bind" }).click();
-    await page.locator(".loadout-chip.skill-chip", { hasText: "Moon Cleave" }).first().waitFor();
+    if (nightRewardName) {
+      await page.locator(".loadout-chip.skill-chip", { hasText: nightRewardName }).first().waitFor();
+    }
     metrics.nightQuickBindMs = Date.now() - nightQuickBindStartedAt;
 
     const nightExtractStartedAt = Date.now();
@@ -451,26 +472,26 @@ async function run() {
     metrics.extractFromNightMs = Date.now() - nightExtractStartedAt;
 
     const useFieldTonicStartedAt = Date.now();
-    const fieldTonicCard = page.locator(".inventory-card", { hasText: "Field Tonic" }).first();
+    const fieldTonicCard = page.locator(".inventory-card", { hasText: "Recovery Talisman" }).first();
     await fieldTonicCard.getByRole("button", { name: "Use" }).click();
-    await page.getByText("Used Field Tonic").waitFor();
+    await page.getByText("Used Recovery Talisman").waitFor();
     metrics.useFieldTonicMs = Date.now() - useFieldTonicStartedAt;
 
     const craftResinStartedAt = Date.now();
-    const resinRecipeCard = page.locator(".inventory-crafting .inventory-card", { hasText: "Resin Elixir" }).first();
+    const resinRecipeCard = page.locator(".inventory-crafting .inventory-card", { hasText: "CE Draught" }).first();
     await resinRecipeCard.getByRole("button", { name: "Craft" }).click();
-    await page.getByText("Crafted Resin Elixir").waitFor();
-    await page.locator(".inventory-card", { hasText: "Resin Elixir" }).first().waitFor();
+    await page.getByText("Crafted CE Draught").waitFor();
+    await page.locator(".inventory-card", { hasText: "CE Draught" }).first().waitFor();
     metrics.craftResinElixirMs = Date.now() - craftResinStartedAt;
 
-    const furnaceRecipeCard = page.locator(".inventory-crafting .inventory-card", { hasText: "Furnace Draught" }).first();
+    const furnaceRecipeCard = page.locator(".inventory-crafting .inventory-card", { hasText: "Maximum Technique Draught" }).first();
     const furnaceCraftButton = furnaceRecipeCard.getByRole("button", { name: "Craft" });
     const furnaceCraftEnabled = await furnaceCraftButton.isEnabled().catch(() => false);
     if (furnaceCraftEnabled) {
       const craftFurnaceStartedAt = Date.now();
       await furnaceCraftButton.click();
-      await page.getByText("Crafted Furnace Draught").waitFor();
-      await page.locator(".inventory-card", { hasText: "Furnace Draught" }).first().waitFor();
+      await page.getByText("Crafted Maximum Technique Draught").waitFor();
+      await page.locator(".inventory-card", { hasText: "Maximum Technique Draught" }).first().waitFor();
       metrics.craftFurnaceDraughtMs = Date.now() - craftFurnaceStartedAt;
       metrics.optionalSecondCraftWorked = true;
     } else {
@@ -482,13 +503,13 @@ async function run() {
     metrics.clearedRouteCount = await clearedRouteCards.count();
     const routeProgressText = (await page.locator(".route-progress-panel").textContent()) ?? "";
     metrics.clearedShatterVisible =
-      routeProgressText.includes("Shatter Block") && routeProgressText.includes("Cleared route");
+      routeProgressText.includes("Detention Center") && routeProgressText.includes("Cleared route");
     metrics.clearedVeilVisible =
-      routeProgressText.includes("Veil Shrine") && routeProgressText.includes("Cleared route");
+      routeProgressText.includes("Barrier Shrine") && routeProgressText.includes("Cleared route");
     metrics.clearedCinderVisible =
-      routeProgressText.includes("Cinder Ward") && routeProgressText.includes("Cleared route");
+      routeProgressText.includes("Shibuya Burn Sector") && routeProgressText.includes("Cleared route");
     metrics.clearedNightVisible =
-      routeProgressText.includes("Night Cathedral") && routeProgressText.includes("Current cleared route");
+      routeProgressText.includes("Collapsed Cathedral Barrier") && routeProgressText.includes("Current cleared route");
 
     const tutorialComplete = await page.evaluate(() =>
       window.localStorage.getItem("apex-clash:first-run-complete")
@@ -543,10 +564,10 @@ async function run() {
     assert(metrics.liveResumeToggleWorks, "Resume toggle did not return to live profile mode.");
     assert(metrics.firstRunTutorialComplete, "First-run tutorial completion flag was not persisted.");
     assert(metrics.clearedRouteCount === 4, "Expected all four routes to remain visibly cleared in the hub.");
-    assert(metrics.clearedShatterVisible, "Shatter Block was not visibly marked cleared in the hub.");
-    assert(metrics.clearedVeilVisible, "Veil Shrine was not visibly marked cleared in the hub.");
-    assert(metrics.clearedCinderVisible, "Cinder Ward was not visibly marked cleared in the hub.");
-    assert(metrics.clearedNightVisible, "Night Cathedral was not visibly marked cleared in the hub.");
+    assert(metrics.clearedShatterVisible, "Detention Center was not visibly marked cleared in the hub.");
+    assert(metrics.clearedVeilVisible, "Barrier Shrine was not visibly marked cleared in the hub.");
+    assert(metrics.clearedCinderVisible, "Shibuya Burn Sector was not visibly marked cleared in the hub.");
+    assert(metrics.clearedNightVisible, "Collapsed Cathedral Barrier was not visibly marked cleared in the hub.");
 
     await browser.close();
     browser = null;

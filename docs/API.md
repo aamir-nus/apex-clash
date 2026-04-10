@@ -66,6 +66,7 @@ Returns the bootstrap content bundle used by the client:
 Player contract rules:
 
 - profile state is server-owned
+- profile combat state now includes split cursed-energy pools: `ceOutput` and `ceReserve`
 - progression rewards are applied server-side
 - loadout changes are applied server-side and returned as recomputed profile state
 - the client is expected to push recomputed loadout state into active gameplay scenes immediately after equip/bind actions
@@ -91,6 +92,11 @@ Player contract rules:
 - inventory items now carry server-owned `quantity` values for stackable consumables/materials
 - `POST /player/inventory/use` consumes one stack of a consumable and updates `activeConsumableIds`
 - `POST /player/inventory/craft` consumes recipe materials and returns the crafted item plus updated profile state
+- Phase 2 JJK system pass is now part of the current server contract:
+  - Black Flash timing windows and affinity scaling are tracked in runtime/session state
+  - technique burnout thresholds are class-specific
+  - domain and anti-domain state can be tracked in session state
+  - cursed tool passives are applied through the computed profile/loadout path
 
 ### Saves
 
@@ -116,9 +122,9 @@ Before calling the build `v3`-ready, these API expectations need to hold:
 - Dockerized web and API flows remain bootable and inspectable
 - route-local runtime state must not bleed across redeploys or unlocked-route transitions
 - the current authored routes remain contract-valid: `dungeon_miniboss` for `shatter_dungeon`
-- the current authored routes remain contract-valid: `veil_miniboss` for `veil_dungeon`
-- the current authored routes remain contract-valid: `cinder_miniboss` for `cinder_dungeon`
-- the current authored routes remain contract-valid: `night_miniboss` for `night_dungeon`
+- the current authored routes remain contract-valid: `veil_miniboss` for `barrier_shrine_dungeon`
+- the current authored routes remain contract-valid: `cinder_miniboss` for `shibuya_burn_sector_dungeon`
+- the current authored routes remain contract-valid: `night_miniboss` for `collapsed_cathedral_barrier_dungeon`
 - the current authored routes remain contract-valid: `veil_boss_scroll` for `veil_boss_vault`
 - the current authored routes remain contract-valid: `shatter_boss_scroll` for `shatter_boss_vault`
 - the current authored routes remain contract-valid: `night_boss_scroll` for `night_boss_vault`
@@ -156,3 +162,11 @@ The browser flow check now also proves the longer profile loop: one consumable u
 The browser flow check now also verifies that fully completed routes stay visibly cleared in the hub after extraction.
 The browser flow check also covers the current onboarding/readability baseline: HUD objective surfacing, first-run completion persistence, and the guided four-route path remaining stable after scene-marker polish.
 The next browser-hardening target is broader content pacing and richer authored route depth beyond the current four-route slice.
+
+## JJK Migration Status
+
+Current public contract status:
+
+- Phase 1 terminology pass: complete
+- Phase 2 system pass: complete
+- Phase 3 content expansion: next active content phase

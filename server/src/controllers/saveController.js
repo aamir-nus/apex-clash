@@ -8,8 +8,11 @@ import {
   updateSaveSlotRecord
 } from "../services/saveSlotRepository.js";
 
-function createDefaultPlayerState(archetypeId = "close_combat") {
+function createDefaultPlayerState(archetypeId = "striker") {
   const classDefinition = getClassDefinition(archetypeId);
+  const ceOutput = classDefinition?.baseStats?.ceOutput ?? classDefinition?.baseStats?.ce ?? 45;
+  const ceReserve = classDefinition?.baseStats?.ceReserve ?? 0;
+  const totalCe = ceOutput + ceReserve;
 
   return {
     level: 1,
@@ -17,8 +20,10 @@ function createDefaultPlayerState(archetypeId = "close_combat") {
     xpToNextLevel: 30,
     hp: classDefinition?.baseStats?.hp ?? 120,
     maxHp: classDefinition?.baseStats?.hp ?? 120,
-    ce: classDefinition?.baseStats?.ce ?? 70,
-    maxCe: classDefinition?.baseStats?.ce ?? 70,
+    ce: totalCe,
+    maxCe: totalCe,
+    ceOutput,
+    ceReserve,
     attack: classDefinition?.baseStats?.attack ?? 16,
     defense: classDefinition?.baseStats?.defense ?? 10,
     speed: classDefinition?.baseStats?.speed ?? 12,
@@ -58,7 +63,7 @@ export async function getSaveSlot(request, response) {
 }
 
 export async function createSaveSlot(request, response) {
-  const archetypeId = request.body?.archetypeId ?? "close_combat";
+  const archetypeId = request.body?.archetypeId ?? "striker";
   const classDefinition = getClassDefinition(archetypeId);
 
   if (!classDefinition) {
@@ -78,7 +83,7 @@ export async function createSaveSlot(request, response) {
     id: nextSlotId,
     label: request.body?.label ?? `Save ${nextSlotId.replace("slot-", "")}`,
     level: 1,
-    regionId: "hub_blacksite",
+    regionId: "hub_jujutsu_high",
     archetypeId,
     ownerUserId: request.authUser?.id ?? null,
     playerState: createDefaultPlayerState(archetypeId),

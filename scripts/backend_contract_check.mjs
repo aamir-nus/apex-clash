@@ -58,7 +58,7 @@ const requests = [
   }),
   await runRequest("POST /save-slots valid", createSaveSlot, {
     id: "req-create-slot",
-    body: { archetypeId: "long_range", label: "Backend Contract" }
+    body: { archetypeId: "projection_sorcerer", label: "Backend Contract" }
   })
 ];
 
@@ -156,7 +156,7 @@ requests.push(
     authUser: rewardAuthUser,
     body: {
       rewardSource: "cinder_miniboss",
-      regionId: "cinder_dungeon"
+      regionId: "shibuya_burn_sector_dungeon"
     }
   })
 );
@@ -167,7 +167,7 @@ requests.push(
     authUser: rewardAuthUser,
     body: {
       rewardSource: "shatter_boss_scroll",
-      regionId: "shatter_boss_vault"
+      regionId: "detention_center_boss_vault"
     }
   })
 );
@@ -177,9 +177,9 @@ requests.push(
     id: "req-backend-shatter-boss-cleared",
     authUser: rewardAuthUser,
     body: {
-      regionId: "shatter_boss_vault",
+      regionId: "detention_center_boss_vault",
       sessionState: {
-        clearedBossRegionId: "shatter_boss_vault"
+        clearedBossRegionId: "detention_center_boss_vault"
       }
     }
   })
@@ -191,7 +191,7 @@ requests.push(
     authUser: rewardAuthUser,
     body: {
       rewardSource: "shatter_boss_scroll",
-      regionId: "shatter_boss_vault"
+      regionId: "detention_center_boss_vault"
     }
   })
 );
@@ -201,9 +201,9 @@ requests.push(
     id: "req-backend-veil-boss-uncleared",
     authUser: rewardAuthUser,
     body: {
-      regionId: "veil_boss_vault",
+      regionId: "barrier_shrine_boss_vault",
       sessionState: {
-        clearedBossRegionId: "shatter_boss_vault"
+        clearedBossRegionId: "detention_center_boss_vault"
       }
     }
   })
@@ -215,7 +215,7 @@ requests.push(
     authUser: rewardAuthUser,
     body: {
       rewardSource: "veil_boss_scroll",
-      regionId: "veil_boss_vault"
+      regionId: "barrier_shrine_boss_vault"
     }
   })
 );
@@ -225,9 +225,9 @@ requests.push(
     id: "req-backend-night-boss-cleared",
     authUser: rewardAuthUser,
     body: {
-      regionId: "night_boss_vault",
+      regionId: "collapsed_cathedral_barrier_boss_vault",
       sessionState: {
-        clearedBossRegionId: "night_boss_vault"
+        clearedBossRegionId: "collapsed_cathedral_barrier_boss_vault"
       }
     }
   })
@@ -239,7 +239,7 @@ requests.push(
     authUser: rewardAuthUser,
     body: {
       rewardSource: "night_boss_scroll",
-      regionId: "night_boss_vault"
+      regionId: "collapsed_cathedral_barrier_boss_vault"
     }
   })
 );

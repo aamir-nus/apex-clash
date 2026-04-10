@@ -1,7 +1,7 @@
 [
   {
     "id": "shatter_breach_lane",
-    "regionId": "shatter_dungeon",
+    "regionId": "detention_center_dungeon",
     "name": "Breach Lane",
     "styleTags": ["aggressive", "balanced"],
     "title": "Shatter Breach Lane",
@@ -15,7 +15,7 @@
   },
   {
     "id": "shatter_survey_grid",
-    "regionId": "shatter_dungeon",
+    "regionId": "detention_center_dungeon",
     "name": "Survey Grid",
     "styleTags": ["technical", "pressured", "predatory"],
     "title": "Shatter Survey Grid",
@@ -29,7 +29,7 @@
   },
   {
     "id": "shatter_hound_trench",
-    "regionId": "shatter_dungeon",
+    "regionId": "detention_center_dungeon",
     "name": "Hound Trench",
     "styleTags": ["fresh", "unread", "pressured"],
     "title": "Shatter Hound Trench",
@@ -43,7 +43,7 @@
   },
   {
     "id": "veil_fracture_nave",
-    "regionId": "veil_dungeon",
+    "regionId": "barrier_shrine_dungeon",
     "name": "Fracture Nave",
     "styleTags": ["technical", "balanced"],
     "title": "Veil Fracture Nave",
@@ -57,7 +57,7 @@
   },
   {
     "id": "veil_hunter_apse",
-    "regionId": "veil_dungeon",
+    "regionId": "barrier_shrine_dungeon",
     "name": "Hunter Apse",
     "styleTags": ["aggressive", "predatory", "pressured"],
     "title": "Veil Hunter Apse",
@@ -71,7 +71,7 @@
   },
   {
     "id": "veil_prayer_vault",
-    "regionId": "veil_dungeon",
+    "regionId": "barrier_shrine_dungeon",
     "name": "Prayer Vault",
     "styleTags": ["fresh", "unread", "technical"],
     "title": "Veil Prayer Vault",
@@ -85,7 +85,7 @@
   },
   {
     "id": "cinder_cooling_run",
-    "regionId": "cinder_dungeon",
+    "regionId": "shibuya_burn_sector_dungeon",
     "name": "Cooling Run",
     "styleTags": ["aggressive", "predatory"],
     "title": "Cinder Cooling Run",
@@ -99,7 +99,7 @@
   },
   {
     "id": "cinder_anchor_forge",
-    "regionId": "cinder_dungeon",
+    "regionId": "shibuya_burn_sector_dungeon",
     "name": "Anchor Forge",
     "styleTags": ["technical", "pressured", "balanced"],
     "title": "Cinder Anchor Forge",
@@ -113,7 +113,7 @@
   },
   {
     "id": "cinder_slag_tunnel",
-    "regionId": "cinder_dungeon",
+    "regionId": "shibuya_burn_sector_dungeon",
     "name": "Slag Tunnel",
     "styleTags": ["fresh", "unread", "balanced"],
     "title": "Cinder Slag Tunnel",
@@ -127,7 +127,7 @@
   },
   {
     "id": "night_choir_passage",
-    "regionId": "night_dungeon",
+    "regionId": "collapsed_cathedral_barrier_dungeon",
     "name": "Choir Passage",
     "styleTags": ["technical", "balanced"],
     "title": "Night Choir Passage",
@@ -141,7 +141,7 @@
   },
   {
     "id": "night_grave_gallery",
-    "regionId": "night_dungeon",
+    "regionId": "collapsed_cathedral_barrier_dungeon",
     "name": "Grave Gallery",
     "styleTags": ["aggressive", "predatory", "pressured"],
     "title": "Night Grave Gallery",
@@ -155,7 +155,7 @@
   },
   {
     "id": "night_bell_spire",
-    "regionId": "night_dungeon",
+    "regionId": "collapsed_cathedral_barrier_dungeon",
     "name": "Bell Spire",
     "styleTags": ["fresh", "unread", "technical"],
     "title": "Night Bell Spire",
