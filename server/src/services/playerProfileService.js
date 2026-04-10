@@ -97,6 +97,20 @@ function getRewardItemId(classType, rewardSource) {
     }
   }
 
+  if (rewardSource === "merger_miniboss") {
+    switch (classType) {
+      case "technique_fighter":
+        return "star_script_knot";
+      case "projection_sorcerer":
+        return "orbit_prism";
+      case "heavenly_restriction":
+        return "grave_vector_wrap";
+      case "striker":
+      default:
+        return "singularity_chain";
+    }
+  }
+
   if (rewardSource === "cinder_boss_core") {
     switch (classType) {
       case "technique_fighter":
@@ -108,6 +122,20 @@ function getRewardItemId(classType, rewardSource) {
       case "striker":
       default:
         return "caldera_emblem";
+    }
+  }
+
+  if (rewardSource === "merger_boss_core") {
+    switch (classType) {
+      case "technique_fighter":
+        return "starfold_seal";
+      case "projection_sorcerer":
+        return "axis_crown";
+      case "heavenly_restriction":
+        return "eventide_harness";
+      case "striker":
+      default:
+        return "merger_fang";
     }
   }
 
@@ -177,7 +205,11 @@ function getBonusRewardItemIds(rewardSource) {
     case "cinder_boss_core":
       return ["ember_tonic", "furnace_core"];
     case "night_boss_scroll":
-      return ["midnight_tonic", "night_ichor"];
+      return ["midnight_tonic", "night_ichor", "domain_relic_shard"];
+    case "merger_miniboss":
+      return ["midnight_tonic", "merger_ink"];
+    case "merger_boss_core":
+      return ["star_amber", "merger_ink", "domain_relic_shard"];
     default:
       return [];
   }
@@ -194,6 +226,16 @@ function getCraftRecipes() {
       id: "craft_furnace_draught",
       resultItemId: "furnace_draught",
       ingredientIds: ["cursed_resin", "furnace_core"]
+    },
+    {
+      id: "craft_black_flash_talisman",
+      resultItemId: "black_flash_talisman",
+      ingredientIds: ["furnace_core", "night_ichor"]
+    },
+    {
+      id: "craft_domain_amplification_charm",
+      resultItemId: "domain_amplification_charm",
+      ingredientIds: ["veil_shard", "domain_relic_shard"]
     }
   ];
 }
@@ -207,6 +249,8 @@ function mapBossVaultToClearedRegion(regionId) {
         ? "shibuya_burn_sector"
         : regionId === "collapsed_cathedral_barrier_boss_vault"
           ? "collapsed_cathedral_barrier"
+          : regionId === "merger_ossuary_boss_vault"
+            ? "merger_ossuary"
         : null;
 }
 
@@ -261,7 +305,7 @@ function pruneSessionStateForRegion(existingSessionState = {}, regionId) {
   const keysToRemove =
     regionId === "hub_jujutsu_high"
       ? ROUTE_STATE_KEYS
-      : regionId.endsWith("_dungeon") || regionId.endsWith("_center") || regionId.endsWith("_shrine") || regionId.endsWith("_sector") || regionId.endsWith("_barrier")
+      : regionId.endsWith("_dungeon") || regionId.endsWith("_center") || regionId.endsWith("_shrine") || regionId.endsWith("_sector") || regionId.endsWith("_barrier") || regionId.endsWith("_ossuary")
         ? DUNGEON_AND_BOSS_STATE_KEYS
         : regionId.endsWith("_boss_vault")
           ? BOSS_STATE_KEYS
@@ -292,10 +336,12 @@ function isRewardContextValid(rewardSource, regionId, profile) {
     veil_miniboss: ["barrier_shrine_dungeon"],
     cinder_miniboss: ["shibuya_burn_sector_dungeon"],
     night_miniboss: ["collapsed_cathedral_barrier_dungeon"],
+    merger_miniboss: ["merger_ossuary_dungeon"],
     shatter_boss_scroll: ["detention_center_boss_vault"],
     veil_boss_scroll: ["barrier_shrine_boss_vault"],
     cinder_boss_core: ["shibuya_burn_sector_boss_vault"],
-    night_boss_scroll: ["collapsed_cathedral_barrier_boss_vault"]
+    night_boss_scroll: ["collapsed_cathedral_barrier_boss_vault"],
+    merger_boss_core: ["merger_ossuary_boss_vault"]
   };
 
   const allowedRegionIds = allowedRegionIdsByReward[rewardSource];
@@ -311,7 +357,8 @@ function isRewardContextValid(rewardSource, regionId, profile) {
     rewardSource === "dungeon_miniboss" ||
     rewardSource === "veil_miniboss" ||
     rewardSource === "cinder_miniboss" ||
-    rewardSource === "night_miniboss"
+    rewardSource === "night_miniboss" ||
+    rewardSource === "merger_miniboss"
   ) {
     return (
       profile.sessionState?.dungeonRelicClaimed === true &&
@@ -323,7 +370,8 @@ function isRewardContextValid(rewardSource, regionId, profile) {
     rewardSource === "shatter_boss_scroll" ||
     rewardSource === "veil_boss_scroll" ||
     rewardSource === "cinder_boss_core" ||
-    rewardSource === "night_boss_scroll"
+    rewardSource === "night_boss_scroll" ||
+    rewardSource === "merger_boss_core"
   ) {
     return profile.sessionState?.clearedBossRegionId === effectiveRegionId;
   }

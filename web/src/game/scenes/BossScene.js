@@ -53,11 +53,65 @@ const routeReturnDisplay = {
     effectLabel: "Final chapter clear",
     effectDetail: "Domain vault reward secured and cleared-route state archived.",
     feedMessage: "Collapsed Cathedral Barrier secured. Final-chapter scroll recovered for immediate binding."
+  },
+  merger_ossuary_boss_vault: {
+    bannerTitle: "Merger Ossuary Broken",
+    bannerDetail: "Convergence relic recovered from the ossuary vault.",
+    title: "Endgame rung complete",
+    detail: "Merger Ossuary is clear. The current ladder now reaches the deepest authored route in the slice.",
+    step: "Quick-equip the relic or bank the clear in a save slot.",
+    effectLabel: "Endgame route clear",
+    effectDetail: "Convergence reward secured and cleared-route state archived.",
+    feedMessage: "Merger Ossuary secured. Endgame relic recovered for immediate equip."
   }
 };
 
 function cloneState(value) {
   return JSON.parse(JSON.stringify(value));
+}
+
+function buildBossPressureProfile(variant) {
+  const enemyIds = variant?.enemyIds ?? [];
+  const hasEnemy = (enemyId) => enemyIds.includes(enemyId);
+
+  return {
+    chainTaxCe: hasEnemy("jailer_grade_2") ? 3 : 0,
+    sanctumWindowBonusMs: hasEnemy("sutra_moth_grade_3") ? 240 : 0,
+    cinderBacklashHpBonus: hasEnemy("soot_serpent_grade_3") ? 2 : 0,
+    cinderBacklashCeBonus: hasEnemy("soot_serpent_grade_3") ? 3 : 0,
+    signaturePenaltyCe: hasEnemy("vesper_bell_grade_2") ? 2 : 0,
+    nightWindowPenaltyMs: hasEnemy("vesper_bell_grade_2") ? 180 : 0,
+    mergerTaxCe: hasEnemy("merger_wisp_grade_3") ? 4 : 0,
+    mergerWindowPenaltyMs: hasEnemy("starved_orbit_grade_2") ? 160 : 0,
+    warningLabel:
+      hasEnemy("jailer_grade_2")
+        ? "Chain boss pressure"
+        : hasEnemy("sutra_moth_grade_3")
+          ? "Sutra boss drift"
+          : hasEnemy("soot_serpent_grade_3")
+            ? "Soot overdrive"
+            : hasEnemy("vesper_bell_grade_2")
+              ? "Vesper toll"
+              : hasEnemy("merger_wisp_grade_3")
+                ? "Merger static"
+                : hasEnemy("grave_vector_grade_1")
+                  ? "Vector crush"
+              : null,
+    warningDetail:
+      hasEnemy("jailer_grade_2")
+        ? "Each boss commit bleeds extra CE through the chain field."
+        : hasEnemy("sutra_moth_grade_3")
+          ? "The sutra drift widens sanctum openings after the guard falls."
+          : hasEnemy("soot_serpent_grade_3")
+            ? "Mistimed hits take harsher furnace backlash."
+            : hasEnemy("vesper_bell_grade_2")
+              ? "Bell tolls tighten blackout breaches and drain more CE in the field."
+              : hasEnemy("merger_wisp_grade_3")
+                ? "Every boss commit bleeds extra reserve CE through the merger field."
+                : hasEnemy("grave_vector_grade_1")
+                  ? "Vector pressure makes the punish window deadlier once it opens."
+              : null
+  };
 }
 
 export class BossScene extends Phaser.Scene {
@@ -97,6 +151,8 @@ export class BossScene extends Phaser.Scene {
     this.bossDangerWash = null;
     this.feedbackText = null;
     this.clearText = null;
+    this.dungeonVariant = null;
+    this.variantPressure = null;
     // Phase 2: JJK Mechanics
     this.burnoutStacks = 0;
     this.lastCEUseTime = 0;
@@ -112,6 +168,8 @@ export class BossScene extends Phaser.Scene {
     const loadedPlayerState = this.registry.get("loadedPlayerState");
     this.currentRegionId = this.registry.get("currentRegionId") ?? "detention_center_boss_vault";
     this.explorationBonus = this.registry.get("explorationBonus") ?? null;
+    this.dungeonVariant = this.registry.get("currentDungeonVariant") ?? null;
+    this.variantPressure = buildBossPressureProfile(this.dungeonVariant);
     this.isTransitioning = false;
     this.input.keyboard.resetKeys();
     const loadedSessionSummary = this.registry.get("loadedSessionSummary") ?? null;
@@ -144,37 +202,45 @@ export class BossScene extends Phaser.Scene {
     const isVeilBoss = this.currentRegionId === "barrier_shrine_boss_vault";
     const isCinderBoss = this.currentRegionId === "shibuya_burn_sector_boss_vault";
     const isNightBoss = this.currentRegionId === "collapsed_cathedral_barrier_boss_vault";
-    this.bossHp = loadedSessionState.bossHp ?? (isNightBoss ? 160 : 120);
+    const isMergerBoss = this.currentRegionId === "merger_ossuary_boss_vault";
+    this.bossHp = loadedSessionState.bossHp ?? (isMergerBoss ? 184 : isNightBoss ? 160 : 120);
     this.rewardClaimed = Boolean(loadedSessionState.bossRewardClaimed);
     const boonKind = this.explorationBonus?.kind ?? "none";
     const baseGuard = boonKind === "technique" ? 28 : boonKind === "pressure" ? 34 : 40;
     this.sanctumCycleMs = boonKind === "pressure" ? 2100 : 2400;
-    this.sanctumOpenMs = boonKind === "pressure" ? 1350 : 1150;
-    this.sanctumGuard = loadedSessionState.sanctumGuard ?? (isVeilBoss || isNightBoss ? baseGuard + (isNightBoss ? 12 : 0) : 0);
+    this.sanctumOpenMs =
+      (boonKind === "pressure" ? 1350 : 1150) + (this.variantPressure?.sanctumWindowBonusMs ?? 0);
+    this.sanctumGuard = loadedSessionState.sanctumGuard ?? (isVeilBoss || isNightBoss || isMergerBoss ? baseGuard + (isNightBoss ? 12 : isMergerBoss ? 18 : 0) : 0);
     this.sanctumWindowOpen = Boolean(loadedSessionState.sanctumWindowOpen);
     this.lastSanctumWindowOpen = this.sanctumWindowOpen;
     this.cinderCycleMs = boonKind === "pressure" ? 1550 : 1800;
     this.cinderOpenMs = boonKind === "pressure" ? 1150 : 950;
-    this.cinderBacklashHp = boonKind === "recovery" ? 2 : 4;
-    this.cinderBacklashCe = boonKind === "recovery" ? 3 : 6;
+    this.cinderBacklashHp = (boonKind === "recovery" ? 2 : 4) + (this.variantPressure?.cinderBacklashHpBonus ?? 0);
+    this.cinderBacklashCe = (boonKind === "recovery" ? 3 : 6) + (this.variantPressure?.cinderBacklashCeBonus ?? 0);
     this.cinderWindowOpen = Boolean(loadedSessionState.cinderWindowOpen);
     this.lastCinderWindowOpen = this.cinderWindowOpen;
     this.signatureActive = Boolean(loadedSessionState.signatureActive);
     this.lastSignatureActive = this.signatureActive;
     this.signatureTickCooldown = 0;
+    if (isNightBoss && this.variantPressure?.nightWindowPenaltyMs) {
+      this.sanctumOpenMs = Math.max(520, this.sanctumOpenMs - this.variantPressure.nightWindowPenaltyMs);
+    }
+    if (isMergerBoss && this.variantPressure?.mergerWindowPenaltyMs) {
+      this.sanctumOpenMs = Math.max(500, this.sanctumOpenMs - this.variantPressure.mergerWindowPenaltyMs);
+    }
     this.registry.set("loadedPlayerState", null);
     this.registry.set("loadedSessionSummary", null);
 
-    this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, isVeilBoss ? 0x171126 : isCinderBoss ? 0x24120d : isNightBoss ? 0x090d1c : 0x120b12);
-    this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, isVeilBoss ? 0x2e1e44 : isCinderBoss ? 0x3a1d13 : isNightBoss ? 0x131c38 : 0x24131d, 1).setStrokeStyle(2, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffc27a : isNightBoss ? 0xd7e3ff : 0xff8f70);
-    this.add.rectangle(300, 270, 82, 234, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffb36b : isNightBoss ? 0xa9c4ff : 0xff8f70, 0.05).setStrokeStyle(1, 0xf6f1df, 0.1);
-    this.add.rectangle(700, 270, 132, 270, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffb36b : isNightBoss ? 0xa9c4ff : 0xff8f70, 0.05).setStrokeStyle(1, 0xf6f1df, 0.12);
+    this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, isVeilBoss ? 0x171126 : isCinderBoss ? 0x24120d : isNightBoss ? 0x090d1c : isMergerBoss ? 0x150d19 : 0x120b12);
+    this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, isVeilBoss ? 0x2e1e44 : isCinderBoss ? 0x3a1d13 : isNightBoss ? 0x131c38 : isMergerBoss ? 0x2a1630 : 0x24131d, 1).setStrokeStyle(2, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffc27a : isNightBoss ? 0xd7e3ff : isMergerBoss ? 0xf3d9ff : 0xff8f70);
+    this.add.rectangle(300, 270, 82, 234, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffb36b : isNightBoss ? 0xa9c4ff : isMergerBoss ? 0xf3d9ff : 0xff8f70, 0.05).setStrokeStyle(1, 0xf6f1df, 0.1);
+    this.add.rectangle(700, 270, 132, 270, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffb36b : isNightBoss ? 0xa9c4ff : isMergerBoss ? 0xffb0eb : 0xff8f70, 0.05).setStrokeStyle(1, 0xf6f1df, 0.12);
     this.add
-      .line(0, 0, 480, 110, 480, 430, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffb36b : isNightBoss ? 0xa9c4ff : 0xff8f70, 0.14)
+      .line(0, 0, 480, 110, 480, 430, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffb36b : isNightBoss ? 0xa9c4ff : isMergerBoss ? 0xff73d0 : 0xff8f70, 0.14)
       .setOrigin(0, 0)
       .setLineWidth(6);
     this.signatureLane = this.add
-      .rectangle(480, 270, 124, 260, isVeilBoss ? 0xc77dff : isCinderBoss ? 0xff8a5b : isNightBoss ? 0x7aa2ff : 0xf25f5c, 0.06)
+      .rectangle(480, 270, 124, 260, isVeilBoss ? 0xc77dff : isCinderBoss ? 0xff8a5b : isNightBoss ? 0x7aa2ff : isMergerBoss ? 0xff73d0 : 0xf25f5c, 0.06)
       .setStrokeStyle(1, 0xf6f1df, 0.12);
     this.add.text(434, 122, "Danger lane", {
       color: "#f6f1df",
@@ -186,7 +252,7 @@ export class BossScene extends Phaser.Scene {
       fontFamily: "monospace",
       fontSize: "12px"
     });
-    this.add.text(642, 122, isVeilBoss ? "Rupture focus" : isCinderBoss ? "Core heat" : isNightBoss ? "Midnight focus" : "Curse focus", {
+    this.add.text(642, 122, isVeilBoss ? "Rupture focus" : isCinderBoss ? "Core heat" : isNightBoss ? "Midnight focus" : isMergerBoss ? "Convergence focus" : "Curse focus", {
       color: "#ffd98b",
       fontFamily: "monospace",
       fontSize: "12px"
@@ -196,7 +262,7 @@ export class BossScene extends Phaser.Scene {
       arena.height / 2,
       820,
       400,
-      isVeilBoss ? 0xc77dff : isCinderBoss ? 0xff8a5b : isNightBoss ? 0x7aa2ff : 0xf25f5c,
+      isVeilBoss ? 0xc77dff : isCinderBoss ? 0xff8a5b : isNightBoss ? 0x7aa2ff : isMergerBoss ? 0xff73d0 : 0xf25f5c,
       0
     );
     this.feedbackText = this.add.text(480, 100, "", {
@@ -211,12 +277,12 @@ export class BossScene extends Phaser.Scene {
       fontSize: "24px",
       align: "center"
     }).setOrigin(0.5).setAlpha(0);
-    this.add.text(100, 84, isVeilBoss ? "Barrier Vault" : isCinderBoss ? "Burn Zone Vault" : isNightBoss ? "Domain Vault" : "Boss Vault", {
+    this.add.text(100, 84, isVeilBoss ? "Barrier Vault" : isCinderBoss ? "Burn Zone Vault" : isNightBoss ? "Domain Vault" : isMergerBoss ? "Merger Vault" : "Boss Vault", {
       color: "#f6f1df",
       fontFamily: "monospace",
       fontSize: "28px"
     });
-    this.add.text(100, 124, isVeilBoss ? "Defeat the sanctum curse, then extract to Blacksite." : isCinderBoss ? "Break the furnace core, then extract to Blacksite." : isNightBoss ? "Break the midnight curse, then extract to Blacksite." : "Defeat the vault curse, then extract to Blacksite.", {
+    this.add.text(100, 124, isVeilBoss ? "Defeat the sanctum curse, then extract to Blacksite." : isCinderBoss ? "Break the furnace core, then extract to Blacksite." : isNightBoss ? "Break the midnight curse, then extract to Blacksite." : isMergerBoss ? "Break the convergence curse, then extract to Blacksite." : "Defeat the vault curse, then extract to Blacksite.", {
       color: "#d9e7d2",
       fontFamily: "monospace",
       fontSize: "16px"
@@ -245,10 +311,10 @@ export class BossScene extends Phaser.Scene {
       ease: "Sine.easeInOut"
     });
     this.add
-      .circle(700, 270, 68, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffb36b : isNightBoss ? 0xa9c4ff : 0xff8f70, 0.06)
+      .circle(700, 270, 68, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffb36b : isNightBoss ? 0xa9c4ff : isMergerBoss ? 0xffb0eb : 0xff8f70, 0.06)
       .setStrokeStyle(2, 0xf6f1df, 0.16);
     const ruptureRing = this.add
-      .circle(700, 270, 92, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffb36b : isNightBoss ? 0xa9c4ff : 0xff8f70, 0.03)
+      .circle(700, 270, 92, isVeilBoss ? 0xf0d2ff : isCinderBoss ? 0xffb36b : isNightBoss ? 0xa9c4ff : isMergerBoss ? 0xffb0eb : 0xff8f70, 0.03)
       .setStrokeStyle(1, 0xf6f1df, 0.1);
     this.tweens.add({
       targets: ruptureRing,
@@ -259,13 +325,13 @@ export class BossScene extends Phaser.Scene {
       repeat: -1,
       ease: "Sine.easeOut"
     });
-    this.add.text(648, 352, isVeilBoss ? "Rupture zone" : isCinderBoss ? "Heat bloom" : isNightBoss ? "Blackout zone" : "Punish zone", {
+    this.add.text(648, 352, isVeilBoss ? "Rupture zone" : isCinderBoss ? "Heat bloom" : isNightBoss ? "Blackout zone" : isMergerBoss ? "Orbit breach" : "Punish zone", {
       color: "#c6d2dc",
       fontFamily: "monospace",
       fontSize: "12px"
     });
     this.add.rectangle(480, 428, 410, 24, 0x0d141d, 0.52).setStrokeStyle(1, 0xf6f1df, 0.12);
-    this.add.text(328, 420, isVeilBoss ? "Break guard -> dodge lane -> punish rupture" : isCinderBoss ? "Wait for cooling breach -> strike core" : isNightBoss ? "Break eclipse guard -> survive blackout -> finish the climb" : "Read lane -> punish curse window", {
+    this.add.text(328, 420, isVeilBoss ? "Break guard -> dodge lane -> punish rupture" : isCinderBoss ? "Wait for cooling breach -> strike core" : isNightBoss ? "Break eclipse guard -> survive blackout -> finish the climb" : isMergerBoss ? "Break merger shield -> survive orbit drag -> crack the seam" : "Read lane -> punish curse window", {
       color: "#f6f1df",
       fontFamily: "monospace",
       fontSize: "12px"
@@ -330,6 +396,7 @@ export class BossScene extends Phaser.Scene {
     const isVeilBoss = this.currentRegionId === "barrier_shrine_boss_vault";
     const isCinderBoss = this.currentRegionId === "shibuya_burn_sector_boss_vault";
     const isNightBoss = this.currentRegionId === "collapsed_cathedral_barrier_boss_vault";
+    const isMergerBoss = this.currentRegionId === "merger_ossuary_boss_vault";
     const routeReturnSummary = routeReturnDisplay[this.currentRegionId] ?? null;
     this.bossMarker?.setVisible(this.bossHp > 0);
     const unlockedRegionIds =
@@ -338,7 +405,9 @@ export class BossScene extends Phaser.Scene {
         : this.bossHp === 0 && this.currentRegionId === "barrier_shrine_boss_vault"
           ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"]), "barrier_shrine", "shibuya_burn_sector"])]
           : this.bossHp === 0 && this.currentRegionId === "shibuya_burn_sector_boss_vault"
-            ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"]), "barrier_shrine", "shibuya_burn_sector", "collapsed_cathedral_barrier"])]
+          ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"]), "barrier_shrine", "shibuya_burn_sector", "collapsed_cathedral_barrier"])]
+          : this.bossHp === 0 && this.currentRegionId === "collapsed_cathedral_barrier_boss_vault"
+            ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"]), "barrier_shrine", "shibuya_burn_sector", "collapsed_cathedral_barrier", "merger_ossuary"])]
           : this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"];
     emitRuntimeUpdate({
       scene: {
@@ -391,6 +460,14 @@ export class BossScene extends Phaser.Scene {
                   : this.sanctumWindowOpen
                     ? `Blackout breach · HP ${this.bossHp}`
                     : "Cathedral blackout"
+            : isMergerBoss
+              ? this.bossHp === 0
+                ? "Convergence curse severed"
+                : this.sanctumGuard > 0
+                  ? `Merger shield ${this.sanctumGuard}`
+                  : this.sanctumWindowOpen
+                    ? `Orbit breach · HP ${this.bossHp}`
+                    : "Merger drag"
           : `Boss HP ${this.bossHp}`,
         progress: isVeilBoss
           ? this.sanctumGuard > 0
@@ -404,15 +481,29 @@ export class BossScene extends Phaser.Scene {
             ? this.sanctumGuard > 0
               ? Math.max(0, Math.min(1, 1 - this.sanctumGuard / 60))
               : Math.max(0, Math.min(1, 1 - this.bossHp / 160))
+          : isMergerBoss
+            ? this.sanctumGuard > 0
+              ? Math.max(0, Math.min(1, 1 - this.sanctumGuard / 68))
+              : Math.max(0, Math.min(1, 1 - this.bossHp / 184))
           : Math.max(0, Math.min(1, 1 - this.bossHp / 120))
       },
       activeEffects: [
         {
           id: "boss-room",
-          label: isVeilBoss ? "Sanctum curse" : isCinderBoss ? "Furnace curse" : isNightBoss ? "Midnight curse" : "Vault curse",
+          label: isVeilBoss ? "Sanctum curse" : isCinderBoss ? "Furnace curse" : isNightBoss ? "Midnight curse" : isMergerBoss ? "Convergence curse" : "Vault curse",
           detail: "Final chamber active",
           tone: "danger"
         },
+        ...(this.variantPressure?.warningLabel
+          ? [
+              {
+                id: "boss-pressure",
+                label: this.variantPressure.warningLabel,
+                detail: this.variantPressure.warningDetail,
+                tone: "danger"
+              }
+            ]
+          : []),
         ...(isVeilBoss
           ? [
               ...(this.explorationBonus
@@ -469,6 +560,36 @@ export class BossScene extends Phaser.Scene {
                     : this.sanctumWindowOpen
                       ? "Final boss is vulnerable now"
                       : "Wait out the blackout cycle",
+                tone: this.sanctumWindowOpen ? "boon" : "danger"
+              }
+            ]
+          : []),
+        ...(isMergerBoss
+          ? [
+              ...(this.explorationBonus
+                ? [
+                    {
+                      id: "merger-boss-boon",
+                      label: this.explorationBonus.label,
+                      detail:
+                        this.explorationBonus.kind === "technique"
+                          ? "Reduced merger shield"
+                          : this.explorationBonus.kind === "pressure"
+                            ? "Longer orbit breach"
+                            : "Softer merger backlash",
+                      tone: "boon"
+                    }
+                  ]
+                : []),
+              {
+                id: "merger-boss-cycle",
+                label: this.sanctumWindowOpen ? "Orbit breach" : "Merger sealed",
+                detail:
+                  this.sanctumGuard > 0
+                    ? "Break the convergence shield before the seam opens"
+                    : this.sanctumWindowOpen
+                      ? "Convergence curse is vulnerable now"
+                      : "Wait out the orbit drag and punish the seam",
                 tone: this.sanctumWindowOpen ? "boon" : "danger"
               }
             ]
@@ -533,8 +654,8 @@ export class BossScene extends Phaser.Scene {
         bossCleared: this.bossHp === 0,
         bossRewardClaimed: this.rewardClaimed,
         clearedBossRegionId: this.bossHp === 0 ? this.currentRegionId : null,
-        sanctumGuard: (isVeilBoss || isNightBoss) ? this.sanctumGuard : undefined,
-        sanctumWindowOpen: (isVeilBoss || isNightBoss) ? this.sanctumWindowOpen : undefined,
+        sanctumGuard: (isVeilBoss || isNightBoss || isMergerBoss) ? this.sanctumGuard : undefined,
+        sanctumWindowOpen: (isVeilBoss || isNightBoss || isMergerBoss) ? this.sanctumWindowOpen : undefined,
         cinderWindowOpen: isCinderBoss ? this.cinderWindowOpen : undefined,
         signatureActive: this.signatureActive,
         unlockedRegionIds,
@@ -550,6 +671,14 @@ export class BossScene extends Phaser.Scene {
         options: []
       },
       combatFeed: [
+        ...(this.variantPressure?.warningLabel
+          ? [
+              {
+                id: 0,
+                message: `${this.variantPressure.warningLabel}: ${this.variantPressure.warningDetail}`
+              }
+            ]
+          : []),
         {
           id: 1,
           message:
@@ -564,6 +693,18 @@ export class BossScene extends Phaser.Scene {
                   ? this.cinderWindowOpen
                     ? "Cooling breach open. Burn the furnace core now."
                     : "Furnace overdrive active. Mistimed hits still chip, but clean breaches are faster."
+                : isNightBoss
+                  ? this.sanctumGuard > 0
+                    ? "Break the eclipse guard before the final breach opens."
+                    : this.sanctumWindowOpen
+                      ? "Blackout breach open. Finish the climb."
+                      : "Cathedral blackout active. Reposition before the next breach."
+                : isMergerBoss
+                  ? this.sanctumGuard > 0
+                    ? "Break the merger shield before the seam opens."
+                    : this.sanctumWindowOpen
+                      ? "Orbit breach open. Break the convergence curse now."
+                      : "Merger drag active. Wait for the seam before forcing it."
                 : "Break the vault curse to finish the dungeon slice."
               : this.currentRegionId === "detention_center_boss_vault"
                 ? "Boss down. Veil Shrine unlocked. Press H to extract."
@@ -573,6 +714,8 @@ export class BossScene extends Phaser.Scene {
                   ? "Boss down. Night Cathedral unlocked. Press H to extract."
                   : this.currentRegionId === "collapsed_cathedral_barrier_boss_vault"
                     ? "Boss down. Final chapter clear secured. Press H to extract."
+                    : this.currentRegionId === "merger_ossuary_boss_vault"
+                      ? "Boss down. Endgame relic secured. Press H to extract."
                     : "Boss down. Press H to extract."
         },
         ...(this.bossHp === 0 && routeReturnSummary
@@ -600,6 +743,7 @@ export class BossScene extends Phaser.Scene {
     const isVeilBoss = this.currentRegionId === "barrier_shrine_boss_vault";
     const isCinderBoss = this.currentRegionId === "shibuya_burn_sector_boss_vault";
     const isNightBoss = this.currentRegionId === "collapsed_cathedral_barrier_boss_vault";
+    const isMergerBoss = this.currentRegionId === "merger_ossuary_boss_vault";
     const damage = Math.max(8, Math.floor(this.playerState.attack * 0.9));
     this.player.setPosition(this.boss.x - 80, this.boss.y);
 
@@ -608,6 +752,7 @@ export class BossScene extends Phaser.Scene {
     const blackFlashMultiplier = blackFlashActive ? (profile?.computedStats?.blackFlashAffinity ?? 1.5) : 1.0;
     const ceCost = Math.max(0, Math.floor(10 / blackFlashMultiplier));
     this.lastCEUseTime = this.time.now;
+    const commitCeTax = (this.variantPressure?.chainTaxCe ?? 0) + (this.variantPressure?.mergerTaxCe ?? 0);
 
     // Phase 2: Track burnout
     const burnoutThreshold = profile?.computedStats?.burnoutThreshold ?? 3;
@@ -616,20 +761,20 @@ export class BossScene extends Phaser.Scene {
       this.playSceneFeedback("Burnout backlash!", 0xf25f5c);
     }
 
-    if ((isVeilBoss || isNightBoss) && this.sanctumGuard > 0) {
+    if ((isVeilBoss || isNightBoss || isMergerBoss) && this.sanctumGuard > 0) {
       const guardBreak = Math.max(10, Math.floor(damage * 0.8 * blackFlashMultiplier));
       this.sanctumGuard = Math.max(0, this.sanctumGuard - guardBreak);
       emitSoundEvent({ type: this.sanctumGuard === 0 ? "enemy_down" : "skill_cast" });
       if (this.sanctumGuard === 0) {
-        this.playSceneFeedback(isNightBoss ? "Eclipse guard shattered" : "Sanctum guard shattered", 0xe2b6ff);
+        this.playSceneFeedback(isNightBoss ? "Eclipse guard shattered" : isMergerBoss ? "Merger shield shattered" : "Sanctum guard shattered", isMergerBoss ? 0xff73d0 : 0xe2b6ff);
       }
       this.burnoutStacks += 1;
       this.emitBossRuntime();
       return;
     }
 
-    if ((isVeilBoss || isNightBoss) && !this.sanctumWindowOpen) {
-      this.playerState.ce = Math.max(0, this.playerState.ce - ceCost);
+    if ((isVeilBoss || isNightBoss || isMergerBoss) && !this.sanctumWindowOpen) {
+      this.playerState.ce = Math.max(0, this.playerState.ce - ceCost - commitCeTax);
       this.playerState.hp = Math.max(1, this.playerState.hp - 4);
       this.bossHp = Math.max(0, this.bossHp - Math.max(3, Math.floor(damage * 0.14 * blackFlashMultiplier)));
       this.burnoutStacks += 1;
@@ -640,7 +785,7 @@ export class BossScene extends Phaser.Scene {
     }
 
     if (isCinderBoss && !this.cinderWindowOpen) {
-      this.playerState.ce = Math.max(0, this.playerState.ce - this.cinderBacklashCe);
+      this.playerState.ce = Math.max(0, this.playerState.ce - this.cinderBacklashCe - commitCeTax);
       this.playerState.hp = Math.max(1, this.playerState.hp - this.cinderBacklashHp);
       this.bossHp = Math.max(0, this.bossHp - Math.max(5, Math.floor(damage * 0.35 * blackFlashMultiplier)));
       this.burnoutStacks += 1;
@@ -652,7 +797,10 @@ export class BossScene extends Phaser.Scene {
 
     if (this.signatureActive && !this.antiDomainActive) {
       this.playerState.hp = Math.max(1, this.playerState.hp - 4);
-      this.playerState.ce = Math.max(0, this.playerState.ce - ceCost);
+      this.playerState.ce = Math.max(
+        0,
+        this.playerState.ce - ceCost - commitCeTax - (this.variantPressure?.signaturePenaltyCe ?? 0)
+      );
       this.bossHp = Math.max(0, this.bossHp - Math.max(3, Math.floor(damage * 0.12 * blackFlashMultiplier)));
       this.burnoutStacks += 1;
       this.handleBossRewardClaim();
@@ -671,7 +819,7 @@ export class BossScene extends Phaser.Scene {
       this.burnoutStacks = Math.max(0, this.burnoutStacks - 1);
     }
 
-    this.playerState.ce = Math.max(0, this.playerState.ce - ceCost);
+    this.playerState.ce = Math.max(0, this.playerState.ce - ceCost - commitCeTax);
     this.bossHp = Math.max(0, this.bossHp - Math.floor(finalDamage));
     this.burnoutStacks += 1;
 
@@ -690,10 +838,12 @@ export class BossScene extends Phaser.Scene {
           ? "Sanctum curse collapsed"
           : isCinderBoss
             ? "Furnace core extinguished"
-            : isNightBoss
+          : isNightBoss
               ? "Midnight curse severed"
+            : isMergerBoss
+              ? "Convergence curse severed"
             : "Vault curse collapsed",
-        0xb8f29b
+        isMergerBoss ? 0xf3d9ff : 0xb8f29b
       );
       this.playClearFeedback();
     }
@@ -742,6 +892,15 @@ export class BossScene extends Phaser.Scene {
         }
       });
     }
+    if (this.currentRegionId === "merger_ossuary_boss_vault") {
+      emitInventoryReward({
+        rewardSource: "merger_boss_core",
+        regionId: this.currentRegionId,
+        sessionState: {
+          clearedBossRegionId: this.currentRegionId
+        }
+      });
+    }
   }
 
   extractToHub() {
@@ -757,7 +916,9 @@ export class BossScene extends Phaser.Scene {
           ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"]), "barrier_shrine", "shibuya_burn_sector"])]
           : this.currentRegionId === "shibuya_burn_sector_boss_vault"
             ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"]), "barrier_shrine", "shibuya_burn_sector", "collapsed_cathedral_barrier"])]
-          : this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"];
+            : this.currentRegionId === "collapsed_cathedral_barrier_boss_vault"
+              ? [...new Set([...(this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"]), "barrier_shrine", "shibuya_burn_sector", "collapsed_cathedral_barrier", "merger_ossuary"])]
+            : this.registry.get("playerProfile")?.unlockedRegionIds ?? ["detention_center"];
     const clearedRegionId =
       this.currentRegionId === "detention_center_boss_vault"
         ? "detention_center"
@@ -767,6 +928,8 @@ export class BossScene extends Phaser.Scene {
             ? "shibuya_burn_sector"
             : this.currentRegionId === "collapsed_cathedral_barrier_boss_vault"
               ? "collapsed_cathedral_barrier"
+              : this.currentRegionId === "merger_ossuary_boss_vault"
+                ? "merger_ossuary"
             : null;
     const clearedRegionIds = [
       ...new Set([
@@ -850,8 +1013,9 @@ export class BossScene extends Phaser.Scene {
     const isVeilBoss = this.currentRegionId === "barrier_shrine_boss_vault";
     const isCinderBoss = this.currentRegionId === "shibuya_burn_sector_boss_vault";
     const isNightBoss = this.currentRegionId === "collapsed_cathedral_barrier_boss_vault";
+    const isMergerBoss = this.currentRegionId === "merger_ossuary_boss_vault";
 
-    if ((isVeilBoss || isNightBoss) && this.bossHp > 0) {
+    if ((isVeilBoss || isNightBoss || isMergerBoss) && this.bossHp > 0) {
       const cyclePosition = this.time.now % this.sanctumCycleMs;
       this.sanctumWindowOpen =
         this.sanctumGuard <= 0 && cyclePosition >= this.sanctumCycleMs - this.sanctumOpenMs;
@@ -859,7 +1023,7 @@ export class BossScene extends Phaser.Scene {
         this.lastSanctumWindowOpen = this.sanctumWindowOpen;
         emitSoundEvent({ type: this.sanctumWindowOpen ? "enemy_down" : "danger" });
         if (this.sanctumWindowOpen) {
-          this.playSceneFeedback(isNightBoss ? "Blackout breach open" : "Rupture window open", isNightBoss ? 0xa9c4ff : 0xc77dff);
+          this.playSceneFeedback(isNightBoss ? "Blackout breach open" : isMergerBoss ? "Orbit breach open" : "Rupture window open", isNightBoss ? 0xa9c4ff : isMergerBoss ? 0xff73d0 : 0xc77dff);
         }
         this.emitBossRuntime();
       }
@@ -884,9 +1048,9 @@ export class BossScene extends Phaser.Scene {
       if (this.signatureActive !== this.lastSignatureActive) {
         this.lastSignatureActive = this.signatureActive;
         emitSoundEvent({ type: this.signatureActive ? "danger" : "skill_cast" });
-        this.bossMarker.setColor(this.signatureActive ? (isNightBoss ? "#d7e3ff" : "#ff8f70") : "#ffd98b");
+        this.bossMarker.setColor(this.signatureActive ? (isNightBoss ? "#d7e3ff" : isMergerBoss ? "#fce6ff" : "#ff8f70") : isMergerBoss ? "#fce6ff" : "#ffd98b");
         if (this.signatureActive) {
-          this.playSceneFeedback(isNightBoss ? "Cathedral field active" : "Signature field active", isNightBoss ? 0x7aa2ff : 0xf25f5c);
+          this.playSceneFeedback(isNightBoss ? "Cathedral field active" : isMergerBoss ? "Merger field active" : "Signature field active", isNightBoss ? 0x7aa2ff : isMergerBoss ? 0xff73d0 : 0xf25f5c);
         }
         this.emitBossRuntime();
       }
@@ -904,7 +1068,10 @@ export class BossScene extends Phaser.Scene {
       if (axisDistance < 48 && centerDistance < 240 && this.signatureTickCooldown === 0) {
         this.signatureTickCooldown = 0.5;
         this.playerState.hp = Math.max(1, this.playerState.hp - 7);
-        this.playerState.ce = Math.max(0, this.playerState.ce - 5);
+        this.playerState.ce = Math.max(
+          0,
+          this.playerState.ce - 5 - (this.variantPressure?.signaturePenaltyCe ?? 0)
+        );
         emitSoundEvent({ type: "danger" });
         this.emitBossRuntime();
       }

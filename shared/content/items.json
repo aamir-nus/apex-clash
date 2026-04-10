@@ -433,18 +433,9 @@
   {
     "id": "domain_relic_shard",
     "name": "Domain Relic Shard",
-    "type": "charm",
+    "type": "material",
     "rarity": "epic",
-    "equipSlot": "charm",
-    "statModifiers": {
-      "ceOutput": 8,
-      "ceReserve": 4,
-      "technique": 2
-    },
-    "identityPassive": {
-      "type": "domain_resonance",
-      "effect": "Reduces domain expansion cooldown by 15%"
-    }
+    "statModifiers": {}
   },
   {
     "id": "inverted_spear_of_heaven",
@@ -524,6 +515,124 @@
     "identityPassive": {
       "type": "domain_amplification",
       "effect": "Neutralizes enemy domain effects"
+    }
+  },
+  {
+    "id": "merger_ink",
+    "name": "Merger Ink",
+    "type": "material",
+    "rarity": "epic",
+    "statModifiers": {}
+  },
+  {
+    "id": "star_amber",
+    "name": "Star Amber",
+    "type": "material",
+    "rarity": "epic",
+    "statModifiers": {}
+  },
+  {
+    "id": "singularity_chain",
+    "name": "Singularity Chain",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["striker"],
+    "statModifiers": {
+      "attack": 4,
+      "poise": 2,
+      "crit": 2
+    }
+  },
+  {
+    "id": "star_script_knot",
+    "name": "Star Script Knot",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["technique_fighter"],
+    "statModifiers": {
+      "technique": 4,
+      "speed": 2,
+      "ceOutput": 6
+    }
+  },
+  {
+    "id": "orbit_prism",
+    "name": "Orbit Prism",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["projection_sorcerer"],
+    "statModifiers": {
+      "technique": 5,
+      "crit": 2,
+      "ceReserve": 6
+    }
+  },
+  {
+    "id": "grave_vector_wrap",
+    "name": "Grave Vector Wrap",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 4,
+      "speed": 2,
+      "defense": 2
+    }
+  },
+  {
+    "id": "merger_fang",
+    "name": "Merger Fang",
+    "type": "weapon",
+    "rarity": "legendary",
+    "equipSlot": "weapon",
+    "classRestrictions": ["striker"],
+    "statModifiers": {
+      "attack": 7,
+      "poise": 3,
+      "crit": 2
+    }
+  },
+  {
+    "id": "starfold_seal",
+    "name": "Starfold Seal",
+    "type": "weapon",
+    "rarity": "legendary",
+    "equipSlot": "weapon",
+    "classRestrictions": ["technique_fighter"],
+    "statModifiers": {
+      "attack": 4,
+      "technique": 5,
+      "ceOutput": 8
+    }
+  },
+  {
+    "id": "axis_crown",
+    "name": "Axis Crown",
+    "type": "weapon",
+    "rarity": "legendary",
+    "equipSlot": "weapon",
+    "classRestrictions": ["projection_sorcerer"],
+    "statModifiers": {
+      "attack": 3,
+      "technique": 6,
+      "ceReserve": 8
+    }
+  },
+  {
+    "id": "eventide_harness",
+    "name": "Eventide Harness",
+    "type": "weapon",
+    "rarity": "legendary",
+    "equipSlot": "weapon",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 6,
+      "speed": 3,
+      "defense": 2
     }
   }
 ]

@@ -1,11 +1,11 @@
 import Phaser from "phaser";
 
 function getSceneFromRegionId(regionId) {
-  return regionId === "detention_center_boss_vault" || regionId === "barrier_shrine_boss_vault" || regionId === "shibuya_burn_sector_boss_vault" || regionId === "collapsed_cathedral_barrier_boss_vault"
+  return regionId === "detention_center_boss_vault" || regionId === "barrier_shrine_boss_vault" || regionId === "shibuya_burn_sector_boss_vault" || regionId === "collapsed_cathedral_barrier_boss_vault" || regionId === "merger_ossuary_boss_vault"
     ? "BossScene"
-    : regionId === "detention_center_dungeon" || regionId === "barrier_shrine_dungeon" || regionId === "shibuya_burn_sector_dungeon" || regionId === "collapsed_cathedral_barrier_dungeon"
+    : regionId === "detention_center_dungeon" || regionId === "barrier_shrine_dungeon" || regionId === "shibuya_burn_sector_dungeon" || regionId === "collapsed_cathedral_barrier_dungeon" || regionId === "merger_ossuary_dungeon"
       ? "DungeonScene"
-      : regionId === "detention_center" || regionId === "barrier_shrine" || regionId === "shibuya_burn_sector" || regionId === "collapsed_cathedral_barrier"
+      : regionId === "detention_center" || regionId === "barrier_shrine" || regionId === "shibuya_burn_sector" || regionId === "collapsed_cathedral_barrier" || regionId === "merger_ossuary"
         ? "RegionScene"
         : "HubScene";
 }

@@ -42,6 +42,20 @@
     "minibossBaseHp": 80
   },
   {
+    "id": "shatter_jailer_ring",
+    "regionId": "detention_center_dungeon",
+    "name": "Jailer Ring",
+    "styleTags": ["balanced", "predatory", "technical"],
+    "title": "Shatter Jailer Ring",
+    "directive": "Break through the holding ring, cut the chain lines, and bury the jailer sentinel before the rupture closes.",
+    "enemyIds": ["jailer_grade_2", "glass_hound_grade_3", "crawler_grade_4"],
+    "relicLabel": "Chain key",
+    "minibossLabel": "Ring sentinel",
+    "vaultLabel": "Lockdown vault",
+    "pressureLabel": "lockdown crush",
+    "minibossBaseHp": 86
+  },
+  {
     "id": "veil_fracture_nave",
     "regionId": "barrier_shrine_dungeon",
     "name": "Fracture Nave",
@@ -82,6 +96,20 @@
     "vaultLabel": "Prayer vault gate",
     "pressureLabel": "seal cadence",
     "minibossBaseHp": 90
+  },
+  {
+    "id": "veil_sutra_walk",
+    "regionId": "barrier_shrine_dungeon",
+    "name": "Sutra Walk",
+    "styleTags": ["balanced", "technical", "unread"],
+    "title": "Veil Sutra Walk",
+    "directive": "Advance through the sutra walk, read the drifting seal lines, and only shatter the sentinel when the chant field falters.",
+    "enemyIds": ["sutra_moth_grade_3", "cantor_grade_2", "seal_leech_grade_3"],
+    "relicLabel": "Sutra brand",
+    "minibossLabel": "Walk sentinel",
+    "vaultLabel": "Sutra vault",
+    "pressureLabel": "sutra drift",
+    "minibossBaseHp": 94
   },
   {
     "id": "cinder_cooling_run",
@@ -126,6 +154,20 @@
     "minibossBaseHp": 84
   },
   {
+    "id": "cinder_ash_choke",
+    "regionId": "shibuya_burn_sector_dungeon",
+    "name": "Ash Choke",
+    "styleTags": ["pressured", "balanced", "predatory"],
+    "title": "Cinder Ash Choke",
+    "directive": "Drive through the ash choke, keep the air lanes open, and cut the sentinel apart when the soot curtain breaks.",
+    "enemyIds": ["soot_serpent_grade_3", "kiln_imp_grade_3", "slag_brute_grade_2"],
+    "relicLabel": "Ash core",
+    "minibossLabel": "Choke sentinel",
+    "vaultLabel": "Ash vault",
+    "pressureLabel": "soot lock",
+    "minibossBaseHp": 88
+  },
+  {
     "id": "night_choir_passage",
     "regionId": "collapsed_cathedral_barrier_dungeon",
     "name": "Choir Passage",
@@ -166,5 +208,75 @@
     "vaultLabel": "Bell vault",
     "pressureLabel": "choir hush",
     "minibossBaseHp": 106
+  },
+  {
+    "id": "night_vesper_stairs",
+    "regionId": "collapsed_cathedral_barrier_dungeon",
+    "name": "Vesper Stairs",
+    "styleTags": ["balanced", "technical", "pressured"],
+    "title": "Night Vesper Stairs",
+    "directive": "Climb the vesper stairs, survive the bell tolls, and strike only when the cathedral hush opens a narrow lane.",
+    "enemyIds": ["vesper_bell_grade_2", "nocturne_feeder_grade_3", "eclipse_monk_grade_2"],
+    "relicLabel": "Vesper seal",
+    "minibossLabel": "Stair sentinel",
+    "vaultLabel": "Vesper vault",
+    "pressureLabel": "bell cadence",
+    "minibossBaseHp": 110
+  },
+  {
+    "id": "merger_orbit_nave",
+    "regionId": "merger_ossuary_dungeon",
+    "name": "Orbit Nave",
+    "styleTags": ["technical", "balanced"],
+    "title": "Merger Orbit Nave",
+    "directive": "Cross the orbit nave, pin the merger anchor, and break the ossuary sentinel when the vector field loosens.",
+    "enemyIds": ["merger_wisp_grade_3", "starved_orbit_grade_2", "ossuary_keeper_grade_2"],
+    "relicLabel": "Merger anchor",
+    "minibossLabel": "Orbit sentinel",
+    "vaultLabel": "Convergence vault",
+    "pressureLabel": "orbit collapse",
+    "minibossBaseHp": 114
+  },
+  {
+    "id": "merger_vector_court",
+    "regionId": "merger_ossuary_dungeon",
+    "name": "Vector Court",
+    "styleTags": ["aggressive", "predatory", "pressured"],
+    "title": "Merger Vector Court",
+    "directive": "Push the vector court, keep the anchor line stable, and only crack the sentinel when the merger tide staggers.",
+    "enemyIds": ["grave_vector_grade_1", "merger_wisp_grade_3", "starved_orbit_grade_2"],
+    "relicLabel": "Vector anchor",
+    "minibossLabel": "Court sentinel",
+    "vaultLabel": "Vector vault",
+    "pressureLabel": "vector crush",
+    "minibossBaseHp": 120
+  },
+  {
+    "id": "merger_ink_descent",
+    "regionId": "merger_ossuary_dungeon",
+    "name": "Ink Descent",
+    "styleTags": ["fresh", "unread", "technical"],
+    "title": "Merger Ink Descent",
+    "directive": "Descend the ink stair, survive the merger static, and punish only when the anchor tide gives you a seam.",
+    "enemyIds": ["merger_wisp_grade_3", "ossuary_keeper_grade_2", "grave_vector_grade_1"],
+    "relicLabel": "Ink anchor",
+    "minibossLabel": "Descent sentinel",
+    "vaultLabel": "Ink vault",
+    "pressureLabel": "static descent",
+    "minibossBaseHp": 124
+  },
+  {
+    "id": "merger_starwell",
+    "regionId": "merger_ossuary_dungeon",
+    "name": "Starwell",
+    "styleTags": ["balanced", "technical", "pressured"],
+    "title": "Merger Starwell",
+    "directive": "Hold the starwell, weather the orbit drag, and tear open the final seam when the ossuary field slips.",
+    "enemyIds": ["starved_orbit_grade_2", "grave_vector_grade_1", "merger_wisp_grade_3"],
+    "relicLabel": "Starwell anchor",
+    "minibossLabel": "Starwell sentinel",
+    "vaultLabel": "Starwell vault",
+    "pressureLabel": "orbit drag",
+    "minibossBaseHp": 128
   }
 ]

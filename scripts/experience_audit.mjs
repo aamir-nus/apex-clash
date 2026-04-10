@@ -91,13 +91,13 @@ const metrics = {
 };
 
 assert(classes.length === 4, "Expected exactly 4 class archetypes in content.");
-assert(combatRegions.length >= 3, "Expected at least 3 combat regions for the current slice.");
-assert(dungeons.length >= 9, "Expected at least 9 authored dungeon layouts for the current slice.");
-assert(enemies.length >= 9, "Expected at least 9 authored enemy types for the current slice.");
-assert(skills.length >= 11, "Expected at least 11 authored skills in content.");
+assert(combatRegions.length >= 5, "Expected at least 5 combat regions for the current slice.");
+assert(dungeons.length >= 20, "Expected at least 20 authored dungeon layouts for the current slice.");
+assert(enemies.length >= 20, "Expected at least 20 authored enemy types for the current slice.");
+assert(skills.length >= 20, "Expected at least 20 authored skills in content.");
 assert(equippableItems.length >= 18, "Expected at least 18 equippable items in content.");
-assert(consumables.length >= 2, "Expected consumables to be represented in rewards.");
-assert(materials.length >= 3, "Expected materials to be represented in rewards.");
+assert(consumables.length >= 5, "Expected consumables to be represented in rewards and crafting.");
+assert(materials.length >= 4, "Expected materials to be represented in rewards and crafting.");
 assert(epicRewards.length >= 8, "Expected epic route rewards across current regions.");
 
 assert(

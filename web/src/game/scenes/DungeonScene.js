@@ -41,6 +41,51 @@ function formatEncounterMix(content, variant) {
   return names.length > 0 ? names.join(" / ") : "Unknown threat mix";
 }
 
+function buildVariantPressureProfile(variant) {
+  const enemyIds = variant?.enemyIds ?? [];
+  const hasEnemy = (enemyId) => enemyIds.includes(enemyId);
+
+  return {
+    chainTaxCe: hasEnemy("jailer_grade_2") ? 3 : 0,
+    mergerTaxCe: hasEnemy("merger_wisp_grade_3") ? 4 : 0,
+    sanctumWindowBonusMs: hasEnemy("sutra_moth_grade_3") ? 220 : 0,
+    cinderBacklashHpBonus: hasEnemy("soot_serpent_grade_3") ? 2 : 0,
+    cinderBacklashCeBonus: hasEnemy("soot_serpent_grade_3") ? 3 : 0,
+    bellWindowPenaltyMs: hasEnemy("vesper_bell_grade_2") ? 180 : 0,
+    mergerWindowPenaltyMs: hasEnemy("starved_orbit_grade_2") ? 140 : 0,
+    bonusDamageMultiplier:
+      hasEnemy("grave_vector_grade_1") ? 1.12 : hasEnemy("jailer_grade_2") ? 1.08 : hasEnemy("sutra_moth_grade_3") ? 1.06 : hasEnemy("vesper_bell_grade_2") ? 1.1 : 1,
+    warningLabel:
+      hasEnemy("jailer_grade_2")
+        ? "Chain pressure"
+        : hasEnemy("sutra_moth_grade_3")
+          ? "Sutra drift"
+          : hasEnemy("soot_serpent_grade_3")
+            ? "Soot lock"
+            : hasEnemy("vesper_bell_grade_2")
+              ? "Bell toll"
+              : hasEnemy("merger_wisp_grade_3")
+                ? "Merger static"
+                : hasEnemy("grave_vector_grade_1")
+                  ? "Vector crush"
+              : null,
+    warningDetail:
+      hasEnemy("jailer_grade_2")
+        ? "Each commit bleeds CE until the sentinel falls."
+        : hasEnemy("sutra_moth_grade_3")
+          ? "The sutra drift extends fracture windows once the shield breaks."
+          : hasEnemy("soot_serpent_grade_3")
+            ? "Off-window pressure costs more HP and CE."
+            : hasEnemy("vesper_bell_grade_2")
+              ? "Bell tolls shorten the safe blackout window."
+              : hasEnemy("merger_wisp_grade_3")
+                ? "Every commit bleeds extra reserve CE through the merger field."
+                : hasEnemy("grave_vector_grade_1")
+                  ? "Vector curses hit harder when the opening finally comes."
+              : null
+  };
+}
+
 export class DungeonScene extends Phaser.Scene {
   constructor() {
     super("DungeonScene");
@@ -82,6 +127,7 @@ export class DungeonScene extends Phaser.Scene {
     this.feedbackText = null;
     this.feedbackWash = null;
     this.dungeonVariant = null;
+    this.variantPressure = null;
     // Phase 2: JJK Mechanics
     this.burnoutStacks = 0;
     this.lastCEUseTime = 0;
@@ -104,6 +150,7 @@ export class DungeonScene extends Phaser.Scene {
     const loadedSessionState = loadedSessionSummary?.sessionState ?? {};
     const combatSnapshot = this.registry.get("combatSnapshot") ?? loadedSessionState?.combatSnapshot ?? null;
     this.dungeonVariant = selectDungeonVariant(this.currentRegionId, this.content.dungeons ?? [], combatSnapshot);
+    this.variantPressure = buildVariantPressureProfile(this.dungeonVariant);
     this.playerState = loadedPlayerState
       ? cloneState(loadedPlayerState)
       : {
@@ -131,21 +178,29 @@ export class DungeonScene extends Phaser.Scene {
     const isVeilDungeon = this.currentRegionId === "barrier_shrine_dungeon";
     const isCinderDungeon = this.currentRegionId === "shibuya_burn_sector_dungeon";
     const isNightDungeon = this.currentRegionId === "collapsed_cathedral_barrier_dungeon";
+    const isMergerDungeon = this.currentRegionId === "merger_ossuary_dungeon";
     const boonKind = this.explorationBonus?.kind ?? "none";
     const baseSanctumShield =
       boonKind === "technique" ? 18 : boonKind === "pressure" ? 24 : 30;
     this.sanctumCycleMs = boonKind === "pressure" ? 1800 : 2000;
-    this.sanctumOpenMs = boonKind === "pressure" ? 1350 : 1100;
-    const variantBaseHp = this.dungeonVariant?.minibossBaseHp ?? (isNightDungeon ? 100 : isVeilDungeon ? 84 : 72);
+    this.sanctumOpenMs =
+      (boonKind === "pressure" ? 1350 : 1100) + (this.variantPressure?.sanctumWindowBonusMs ?? 0);
+    const variantBaseHp = this.dungeonVariant?.minibossBaseHp ?? (isMergerDungeon ? 118 : isNightDungeon ? 100 : isVeilDungeon ? 84 : 72);
     this.minibossHp = loadedSessionState.dungeonMinibossHp ?? variantBaseHp;
     if (isCinderDungeon) {
       this.minibossHp = loadedSessionState.dungeonMinibossHp ?? variantBaseHp;
       this.cinderCycleMs = boonKind === "pressure" ? 1450 : 1650;
       this.cinderOpenMs = boonKind === "pressure" ? 1050 : 900;
-      this.cinderBacklashHp = boonKind === "recovery" ? 1 : 3;
-      this.cinderBacklashCe = boonKind === "recovery" ? 2 : 4;
+      this.cinderBacklashHp = (boonKind === "recovery" ? 1 : 3) + (this.variantPressure?.cinderBacklashHpBonus ?? 0);
+      this.cinderBacklashCe = (boonKind === "recovery" ? 2 : 4) + (this.variantPressure?.cinderBacklashCeBonus ?? 0);
     }
-    this.sanctumShield = loadedSessionState.sanctumShield ?? (isVeilDungeon || isNightDungeon ? baseSanctumShield + (isNightDungeon ? 10 : 0) : 0);
+    this.sanctumShield = loadedSessionState.sanctumShield ?? (isVeilDungeon || isNightDungeon || isMergerDungeon ? baseSanctumShield + (isNightDungeon ? 10 : isMergerDungeon ? 16 : 0) : 0);
+    if (isNightDungeon && this.variantPressure?.bellWindowPenaltyMs) {
+      this.sanctumOpenMs = Math.max(520, this.sanctumOpenMs - this.variantPressure.bellWindowPenaltyMs);
+    }
+    if (isMergerDungeon && this.variantPressure?.mergerWindowPenaltyMs) {
+      this.sanctumOpenMs = Math.max(480, this.sanctumOpenMs - this.variantPressure.mergerWindowPenaltyMs);
+    }
     this.sanctumWindowOpen = Boolean(loadedSessionState.sanctumWindowOpen);
     this.lastSanctumWindowOpen = this.sanctumWindowOpen;
     this.cinderWindowOpen = Boolean(loadedSessionState.cinderWindowOpen);
@@ -153,19 +208,19 @@ export class DungeonScene extends Phaser.Scene {
     this.registry.set("loadedPlayerState", null);
     this.registry.set("loadedSessionSummary", null);
 
-    this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, isVeilDungeon ? 0x100d18 : isCinderDungeon ? 0x1a0f0c : isNightDungeon ? 0x090d1c : 0x0c1218);
-    this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, isVeilDungeon ? 0x20192b : isCinderDungeon ? 0x2d1811 : isNightDungeon ? 0x131c38 : 0x171f29, 1).setStrokeStyle(2, isVeilDungeon ? 0xe2b6ff : isCinderDungeon ? 0xffb36b : isNightDungeon ? 0xa9c4ff : 0x8fb9ff);
-    this.add.rectangle(300, 270, 160, 220, isVeilDungeon ? 0x1e2038 : isCinderDungeon ? 0x3a1e16 : isNightDungeon ? 0x18233f : 0x13283a, 0.22).setStrokeStyle(1, isVeilDungeon ? 0xd4b5ff : isCinderDungeon ? 0xff995a : isNightDungeon ? 0xc9d8ff : 0x74c0fc);
-    this.add.rectangle(488, 270, 140, 180, isVeilDungeon ? 0x203126 : isCinderDungeon ? 0x3f281a : isNightDungeon ? 0x1b1f34 : 0x2a1626, 0.2).setStrokeStyle(1, isVeilDungeon ? 0x87e0c2 : isCinderDungeon ? 0xffd08a : isNightDungeon ? 0x8e9cff : 0xe56b6f);
-    this.add.rectangle(660, 270, 180, 220, isVeilDungeon ? 0x341a3c : isCinderDungeon ? 0x472016 : isNightDungeon ? 0x1f2847 : 0x28161c, 0.22).setStrokeStyle(1, isVeilDungeon ? 0xffc9f5 : isCinderDungeon ? 0xff8a5b : isNightDungeon ? 0xd7e3ff : 0xff8f70);
-    this.add.rectangle(246, 238, 42, 134, isVeilDungeon ? 0xd4b5ff : isCinderDungeon ? 0xff995a : isNightDungeon ? 0xc9d8ff : 0x74c0fc, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
-    this.add.rectangle(418, 324, 54, 92, isVeilDungeon ? 0x87e0c2 : isCinderDungeon ? 0xffd08a : isNightDungeon ? 0x8e9cff : 0xe56b6f, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
-    this.add.rectangle(732, 248, 52, 150, isVeilDungeon ? 0xffc9f5 : isCinderDungeon ? 0xff8a5b : isNightDungeon ? 0xd7e3ff : 0xff8f70, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
+    this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, isVeilDungeon ? 0x100d18 : isCinderDungeon ? 0x1a0f0c : isNightDungeon ? 0x090d1c : isMergerDungeon ? 0x140d19 : 0x0c1218);
+    this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, isVeilDungeon ? 0x20192b : isCinderDungeon ? 0x2d1811 : isNightDungeon ? 0x131c38 : isMergerDungeon ? 0x26152a : 0x171f29, 1).setStrokeStyle(2, isVeilDungeon ? 0xe2b6ff : isCinderDungeon ? 0xffb36b : isNightDungeon ? 0xa9c4ff : isMergerDungeon ? 0xffb0eb : 0x8fb9ff);
+    this.add.rectangle(300, 270, 160, 220, isVeilDungeon ? 0x1e2038 : isCinderDungeon ? 0x3a1e16 : isNightDungeon ? 0x18233f : isMergerDungeon ? 0x2a1633 : 0x13283a, 0.22).setStrokeStyle(1, isVeilDungeon ? 0xd4b5ff : isCinderDungeon ? 0xff995a : isNightDungeon ? 0xc9d8ff : isMergerDungeon ? 0xf3d9ff : 0x74c0fc);
+    this.add.rectangle(488, 270, 140, 180, isVeilDungeon ? 0x203126 : isCinderDungeon ? 0x3f281a : isNightDungeon ? 0x1b1f34 : isMergerDungeon ? 0x35243c : 0x2a1626, 0.2).setStrokeStyle(1, isVeilDungeon ? 0x87e0c2 : isCinderDungeon ? 0xffd08a : isNightDungeon ? 0x8e9cff : isMergerDungeon ? 0xff73d0 : 0xe56b6f);
+    this.add.rectangle(660, 270, 180, 220, isVeilDungeon ? 0x341a3c : isCinderDungeon ? 0x472016 : isNightDungeon ? 0x1f2847 : isMergerDungeon ? 0x46224b : 0x28161c, 0.22).setStrokeStyle(1, isVeilDungeon ? 0xffc9f5 : isCinderDungeon ? 0xff8a5b : isNightDungeon ? 0xd7e3ff : isMergerDungeon ? 0xfce6ff : 0xff8f70);
+    this.add.rectangle(246, 238, 42, 134, isVeilDungeon ? 0xd4b5ff : isCinderDungeon ? 0xff995a : isNightDungeon ? 0xc9d8ff : isMergerDungeon ? 0xf3d9ff : 0x74c0fc, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
+    this.add.rectangle(418, 324, 54, 92, isVeilDungeon ? 0x87e0c2 : isCinderDungeon ? 0xffd08a : isNightDungeon ? 0x8e9cff : isMergerDungeon ? 0xff73d0 : 0xe56b6f, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
+    this.add.rectangle(732, 248, 52, 150, isVeilDungeon ? 0xffc9f5 : isCinderDungeon ? 0xff8a5b : isNightDungeon ? 0xd7e3ff : isMergerDungeon ? 0xfce6ff : 0xff8f70, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
     this.add.line(0, 0, 308, 270, 690, 270, 0xf6f1df, 0.18).setOrigin(0, 0).setLineWidth(2);
     this.add.circle(308, 270, 38, isVeilDungeon ? 0xd4b5ff : isCinderDungeon ? 0xff995a : 0x74c0fc, 0.04).setStrokeStyle(1, 0xf6f1df, 0.12);
     this.add.circle(490, 270, 46, isVeilDungeon ? 0x87e0c2 : isCinderDungeon ? 0xffd08a : 0xe56b6f, 0.04).setStrokeStyle(1, 0xf6f1df, 0.12);
     this.add.circle(690, 270, 52, isVeilDungeon ? 0xffc9f5 : isCinderDungeon ? 0xff8a5b : 0xff8f70, 0.04).setStrokeStyle(1, 0xf6f1df, 0.12);
-    this.add.text(260, 176, this.dungeonVariant?.relicLabel ?? (isVeilDungeon ? "Sigil chamber" : isCinderDungeon ? "Core chamber" : "Relic chamber"), {
+    this.add.text(260, 176, this.dungeonVariant?.relicLabel ?? (isVeilDungeon ? "Sigil chamber" : isCinderDungeon ? "Core chamber" : isNightDungeon ? "Eclipse chamber" : isMergerDungeon ? "Merger chamber" : "Relic chamber"), {
       color: "#c6d2dc",
       fontFamily: "monospace",
       fontSize: "12px"
@@ -181,7 +236,7 @@ export class DungeonScene extends Phaser.Scene {
       fontSize: "12px"
     });
 
-    this.add.text(100, 86, this.dungeonVariant?.title ?? (isVeilDungeon ? "Barrier Depth" : isCinderDungeon ? "Burn Zone Descent" : isNightDungeon ? "Domain Ascent" : "Detention Center Dungeon"), {
+    this.add.text(100, 86, this.dungeonVariant?.title ?? (isVeilDungeon ? "Barrier Depth" : isCinderDungeon ? "Burn Zone Descent" : isNightDungeon ? "Domain Ascent" : isMergerDungeon ? "Merger Descent" : "Detention Center Dungeon"), {
       color: "#f6f1df",
       fontFamily: "monospace",
       fontSize: "28px"
@@ -197,6 +252,8 @@ export class DungeonScene extends Phaser.Scene {
           ? "Stabilize the ember core, force open burn windows, then descend into the cinder vault.\nThis is the third authored route toward the v3 bar."
           : isNightDungeon
             ? "Anchor the eclipse sigil, break the cathedral sentinel, then climb into the final vault.\nThis is the first final-chapter route beyond the base 3-route loop."
+            : isMergerDungeon
+              ? "Anchor the merger seam, survive orbit drag, then break the convergence sentinel before the final vault locks.\nThis is the current endgame rung beyond the Night Cathedral climb."
           : "Claim the relic shard, defeat the miniboss sentinel, then push into the boss vault.\nThis is the first authored dungeon chain for demo flow."),
       {
         color: "#d9e7d2",
@@ -294,7 +351,7 @@ export class DungeonScene extends Phaser.Scene {
       fontSize: "12px"
     });
     this.add.rectangle(480, 428, 408, 24, 0x0d141d, 0.52).setStrokeStyle(1, 0xf6f1df, 0.12);
-    this.add.text(324, 420, isVeilDungeon ? "Sigil -> fracture shield -> sanctum vault" : isCinderDungeon ? "Core -> cooling breach -> cinder vault" : isNightDungeon ? "Sigil -> eclipse shield -> final vault" : "Relic -> sentinel -> boss vault", {
+    this.add.text(324, 420, isVeilDungeon ? "Sigil -> fracture shield -> sanctum vault" : isCinderDungeon ? "Core -> cooling breach -> cinder vault" : isNightDungeon ? "Sigil -> eclipse shield -> final vault" : isMergerDungeon ? "Anchor -> orbit breach -> convergence vault" : "Relic -> sentinel -> boss vault", {
       color: "#f6f1df",
       fontFamily: "monospace",
       fontSize: "12px"
@@ -372,6 +429,7 @@ export class DungeonScene extends Phaser.Scene {
     const isVeilDungeon = this.currentRegionId === "barrier_shrine_dungeon";
     const isCinderDungeon = this.currentRegionId === "shibuya_burn_sector_dungeon";
     const isNightDungeon = this.currentRegionId === "collapsed_cathedral_barrier_dungeon";
+    const isMergerDungeon = this.currentRegionId === "merger_ossuary_dungeon";
     const encounterMix = formatEncounterMix(this.content, this.dungeonVariant);
     emitRuntimeUpdate({
       scene: {
@@ -409,6 +467,12 @@ export class DungeonScene extends Phaser.Scene {
                     : this.sanctumWindowOpen
                       ? `Blackout window · HP ${this.minibossHp}`
                       : "Choir field active"
+                  : isMergerDungeon
+                    ? this.sanctumShield > 0
+                      ? `Merger shield ${this.sanctumShield}`
+                      : this.sanctumWindowOpen
+                        ? `Orbit breach · HP ${this.minibossHp}`
+                        : "Convergence drag active"
               : `Miniboss HP ${this.minibossHp}`
             : isVeilDungeon
               ? "Sigil search active"
@@ -416,8 +480,10 @@ export class DungeonScene extends Phaser.Scene {
                 ? "Core search active"
                 : isNightDungeon
                   ? "Eclipse sigil search active"
+                  : isMergerDungeon
+                    ? "Merger anchor search active"
                 : "Relic search active",
-        progress: (isVeilDungeon || isNightDungeon) && this.relicClaimed && !this.minibossDefeated
+        progress: (isVeilDungeon || isNightDungeon || isMergerDungeon) && this.relicClaimed && !this.minibossDefeated
           ? this.sanctumShield > 0
             ? Math.max(0, Math.min(1, 1 - this.sanctumShield / 36))
             : this.sanctumWindowOpen
@@ -438,12 +504,22 @@ export class DungeonScene extends Phaser.Scene {
                     label: this.dungeonVariant.name,
                     detail: `${this.dungeonVariant.pressureLabel} · ${encounterMix}`,
                     tone: "neutral"
-                  }
+                  },
+                  ...(this.variantPressure?.warningLabel
+                    ? [
+                        {
+                          id: "dungeon-pressure",
+                          label: this.variantPressure.warningLabel,
+                          detail: this.variantPressure.warningDetail,
+                          tone: "danger"
+                        }
+                      ]
+                    : [])
                 ]
               : []),
             {
               id: "dungeon-relic",
-              label: this.dungeonVariant?.relicLabel ?? (isVeilDungeon ? "Shrine sigil" : "Relic shard"),
+              label: this.dungeonVariant?.relicLabel ?? (isVeilDungeon ? "Shrine sigil" : isNightDungeon ? "Eclipse sigil" : isMergerDungeon ? "Merger anchor" : "Relic shard"),
               detail: "Miniboss chamber opened",
               tone: "boon"
             },
@@ -453,11 +529,11 @@ export class DungeonScene extends Phaser.Scene {
                   {
                     id: "dungeon-miniboss",
                     label: `${this.dungeonVariant?.minibossLabel ?? "Sentinel"} active`,
-                    detail: isVeilDungeon ? "Break the sanctum guardian" : "Break the chamber guardian",
+                    detail: isVeilDungeon ? "Break the sanctum guardian" : isMergerDungeon ? "Break the convergence guardian" : "Break the chamber guardian",
                     tone: "danger"
                   }
                 ]),
-            ...(isVeilDungeon && !this.minibossDefeated
+            ...((isVeilDungeon || isNightDungeon || isMergerDungeon) && !this.minibossDefeated
               ? [
                   ...(this.explorationBonus
                     ? [
@@ -476,13 +552,17 @@ export class DungeonScene extends Phaser.Scene {
                     : []),
                   {
                     id: "sanctum-cycle",
-                    label: this.sanctumWindowOpen ? "Fracture window" : "Sanctum sealed",
+                    label: this.sanctumWindowOpen ? (isNightDungeon ? "Blackout window" : isMergerDungeon ? "Orbit breach" : "Fracture window") : (isNightDungeon ? "Cathedral sealed" : isMergerDungeon ? "Merger sealed" : "Sanctum sealed"),
                     detail:
                       this.sanctumShield > 0
-                        ? "Strip the violet shield first"
+                        ? isMergerDungeon
+                          ? "Break the merger shield before the seam opens"
+                          : "Strip the violet shield first"
                         : this.sanctumWindowOpen
                           ? "Sentinel is vulnerable"
-                          : "Hold and strike on the fracture pulse",
+                          : isMergerDungeon
+                            ? "Hold until the orbit seam opens"
+                            : "Hold and strike on the fracture pulse",
                     tone: this.sanctumWindowOpen ? "boon" : "danger"
                   }
                 ]
@@ -506,8 +586,8 @@ export class DungeonScene extends Phaser.Scene {
         dungeonRelicClaimedRegionId: this.relicClaimed ? this.currentRegionId : null,
         dungeonMinibossDefeated: this.minibossDefeated,
         dungeonMinibossHp: this.minibossHp,
-        sanctumShield: isVeilDungeon ? this.sanctumShield : undefined,
-        sanctumWindowOpen: isVeilDungeon ? this.sanctumWindowOpen : undefined,
+        sanctumShield: (isVeilDungeon || isNightDungeon || isMergerDungeon) ? this.sanctumShield : undefined,
+        sanctumWindowOpen: (isVeilDungeon || isNightDungeon || isMergerDungeon) ? this.sanctumWindowOpen : undefined,
         cinderWindowOpen: isCinderDungeon ? this.cinderWindowOpen : undefined,
         unlockedRegionIds: this.playerProfile?.unlockedRegionIds ?? ["detention_center"]
       },
@@ -522,6 +602,14 @@ export class DungeonScene extends Phaser.Scene {
                 id: 0,
                 message: `Chamber profile: ${this.dungeonVariant.name} · ${this.dungeonVariant.pressureLabel}`
               },
+              ...(this.variantPressure?.warningLabel
+                ? [
+                    {
+                      id: -2,
+                      message: `${this.variantPressure.warningLabel}: ${this.variantPressure.warningDetail}`
+                    }
+                  ]
+                : []),
               {
                 id: -1,
                 message: `Encounter mix: ${encounterMix}`
@@ -543,13 +631,27 @@ export class DungeonScene extends Phaser.Scene {
                   ? this.cinderWindowOpen
                     ? "Cooling window open. Push damage before the core flares again."
                     : "Furnace surge active. Mistimed attacks still chip, but clean windows are faster."
+                : isNightDungeon
+                  ? this.sanctumShield > 0
+                    ? "Eclipse sigil claimed. Break the choir shield before the breach opens."
+                    : this.sanctumWindowOpen
+                      ? "Blackout window open. Force the cathedral sentinel down now."
+                      : "Choir field closed. Survive the hush until the breach returns."
+                : isMergerDungeon
+                  ? this.sanctumShield > 0
+                    ? "Merger anchor claimed. Break the convergence shield before the seam opens."
+                    : this.sanctumWindowOpen
+                      ? "Orbit breach open. Drive damage now."
+                      : "Orbit drag active. Wait for the seam instead of forcing it."
                 : "Relic claimed. Break the sentinel to unlock the boss vault."
             : isVeilDungeon
               ? "Claim the shrine sigil to wake the sanctum sentinel."
               : isCinderDungeon
                   ? "Claim the ember core to trigger the furnace sentinel."
                   : isNightDungeon
-                    ? "Claim the eclipse sigil to wake the cathedral sentinel."
+                  ? "Claim the eclipse sigil to wake the cathedral sentinel."
+                  : isMergerDungeon
+                    ? "Claim the merger anchor to wake the convergence sentinel."
                   : "Claim the relic shard to wake the chamber sentinel."
         }
       ],
@@ -581,8 +683,10 @@ export class DungeonScene extends Phaser.Scene {
         ? `${this.dungeonVariant?.relicLabel ?? "Shrine sigil"} secured`
         : this.currentRegionId === "shibuya_burn_sector_dungeon"
           ? `${this.dungeonVariant?.relicLabel ?? "Ember core"} stabilized`
-          : this.currentRegionId === "collapsed_cathedral_barrier_dungeon"
+        : this.currentRegionId === "collapsed_cathedral_barrier_dungeon"
             ? `${this.dungeonVariant?.relicLabel ?? "Eclipse sigil"} anchored`
+          : this.currentRegionId === "merger_ossuary_dungeon"
+            ? `${this.dungeonVariant?.relicLabel ?? "Merger anchor"} anchored`
           : `${this.dungeonVariant?.relicLabel ?? "Relic shard"} secured`,
       this.currentRegionId === "barrier_shrine_dungeon"
         ? 0xe2b6ff
@@ -590,6 +694,8 @@ export class DungeonScene extends Phaser.Scene {
           ? 0xffb36b
           : this.currentRegionId === "collapsed_cathedral_barrier_dungeon"
             ? 0xa9c4ff
+            : this.currentRegionId === "merger_ossuary_dungeon"
+              ? 0xff73d0
           : 0x8fb9ff
     );
     this.emitDungeonRuntime();
@@ -603,24 +709,38 @@ export class DungeonScene extends Phaser.Scene {
     const isVeilDungeon = this.currentRegionId === "barrier_shrine_dungeon";
     const isCinderDungeon = this.currentRegionId === "shibuya_burn_sector_dungeon";
     const isNightDungeon = this.currentRegionId === "collapsed_cathedral_barrier_dungeon";
-    const damage = Math.max(10, Math.floor(this.playerState.attack * 0.8));
+    const isMergerDungeon = this.currentRegionId === "merger_ossuary_dungeon";
+    const damage = Math.max(
+      10,
+      Math.floor(this.playerState.attack * 0.8 * (this.variantPressure?.bonusDamageMultiplier ?? 1))
+    );
     this.player.setPosition(this.miniboss.x - 64, this.miniboss.y);
 
-    if ((isVeilDungeon || isNightDungeon) && this.sanctumShield > 0) {
+    if (this.variantPressure?.chainTaxCe && !this.minibossDefeated) {
+      this.playerState.ce = Math.max(0, this.playerState.ce - this.variantPressure.chainTaxCe);
+    }
+    if (this.variantPressure?.mergerTaxCe && !this.minibossDefeated) {
+      this.playerState.ce = Math.max(0, this.playerState.ce - this.variantPressure.mergerTaxCe);
+    }
+
+    if ((isVeilDungeon || isNightDungeon || isMergerDungeon) && this.sanctumShield > 0) {
       const shieldBreak = Math.max(8, Math.floor(damage * 0.75));
       this.sanctumShield = Math.max(0, this.sanctumShield - shieldBreak);
       emitSoundEvent({ type: this.sanctumShield === 0 ? "enemy_down" : "skill_cast" });
       if (this.sanctumShield === 0 && isNightDungeon) {
         this.playSceneFeedback("Cathedral shield broken", 0xa9c4ff);
       }
+      if (this.sanctumShield === 0 && isMergerDungeon) {
+        this.playSceneFeedback("Merger shield broken", 0xff73d0);
+      }
       this.emitDungeonRuntime();
       return;
     }
 
-    if ((isVeilDungeon || isNightDungeon) && !this.sanctumWindowOpen) {
+    if ((isVeilDungeon || isNightDungeon || isMergerDungeon) && !this.sanctumWindowOpen) {
       this.playerState.ce = Math.max(0, this.playerState.ce - 6);
       this.playerState.hp = Math.max(1, this.playerState.hp - 3);
-      this.minibossHp = Math.max(0, this.minibossHp - Math.max(isNightDungeon ? 2 : 3, Math.floor(damage * (isNightDungeon ? 0.12 : 0.18))));
+      this.minibossHp = Math.max(0, this.minibossHp - Math.max(isNightDungeon || isMergerDungeon ? 2 : 3, Math.floor(damage * (isNightDungeon || isMergerDungeon ? 0.12 : 0.18))));
       emitSoundEvent({ type: "danger" });
       this.emitDungeonRuntime();
       return;
@@ -649,6 +769,8 @@ export class DungeonScene extends Phaser.Scene {
             ? `${this.dungeonVariant?.minibossLabel ?? "Furnace sentinel"} broken`
             : this.currentRegionId === "collapsed_cathedral_barrier_dungeon"
               ? `${this.dungeonVariant?.minibossLabel ?? "Cathedral sentinel"} broken`
+              : this.currentRegionId === "merger_ossuary_dungeon"
+                ? `${this.dungeonVariant?.minibossLabel ?? "Convergence sentinel"} broken`
             : `${this.dungeonVariant?.minibossLabel ?? "Sentinel"} broken`,
         0xb8f29b
       );
@@ -660,6 +782,8 @@ export class DungeonScene extends Phaser.Scene {
               ? "cinder_miniboss"
               : this.currentRegionId === "collapsed_cathedral_barrier_dungeon"
                 ? "night_miniboss"
+                : this.currentRegionId === "merger_ossuary_dungeon"
+                  ? "merger_miniboss"
               : "dungeon_miniboss",
         regionId: this.currentRegionId,
         sessionState: {
@@ -706,13 +830,19 @@ export class DungeonScene extends Phaser.Scene {
 
     this.isTransitioning = true;
     this.player.setPosition(this.bossGate.x, this.bossGate.y);
-    this.registry.set("currentRegionId", this.currentRegionId === "barrier_shrine_dungeon" ? "barrier_shrine_boss_vault" : "detention_center_boss_vault");
-    if (this.currentRegionId === "shibuya_burn_sector_dungeon") {
-      this.registry.set("currentRegionId", "shibuya_burn_sector_boss_vault");
-    }
-    if (this.currentRegionId === "collapsed_cathedral_barrier_dungeon") {
-      this.registry.set("currentRegionId", "collapsed_cathedral_barrier_boss_vault");
-    }
+    this.registry.set(
+      "currentRegionId",
+      this.currentRegionId === "barrier_shrine_dungeon"
+        ? "barrier_shrine_boss_vault"
+        : this.currentRegionId === "shibuya_burn_sector_dungeon"
+          ? "shibuya_burn_sector_boss_vault"
+          : this.currentRegionId === "collapsed_cathedral_barrier_dungeon"
+            ? "collapsed_cathedral_barrier_boss_vault"
+            : this.currentRegionId === "merger_ossuary_dungeon"
+              ? "merger_ossuary_boss_vault"
+              : "detention_center_boss_vault"
+    );
+    this.registry.set("currentDungeonVariant", this.dungeonVariant ?? null);
     emitTransitionUpdate({
       active: true,
       label: "Entering boss vault",
@@ -746,6 +876,8 @@ export class DungeonScene extends Phaser.Scene {
           ? "shibuya_burn_sector"
           : this.currentRegionId === "collapsed_cathedral_barrier_dungeon"
             ? "collapsed_cathedral_barrier"
+            : this.currentRegionId === "merger_ossuary_dungeon"
+              ? "merger_ossuary"
           : "detention_center"
     );
     emitTransitionUpdate({
@@ -775,6 +907,7 @@ export class DungeonScene extends Phaser.Scene {
     const isVeilDungeon = this.currentRegionId === "barrier_shrine_dungeon";
     const isCinderDungeon = this.currentRegionId === "shibuya_burn_sector_dungeon";
     const isNightDungeon = this.currentRegionId === "collapsed_cathedral_barrier_dungeon";
+    const isMergerDungeon = this.currentRegionId === "merger_ossuary_dungeon";
     const velocity = 160;
     this.player.body.setVelocity(0, 0);
 
@@ -806,13 +939,13 @@ export class DungeonScene extends Phaser.Scene {
       Phaser.Input.Keyboard.JustDown(this.skillKeys.Q) ||
       Phaser.Input.Keyboard.JustDown(this.skillKeys.R);
 
-    if ((isVeilDungeon || isNightDungeon) && this.relicClaimed && !this.minibossDefeated) {
+    if ((isVeilDungeon || isNightDungeon || isMergerDungeon) && this.relicClaimed && !this.minibossDefeated) {
       const cyclePosition = this.time.now % this.sanctumCycleMs;
       this.sanctumWindowOpen = this.sanctumShield <= 0 && cyclePosition >= this.sanctumCycleMs - this.sanctumOpenMs;
       if (this.sanctumWindowOpen !== this.lastSanctumWindowOpen) {
         this.lastSanctumWindowOpen = this.sanctumWindowOpen;
         emitSoundEvent({ type: this.sanctumWindowOpen ? "enemy_down" : "danger" });
-        this.minibossMarker.setColor(this.sanctumWindowOpen ? "#9bf6ff" : isNightDungeon ? "#d7e3ff" : "#ffd98b");
+        this.minibossMarker.setColor(this.sanctumWindowOpen ? "#9bf6ff" : isNightDungeon ? "#d7e3ff" : isMergerDungeon ? "#fce6ff" : "#ffd98b");
         this.emitDungeonRuntime();
       }
     }
@@ -836,6 +969,8 @@ export class DungeonScene extends Phaser.Scene {
             ? "Press E to claim the ember core"
             : isNightDungeon
               ? "Press E to claim the eclipse sigil"
+              : isMergerDungeon
+                ? "Press E to claim the merger anchor"
             : "Press E to claim the relic shard"
       );
     } else if (this.relicClaimed && !this.minibossDefeated && minibossDistance < 120) {
@@ -853,13 +988,19 @@ export class DungeonScene extends Phaser.Scene {
                 ? "Furnace sentinel active. Cooling breaches are best, but off-cycle pressure still chips."
                 : isNightDungeon
                   ? "Cathedral sentinel active. Strip the eclipse shield, then punish the blackout window."
-                : "Sentinel active. Pressure the chamber guardian."
+                  : isMergerDungeon
+                    ? "Convergence sentinel active. Break the merger shield, then strike on the orbit breach."
+                  : this.variantPressure?.warningLabel
+                    ? `${this.variantPressure.warningLabel} active. ${this.variantPressure.warningDetail}`
+                    : "Sentinel active. Pressure the chamber guardian."
             : isVeilDungeon
               ? "Follow the marker and secure the sigil."
               : isCinderDungeon
                 ? "Follow the marker and stabilize the core."
                 : isNightDungeon
                   ? "Follow the marker and anchor the eclipse sigil."
+                  : isMergerDungeon
+                    ? "Follow the marker and anchor the merger seam."
                 : "Follow the marker and secure the relic."
       );
     }

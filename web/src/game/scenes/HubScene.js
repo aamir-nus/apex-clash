@@ -44,6 +44,14 @@ const routeDisplay = {
     fill: 0x141b36,
     stroke: 0xa9c4ff,
     accent: 0x7aa2ff
+  },
+  merger_ossuary: {
+    name: "Merger Ossuary",
+    x: 760,
+    y: 228,
+    fill: 0x221425,
+    stroke: 0xf3d9ff,
+    accent: 0xff73d0
   }
 };
 
@@ -64,11 +72,13 @@ function mapBossVaultToClearedRegion(regionId) {
         ? "shibuya_burn_sector"
         : regionId === "collapsed_cathedral_barrier_boss_vault"
           ? "collapsed_cathedral_barrier"
+          : regionId === "merger_ossuary_boss_vault"
+            ? "merger_ossuary"
         : null;
 }
 
 function pickNextRecommendedRegion(unlockedRegionIds, clearedRegionIds) {
-  const routeOrder = ["detention_center", "barrier_shrine", "shibuya_burn_sector", "collapsed_cathedral_barrier"];
+  const routeOrder = ["detention_center", "barrier_shrine", "shibuya_burn_sector", "collapsed_cathedral_barrier", "merger_ossuary"];
   return (
     routeOrder.find((regionId) => unlockedRegionIds.includes(regionId) && !clearedRegionIds.includes(regionId)) ??
     routeOrder.find((regionId) => unlockedRegionIds.includes(regionId)) ??
@@ -105,7 +115,7 @@ export class HubScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.input.keyboard.resetKeys();
     this.enterKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
-    this.regionKeys = this.input.keyboard.addKeys("ONE,TWO,THREE,FOUR");
+    this.regionKeys = this.input.keyboard.addKeys("ONE,TWO,THREE,FOUR,FIVE");
     const profile = this.registry.get("playerProfile") ?? null;
     const loadedSessionSummary = this.registry.get("loadedSessionSummary") ?? null;
     this.routeReturnSummary = this.registry.get("routeReturnSummary") ?? null;
@@ -213,7 +223,7 @@ export class HubScene extends Phaser.Scene {
       150,
       this.firstRunTutorial
         ? "First deployment briefing.\n\nPress 1 to target Detention Center.\nPress ENTER to deploy.\nUse the browser shell to swap archetypes before stepping out."
-        : "Safe zone prototype.\n\nPress 1, 2, 3, or 4 to target an unlocked region.\nPress ENTER to deploy.\nSwitch archetypes from the browser shell before entering.",
+        : "Safe zone prototype.\n\nPress 1, 2, 3, 4, or 5 to target an unlocked region.\nPress ENTER to deploy.\nSwitch archetypes from the browser shell before entering.",
       {
         color: "#c6d2dc",
         fontFamily: "monospace",
@@ -269,8 +279,9 @@ export class HubScene extends Phaser.Scene {
     const barrierUnlocked = this.unlockedRegionIds.includes("barrier_shrine");
     const burnUnlocked = this.unlockedRegionIds.includes("shibuya_burn_sector");
     const cathedralUnlocked = this.unlockedRegionIds.includes("collapsed_cathedral_barrier");
+    const mergerUnlocked = this.unlockedRegionIds.includes("merger_ossuary");
     this.summaryText?.setText(
-      `Current build: ${definition?.name ?? "Unknown"}\nCombat style: ${definition?.combatStyle ?? "Unavailable"}\nSelected region: ${selectedRegion?.name ?? "Unknown"}\nNext recommended route: ${nextRegion?.name ?? "Unknown"}\nUnlocked routes: Detention Center${barrierUnlocked ? ", Barrier Shrine" : ""}${burnUnlocked ? ", Shibuya Burn Sector" : ""}${cathedralUnlocked ? ", Collapsed Cathedral Barrier" : ""}`
+      `Current build: ${definition?.name ?? "Unknown"}\nCombat style: ${definition?.combatStyle ?? "Unavailable"}\nSelected region: ${selectedRegion?.name ?? "Unknown"}\nNext recommended route: ${nextRegion?.name ?? "Unknown"}\nUnlocked routes: Detention Center${barrierUnlocked ? ", Barrier Shrine" : ""}${burnUnlocked ? ", Shibuya Burn Sector" : ""}${cathedralUnlocked ? ", Collapsed Cathedral Barrier" : ""}${mergerUnlocked ? ", Merger Ossuary" : ""}`
     );
     this.tutorialText?.setText(
       this.firstRunTutorial
@@ -346,7 +357,7 @@ export class HubScene extends Phaser.Scene {
         archetype: definition?.name ?? "Unknown Build"
       },
       controls: [
-        { key: "1 / 2 / 3 / 4", label: "Select region" },
+        { key: "1 / 2 / 3 / 4 / 5", label: "Select region" },
         { key: "ENTER", label: "Deploy" },
         { key: "Shell", label: "Switch build from browser UI" }
       ],
@@ -502,6 +513,10 @@ export class HubScene extends Phaser.Scene {
 
     if (Phaser.Input.Keyboard.JustDown(this.regionKeys.FOUR) && this.unlockedRegionIds.includes("collapsed_cathedral_barrier")) {
       this.handleRegionSelection("collapsed_cathedral_barrier");
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.regionKeys.FIVE) && this.unlockedRegionIds.includes("merger_ossuary")) {
+      this.handleRegionSelection("merger_ossuary");
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.enterKey)) {

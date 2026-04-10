@@ -24,8 +24,8 @@ Current honest status:
 - core demo path: ready
 - browser proof: green
 - deploy proof: green
-- presentation polish: demo-ready on the proven 4-route slice
-- content breadth: below full `v3` target
+- presentation polish: demo-ready on the proven 5-route slice
+- content breadth: improving, still below full `v3` target
 - JJK migration: Phase 1 terminology pass and Phase 2 system pass complete; Phase 3 content expansion remains
 
 Browser-proven now:
@@ -45,20 +45,29 @@ Browser-proven now:
 - boss extract now carries a route-clear recovery summary back into the hub, so return flow lands with visible payoff instead of an abrupt reset
 - the proven demo slice now has a minimal synth-audio byte layer for danger, route clear, extract, and hub return moments
 - active technique bindings use a 2-slot model: `Q` and `E`, with `R` reserved for `Domain Surge`
-- 4 authored region routes in the current slice: Shatter Block, Veil Shrine, Cinder Ward, and Night Cathedral
-- 12 authored dungeon chamber layouts now back the 4 current routes, selected from recent combat style and surfaced in-region before deployment
+- 5 authored region routes in the current slice: Shatter Block, Veil Shrine, Cinder Ward, Night Cathedral, and Merger Ossuary
+- 20 authored dungeon chamber layouts now back the 5 current routes, selected from recent combat style and surfaced in-region before deployment
 - route forecasts now surface authored enemy-family mixes from content before entering the chamber
+- chamber pressure now also reflects specific curse-family modifiers, so late-route variants change CE tax, safe-window timing, and backlash behavior instead of only changing flavor text
+- boss cadence now also inherits chamber-derived pressure modifiers, so the added curse families influence the actual end-of-route fight instead of stopping at the dungeon layer
 - the first full Shatter route is proven end to end in the browser gate: boon -> dungeon -> miniboss -> boss -> extract -> unlock
 - the Veil continuation route is also proven end to end in the browser gate: deploy -> boon -> dungeon -> miniboss -> boss -> scroll reward -> quick bind -> extract
 - the Cinder route is also proven end to end in the browser gate: deploy -> boon -> dungeon -> miniboss -> boss -> reward -> quick equip -> extract
 - the Night Cathedral final-ascent route is also proven end to end in the browser gate: deploy -> boon -> dungeon -> miniboss -> boss -> final scroll reward -> quick bind -> extract
+- the Merger Ossuary endgame route now extends the ladder past Night Cathedral: deploy -> boon -> dungeon -> miniboss -> boss -> legendary reward -> quick equip -> extract
 - Veil miniboss rewards are distinct from the Shatter route
 - Cinder miniboss rewards are distinct from both Shatter and Veil
 - route rewards can now include consumables and materials, not just equippable charms
 - Shatter boss scroll rewards now unlock class-specific skills and extend the scroll path beyond Veil alone
 - Veil boss scroll rewards unlock class-specific skills
 - inventory now supports stackable consumables/materials, consumable use, and recipe crafting
-- the longer browser path now proves consumable use, at least one successful craft, snapshot resume, live-profile resume, snapshot return, and manual sync on the expanded four-route run
+- Night-route materials now feed late-run crafting for Black Flash and domain-response items
+- newly added curse families now influence dungeon-sentinel pressure directly:
+  - Jailer variants tax CE on each commit
+  - Sutra variants extend sanctum fracture windows
+  - Soot variants harden burn backlash
+  - Vesper Bell variants tighten cathedral blackout timing
+- the longer browser path now proves consumable use, at least one successful craft, snapshot resume, live-profile resume, snapshot return, and manual sync on the expanded five-route run
 - inventory, moveset, and save panels now surface clearer next-step guidance, active slot counts, gear/stash grouping, recipe readiness, and run-recovery state
 - first-run onboarding now uses a staged route checklist in the shell, with stronger live emphasis on deploy, boon, dungeon, and boss milestones
 - route cards and route briefings now surface reward shape, unlock payoff, and route hazard framing instead of acting like generic progress boxes
@@ -76,7 +85,7 @@ Browser-proven now:
 - manual save snapshots plus profile-session resume
 - Mongo runtime verification now proves live profile, session, and save-slot persistence against a real Mongo-backed server
 - Mongo restart verification now proves re-login and progression recovery after server restart
-- Docker browser-flow verification now proves the full four-route gameplay loop against the deployed web and API stack
+- Docker browser-flow verification now proves the full five-route gameplay loop against the deployed web and API stack
 
 Implemented but still not release-polished:
 - scene dressing is still mostly prototype-grade
@@ -95,9 +104,9 @@ Missing for a credible `v3` release candidate:
 - broader browser UX pass across all screens and flows
 
 Active work:
-- broader authored content and reward pacing beyond the current 4-route slice
+- broader authored content and reward pacing beyond the current 5-route slice
 - Phase 3 JJK content expansion on top of the completed terminology and system passes
-- broader browser play coverage beyond the current four-route proof
+- broader browser play coverage beyond the current five-route proof
 - sprite and audio production pipeline
 - browser bundle hardening beyond the current audited Phaser budget
 - multi-region progression toward the `v3` release candidate bar
@@ -175,7 +184,7 @@ npm run test:smoke
 `test:mongo-restart` proves that a Mongo-backed user can log back in after a server restart and still retrieve the same profile region, cleared-route progression, and save slots.
 `test:mongo-runtime` starts the API against a real Mongo URI, checks `/health` persistence mode, then verifies profile/session/save flows are actually backed by Mongo rather than the memory fallback.
 `test:ui-flow-audit` verifies the player-facing browser flow surfaces for transitions, onboarding, save/resume visibility, reward banners, and bind confirmation.
-`test:browser-flow` now proves the full Shatter, Veil, Cinder, and Night Cathedral routes, including scroll quick-bind, reward quick-equip, consumable use, crafting, save-slot create, snapshot/live resume toggles, manual sync, and persistent cleared-route progression in the hub.
+`test:browser-flow` now proves the full Shatter, Veil, Cinder, Night Cathedral, and Merger Ossuary routes, including scroll quick-bind, reward quick-equip, consumable use, crafting, save-slot create, snapshot/live resume toggles, manual sync, and persistent cleared-route progression in the hub.
 
 Latest verified browser-flow timings:
 - login: `249ms`
@@ -199,7 +208,7 @@ Latest multi-route verified timings:
 - quick bind reward: `68ms`
 - manual sync: `152ms`
 
-Latest four-route verified timings:
+Latest five-route verified timings:
 - login: `536ms`
 - Shatter boss clear: `3899ms`
 - Veil boss clear: `7265ms`
@@ -226,50 +235,52 @@ Latest bundle audit:
 - `gameCanvasChunkKb`: `2.23`
 
 Latest expanded-content verification:
-- `test:experience-audit` reports `12` dungeon layouts
-- `test:experience-audit` reports `12` enemy families
-- `test:experience-audit` reports `19` skills
-- `test:experience-audit` reports `5` consumables
-- boss-scroll unlock routing now covers Shatter, Veil, and Night Cathedral
+- `test:experience-audit` reports `20` dungeon layouts
+- `test:experience-audit` reports `20` enemy families
+- `test:experience-audit` reports `26` skills
+- `test:experience-audit` reports `6` consumables
+- `test:experience-audit` reports `5` materials
+- route-end reward routing now covers Shatter, Veil, Cinder, Night Cathedral, and Merger Ossuary
 - inventory use/craft is backend-owned and now part of the proven profile contract
+- longer browser proof now also crafts `Black Flash Talisman` and `Domain Amplification Charm`
 
 Latest onboarding/readability verified timings:
-- local browser-flow after scene guidance pass: the guided route path stayed green and later expanded to 4 routes
+- local browser-flow after scene guidance pass: the guided route path stayed green and later expanded to 5 routes
 - first-run tutorial flag persists: `true`
-- cleared route count now reaches: `4`
+- cleared route count now reaches: `5`
 
 Latest combat-readability verification:
-- local browser-flow after telegraph/danger-state pass: the proven route path stayed green and later expanded to 4 routes
+- local browser-flow after telegraph/danger-state pass: the proven route path stayed green and later expanded to 5 routes
 - combat scenes now preserve route completion and save/resume behavior under the stronger feedback layer
 
 Latest authored-shell verification:
-- local browser-flow after route-briefing shell pass: the proven route path stayed green and later expanded to 4 routes
+- local browser-flow after route-briefing shell pass: the proven route path stayed green and later expanded to 5 routes
 - live route focus, directive copy, and route ladder summary stay aligned with the active scene
 
 Latest authored-scene verification:
-- local browser-flow after scene-dressing pass: the proven route path stayed green and later expanded to 4 routes
+- local browser-flow after scene-dressing pass: the proven route path stayed green and later expanded to 5 routes
 - route landmarks and chamber dressing did not break the proven browser path
 
 Latest pacing verification:
-- local browser-flow after route-tempo pass: the proven route path stayed green and later expanded to 4 routes
+- local browser-flow after route-tempo pass: the proven route path stayed green and later expanded to 5 routes
 - Veil boss clear now lands at `6318ms`
 - Cinder miniboss clear now lands at `2983ms`
 - Cinder boss clear now lands at `6282ms`
 
 Latest scene-feedback verification:
-- local browser-flow after chamber-callout pass: the proven route path stayed green and later expanded to 4 routes
+- local browser-flow after chamber-callout pass: the proven route path stayed green and later expanded to 5 routes
 - Veil miniboss clear now lands at `4300ms`
 - Cinder boss clear now lands at `5635ms`
 
 Latest impact-feedback verification:
-- local browser-flow after combat-hit and clear-emphasis pass: the proven route path stayed green and later expanded to 4 routes
+- local browser-flow after combat-hit and clear-emphasis pass: the proven route path stayed green and later expanded to 5 routes
 - Shatter boss clear now lands at `3494ms`
 - Cinder boss clear now lands at `5964ms`
 
 Latest demo-ready gate:
 - `npm run test:smoke` passed
 - `npm run test:docker-browser-flow` passed
-- current demo-ready claim applies to the proven 4-route browser/deployed slice, not the full `v3` scope
+- current demo-ready claim applies to the proven 5-route browser/deployed slice, not the full `v3` scope
 - extract and hub-return payoff is now part of that proven demo slice
 
 Latest release-hardening gate:
@@ -280,7 +291,7 @@ Latest release-hardening gate:
 ## Demo Checklist
 
 Tracked public demo bar:
-- browser gate green on all 4 routes
+- browser gate green on all 5 routes
 - Docker browser gate green
 - save/resume path green
 - reward/bind/equip feedback green
@@ -406,6 +417,7 @@ Immediate task breakdown:
    - add more dungeon layouts and final-chapter content depth
    - improve reward pacing and encounter variety
    - broaden loot, consumables, and material loops
+   - keep extending late-route crafting and domain-relic payoff
 4. Replace placeholder presentation:
    - adopt sprite-backed actors and stronger animation states
    - add a real sound pipeline instead of only lightweight cues

@@ -533,6 +533,55 @@ results.push(
 );
 
 results.push(
+  await runStep("PUT /player/session-state merger dungeon cleared", updatePlayerSession, {
+    id: "req-session-state-merger-dungeon-cleared",
+    authUser,
+    body: {
+      regionId: "merger_ossuary_dungeon",
+      sessionState: {
+        dungeonRelicClaimed: true,
+        dungeonRelicClaimedRegionId: "merger_ossuary_dungeon"
+      }
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim merger miniboss", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-merger-miniboss",
+    authUser,
+    body: {
+      rewardSource: "merger_miniboss",
+      regionId: "merger_ossuary_dungeon"
+    }
+  })
+);
+
+results.push(
+  await runStep("PUT /player/session-state merger boss cleared", updatePlayerSession, {
+    id: "req-session-state-merger-boss-cleared",
+    authUser,
+    body: {
+      regionId: "merger_ossuary_boss_vault",
+      sessionState: {
+        clearedBossRegionId: "merger_ossuary_boss_vault"
+      }
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim merger boss core", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-merger-boss",
+    authUser,
+    body: {
+      rewardSource: "merger_boss_core",
+      regionId: "merger_ossuary_boss_vault"
+    }
+  })
+);
+
+results.push(
   await runStep("POST /player/inventory/use field tonic", usePlayerInventoryConsumable, {
     id: "req-use-field-tonic-contract",
     authUser,
@@ -570,6 +619,30 @@ results.push(
       recipeId: "craft_furnace_draught"
     }
   })
+);
+
+results.push(
+  await runStep("POST /player/inventory/craft black flash talisman", craftPlayerInventoryReward, {
+    id: "req-craft-black-flash-talisman-contract",
+    authUser,
+    body: {
+      recipeId: "craft_black_flash_talisman"
+    }
+  })
+);
+
+results.push(
+  await runStep(
+    "POST /player/inventory/craft domain amplification charm",
+    craftPlayerInventoryReward,
+    {
+      id: "req-craft-domain-amplification-charm-contract",
+      authUser,
+      body: {
+        recipeId: "craft_domain_amplification_charm"
+      }
+    }
+  )
 );
 
 results.push(
@@ -841,7 +914,41 @@ const assertions = results.map((entry) => {
     expectation =
       entry.statusCode === 200 &&
       entry.payload?.data?.reward?.type === "scroll" &&
+      entry.payload?.data?.bonusRewards?.length === 3
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "PUT /player/session-state merger dungeon cleared") {
+    expectation =
+      entry.payload?.data?.currentRegionId === "merger_ossuary_dungeon" &&
+      entry.payload?.data?.sessionState?.dungeonRelicClaimedRegionId === "merger_ossuary_dungeon"
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim merger miniboss") {
+    expectation =
+      entry.statusCode === 200 &&
+      entry.payload?.data?.reward?.rarity === "epic" &&
       entry.payload?.data?.bonusRewards?.length === 2
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "PUT /player/session-state merger boss cleared") {
+    expectation =
+      entry.payload?.data?.currentRegionId === "merger_ossuary_boss_vault" &&
+      entry.payload?.data?.sessionState?.clearedBossRegionId === "merger_ossuary_boss_vault"
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim merger boss core") {
+    expectation =
+      entry.statusCode === 200 &&
+      entry.payload?.data?.reward?.rarity === "legendary" &&
+      entry.payload?.data?.bonusRewards?.length === 3
         ? "OK"
         : "BUG";
   }
@@ -872,6 +979,21 @@ const assertions = results.map((entry) => {
   if (entry.label === "POST /player/inventory/craft furnace draught") {
     expectation =
       entry.statusCode === 200 && entry.payload?.data?.craftedItem?.id === "furnace_draught"
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/inventory/craft black flash talisman") {
+    expectation =
+      entry.statusCode === 200 && entry.payload?.data?.craftedItem?.id === "black_flash_talisman"
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/inventory/craft domain amplification charm") {
+    expectation =
+      entry.statusCode === 200 &&
+      entry.payload?.data?.craftedItem?.id === "domain_amplification_charm"
         ? "OK"
         : "BUG";
   }

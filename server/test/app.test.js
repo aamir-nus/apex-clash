@@ -837,13 +837,74 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   );
   assert.equal(nightBossRewardResponse.statusCode, 200);
   assert.equal(nightBossRewardResponse.payload.data.reward.type, "scroll");
-  assert.equal(nightBossRewardResponse.payload.data.bonusRewards.length, 2);
+  assert.equal(nightBossRewardResponse.payload.data.bonusRewards.length, 3);
   assert.equal(
     nightBossRewardResponse.payload.data.profile.availableSkills.some(
       (skill) => skill.id === nightBossRewardResponse.payload.data.reward.id
     ),
     true
   );
+
+  const clearedMergerRelicSessionResponse = createMockResponse();
+  await updatePlayerSession(
+    {
+      ...request,
+      body: {
+        regionId: "merger_ossuary_dungeon",
+        sessionState: {
+          dungeonRelicClaimed: true,
+          dungeonRelicClaimedRegionId: "merger_ossuary_dungeon"
+        }
+      }
+    },
+    clearedMergerRelicSessionResponse
+  );
+  assert.equal(clearedMergerRelicSessionResponse.statusCode, 200);
+
+  const mergerMinibossRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "merger_miniboss",
+        regionId: "merger_ossuary_dungeon"
+      }
+    },
+    mergerMinibossRewardResponse
+  );
+  assert.equal(mergerMinibossRewardResponse.statusCode, 200);
+  assert.equal(mergerMinibossRewardResponse.payload.data.reward.rarity, "epic");
+  assert.equal(mergerMinibossRewardResponse.payload.data.bonusRewards.length, 2);
+
+  const clearedMergerBossSessionResponse = createMockResponse();
+  await updatePlayerSession(
+    {
+      ...request,
+      body: {
+        regionId: "merger_ossuary_boss_vault",
+        sessionState: {
+          clearedBossRegionId: "merger_ossuary_boss_vault"
+        }
+      }
+    },
+    clearedMergerBossSessionResponse
+  );
+  assert.equal(clearedMergerBossSessionResponse.statusCode, 200);
+
+  const mergerBossRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "merger_boss_core",
+        regionId: "merger_ossuary_boss_vault"
+      }
+    },
+    mergerBossRewardResponse
+  );
+  assert.equal(mergerBossRewardResponse.statusCode, 200);
+  assert.equal(mergerBossRewardResponse.payload.data.reward.rarity, "legendary");
+  assert.equal(mergerBossRewardResponse.payload.data.bonusRewards.length, 3);
 
   const consumeFieldTonicResponse = createMockResponse();
   await usePlayerInventoryConsumable(
@@ -917,6 +978,47 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   assert.equal(
     craftFurnaceDraughtResponse.payload.data.profile.inventoryItems.some(
       (item) => item.id === "furnace_draught" && item.quantity >= 1
+    ),
+    true
+  );
+
+  const craftBlackFlashTalismanResponse = createMockResponse();
+  await craftPlayerInventoryReward(
+    {
+      ...request,
+      body: {
+        recipeId: "craft_black_flash_talisman"
+      }
+    },
+    craftBlackFlashTalismanResponse
+  );
+  assert.equal(craftBlackFlashTalismanResponse.statusCode, 200);
+  assert.equal(craftBlackFlashTalismanResponse.payload.data.craftedItem.id, "black_flash_talisman");
+  assert.equal(
+    craftBlackFlashTalismanResponse.payload.data.profile.inventoryItems.some(
+      (item) => item.id === "black_flash_talisman" && item.quantity >= 1
+    ),
+    true
+  );
+
+  const craftDomainAmplificationCharmResponse = createMockResponse();
+  await craftPlayerInventoryReward(
+    {
+      ...request,
+      body: {
+        recipeId: "craft_domain_amplification_charm"
+      }
+    },
+    craftDomainAmplificationCharmResponse
+  );
+  assert.equal(craftDomainAmplificationCharmResponse.statusCode, 200);
+  assert.equal(
+    craftDomainAmplificationCharmResponse.payload.data.craftedItem.id,
+    "domain_amplification_charm"
+  );
+  assert.equal(
+    craftDomainAmplificationCharmResponse.payload.data.profile.inventoryItems.some(
+      (item) => item.id === "domain_amplification_charm" && item.quantity >= 1
     ),
     true
   );

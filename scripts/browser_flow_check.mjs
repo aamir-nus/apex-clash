@@ -25,6 +25,10 @@ function objectiveBanner(page) {
   return page.locator(".objective-banner");
 }
 
+function hudPanel(page, kicker) {
+  return page.locator(".hud-panel").filter({ has: page.getByText(kicker, { exact: true }) });
+}
+
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
@@ -471,6 +475,82 @@ async function run() {
     await page.getByText("Scene: Hub").waitFor();
     metrics.extractFromNightMs = Date.now() - nightExtractStartedAt;
 
+    await page.getByRole("button", { name: "Merger Ossuary", exact: true }).waitFor();
+
+    const mergerDeployStartedAt = Date.now();
+    await page.getByRole("button", { name: "Merger Ossuary", exact: true }).click();
+    await page.getByRole("button", { name: /Deploy To Merger Ossuary/ }).click();
+    await page.getByText("Scene: Region").waitFor();
+    await page.getByText("Route pressure: merger descent").waitFor();
+    metrics.transitionToMergerRegionMs = Date.now() - mergerDeployStartedAt;
+
+    const mergerBoonStartedAt = Date.now();
+    await page.getByRole("button", { name: "Secure Boon" }).click();
+    await page.getByText("Move to the gate and press E").waitFor();
+    metrics.claimMergerBoonMs = Date.now() - mergerBoonStartedAt;
+
+    const mergerDungeonStartedAt = Date.now();
+    await page.getByRole("button", { name: "Enter Dungeon" }).click();
+    await page.getByText("Scene: Dungeon").waitFor();
+    await page.getByText("Merger anchor search active").waitFor();
+    metrics.transitionToMergerDungeonMs = Date.now() - mergerDungeonStartedAt;
+
+    const mergerRelicStartedAt = Date.now();
+    await page.getByRole("button", { name: "Claim Relic" }).click();
+    await routeStatus(page, "Miniboss chamber").waitFor();
+    await delay(250);
+    metrics.claimMergerRelicMs = Date.now() - mergerRelicStartedAt;
+
+    const mergerMinibossStartedAt = Date.now();
+    const mergerMinibossTimeout = Date.now() + 24000;
+    while (Date.now() < mergerMinibossTimeout) {
+      const bossVaultOpen = await routeStatus(page, "Boss vault ready").isVisible().catch(() => false);
+      if (bossVaultOpen) {
+        break;
+      }
+
+      await page.getByRole("button", { name: "Strike Sentinel" }).click();
+      await delay(320);
+    }
+    await routeStatus(page, "Boss vault ready").waitFor();
+    metrics.mergerMinibossClearMs = Date.now() - mergerMinibossStartedAt;
+
+    const mergerBossStartedAt = Date.now();
+    await page.getByRole("button", { name: "Enter Boss Vault" }).click();
+    await page.getByText("Scene: Boss Vault").waitFor();
+    await hudPanel(page, "Combat State").getByText("Convergence curse", { exact: true }).waitFor();
+    metrics.transitionToMergerBossMs = Date.now() - mergerBossStartedAt;
+
+    const mergerBossClearStartedAt = Date.now();
+    const mergerBossTimeout = Date.now() + 32000;
+    while (Date.now() < mergerBossTimeout) {
+      const extractReady = await objectiveBanner(page).getByText("Extract with the clear").isVisible().catch(() => false);
+      if (extractReady) {
+        break;
+      }
+
+      await page.getByRole("button", { name: "Strike Boss" }).click();
+      await delay(320);
+    }
+    await objectiveBanner(page).getByText("Extract with the clear").waitFor();
+    await page.getByText(/^New reward:/).waitFor();
+    metrics.mergerBossClearMs = Date.now() - mergerBossClearStartedAt;
+
+    const mergerQuickEquipStartedAt = Date.now();
+    const mergerRewardName = (
+      (await inventoryPanel.locator(".reward-card strong").textContent()) ?? ""
+    ).replace("New reward: ", "").trim();
+    await page.getByRole("button", { name: "Quick equip" }).click();
+    if (mergerRewardName) {
+      await page.locator(".loadout-chip", { hasText: mergerRewardName }).first().waitFor();
+    }
+    metrics.mergerQuickEquipMs = Date.now() - mergerQuickEquipStartedAt;
+
+    const mergerExtractStartedAt = Date.now();
+    await page.getByRole("button", { name: "Extract" }).click();
+    await page.getByText("Scene: Hub").waitFor();
+    metrics.extractFromMergerMs = Date.now() - mergerExtractStartedAt;
+
     const useFieldTonicStartedAt = Date.now();
     const fieldTonicCard = page.locator(".inventory-card", { hasText: "Recovery Talisman" }).first();
     await fieldTonicCard.getByRole("button", { name: "Use" }).click();
@@ -499,6 +579,34 @@ async function run() {
       metrics.optionalSecondCraftWorked = false;
     }
 
+    const blackFlashRecipeCard = page.locator(".inventory-crafting .inventory-card", { hasText: "Black Flash Talisman" }).first();
+    const blackFlashCraftButton = blackFlashRecipeCard.getByRole("button", { name: "Craft" });
+    const blackFlashCraftEnabled = await blackFlashCraftButton.isEnabled().catch(() => false);
+    if (blackFlashCraftEnabled) {
+      const craftBlackFlashStartedAt = Date.now();
+      await blackFlashCraftButton.click();
+      await page.getByText("Crafted Black Flash Talisman").waitFor();
+      await page.locator(".inventory-card", { hasText: "Black Flash Talisman" }).first().waitFor();
+      metrics.craftBlackFlashTalismanMs = Date.now() - craftBlackFlashStartedAt;
+    } else {
+      metrics.craftBlackFlashTalismanMs = 0;
+    }
+
+    const domainAmplificationRecipeCard = page.locator(".inventory-crafting .inventory-card", {
+      hasText: "Domain Amplification Charm"
+    }).first();
+    const domainAmplificationCraftButton = domainAmplificationRecipeCard.getByRole("button", { name: "Craft" });
+    const domainAmplificationCraftEnabled = await domainAmplificationCraftButton.isEnabled().catch(() => false);
+    if (domainAmplificationCraftEnabled) {
+      const craftDomainAmplificationStartedAt = Date.now();
+      await domainAmplificationCraftButton.click();
+      await page.getByText("Crafted Domain Amplification Charm").waitFor();
+      await page.locator(".inventory-card", { hasText: "Domain Amplification Charm" }).first().waitFor();
+      metrics.craftDomainAmplificationCharmMs = Date.now() - craftDomainAmplificationStartedAt;
+    } else {
+      metrics.craftDomainAmplificationCharmMs = 0;
+    }
+
     const clearedRouteCards = page.locator(".route-progress-card").filter({ hasText: "Cleared route" });
     metrics.clearedRouteCount = await clearedRouteCards.count();
     const routeProgressText = (await page.locator(".route-progress-panel").textContent()) ?? "";
@@ -509,7 +617,9 @@ async function run() {
     metrics.clearedCinderVisible =
       routeProgressText.includes("Shibuya Burn Sector") && routeProgressText.includes("Cleared route");
     metrics.clearedNightVisible =
-      routeProgressText.includes("Collapsed Cathedral Barrier") && routeProgressText.includes("Current cleared route");
+      routeProgressText.includes("Collapsed Cathedral Barrier") && routeProgressText.includes("Cleared route");
+    metrics.clearedMergerVisible =
+      routeProgressText.includes("Merger Ossuary") && routeProgressText.includes("Current cleared route");
 
     const tutorialComplete = await page.evaluate(() =>
       window.localStorage.getItem("apex-clash:first-run-complete")
@@ -563,11 +673,12 @@ async function run() {
     assert(metrics.snapshotResumeBootWorks, "Snapshot resume did not drive the runtime through BootScene.");
     assert(metrics.liveResumeToggleWorks, "Resume toggle did not return to live profile mode.");
     assert(metrics.firstRunTutorialComplete, "First-run tutorial completion flag was not persisted.");
-    assert(metrics.clearedRouteCount === 4, "Expected all four routes to remain visibly cleared in the hub.");
+    assert(metrics.clearedRouteCount === 5, "Expected all five routes to remain visibly cleared in the hub.");
     assert(metrics.clearedShatterVisible, "Detention Center was not visibly marked cleared in the hub.");
     assert(metrics.clearedVeilVisible, "Barrier Shrine was not visibly marked cleared in the hub.");
     assert(metrics.clearedCinderVisible, "Shibuya Burn Sector was not visibly marked cleared in the hub.");
     assert(metrics.clearedNightVisible, "Collapsed Cathedral Barrier was not visibly marked cleared in the hub.");
+    assert(metrics.clearedMergerVisible, "Merger Ossuary was not visibly marked cleared in the hub.");
 
     await browser.close();
     browser = null;

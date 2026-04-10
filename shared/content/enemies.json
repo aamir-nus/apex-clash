@@ -60,6 +60,18 @@
     }
   },
   {
+    "id": "jailer_grade_2",
+    "name": "Jailer Curse",
+    "curseGrade": 2,
+    "aiTier": "fsm_utility",
+    "moveset": ["chain_snare", "cell_slam"],
+    "baseStats": {
+      "hp": 80,
+      "attack": 14,
+      "speed": 8
+    }
+  },
+  {
     "id": "cantor_grade_2",
     "name": "Chanting Curse",
     "curseGrade": 2,
@@ -80,6 +92,18 @@
     "baseStats": {
       "hp": 46,
       "attack": 10,
+      "speed": 12
+    }
+  },
+  {
+    "id": "sutra_moth_grade_3",
+    "name": "Sutra Moth Curse",
+    "curseGrade": 3,
+    "aiTier": "fsm",
+    "moveset": ["dust_fan", "sigil_drift"],
+    "baseStats": {
+      "hp": 47,
+      "attack": 11,
       "speed": 12
     }
   },
@@ -108,6 +132,18 @@
     }
   },
   {
+    "id": "soot_serpent_grade_3",
+    "name": "Soot Serpent Curse",
+    "curseGrade": 3,
+    "aiTier": "fsm",
+    "moveset": ["ash_burst", "coil_snap"],
+    "baseStats": {
+      "hp": 50,
+      "attack": 13,
+      "speed": 10
+    }
+  },
+  {
     "id": "nocturne_feeder_grade_3",
     "name": "Night Feeder Curse",
     "curseGrade": 3,
@@ -132,6 +168,18 @@
     }
   },
   {
+    "id": "vesper_bell_grade_2",
+    "name": "Vesper Bell Curse",
+    "curseGrade": 2,
+    "aiTier": "fsm_utility",
+    "moveset": ["bell_knell", "hush_field"],
+    "baseStats": {
+      "hp": 92,
+      "attack": 16,
+      "speed": 9
+    }
+  },
+  {
     "id": "cathedral_giant_grade_1",
     "name": "Great Cathedral Curse",
     "curseGrade": 1,
@@ -141,6 +189,54 @@
       "hp": 118,
       "attack": 19,
       "speed": 6
+    }
+  },
+  {
+    "id": "starved_orbit_grade_2",
+    "name": "Starved Orbit Curse",
+    "curseGrade": 2,
+    "aiTier": "fsm_utility",
+    "moveset": ["orbit_rend", "gravitic_pull"],
+    "baseStats": {
+      "hp": 94,
+      "attack": 17,
+      "speed": 9
+    }
+  },
+  {
+    "id": "merger_wisp_grade_3",
+    "name": "Merger Wisp Curse",
+    "curseGrade": 3,
+    "aiTier": "fsm",
+    "moveset": ["static_lash", "merger_glint"],
+    "baseStats": {
+      "hp": 56,
+      "attack": 14,
+      "speed": 13
+    }
+  },
+  {
+    "id": "ossuary_keeper_grade_2",
+    "name": "Ossuary Keeper Curse",
+    "curseGrade": 2,
+    "aiTier": "fsm_utility",
+    "moveset": ["vault_clamp", "anchor_pulse"],
+    "baseStats": {
+      "hp": 96,
+      "attack": 17,
+      "speed": 8
+    }
+  },
+  {
+    "id": "grave_vector_grade_1",
+    "name": "Grave Vector Curse",
+    "curseGrade": 1,
+    "aiTier": "utility_reactive",
+    "moveset": ["vector_cleave", "gravity_fold"],
+    "baseStats": {
+      "hp": 126,
+      "attack": 21,
+      "speed": 7
     }
   }
 ]

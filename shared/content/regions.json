@@ -28,5 +28,11 @@
     "name": "Collapsed Cathedral Barrier",
     "type": "region",
     "recommendedLevel": 14
+  },
+  {
+    "id": "merger_ossuary",
+    "name": "Merger Ossuary",
+    "type": "region",
+    "recommendedLevel": 18
   }
 ]

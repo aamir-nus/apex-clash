@@ -39,7 +39,8 @@ const routeToneById = {
   detention_center: "route-shatter",
   barrier_shrine: "route-veil",
   shibuya_burn_sector: "route-cinder",
-  collapsed_cathedral_barrier: "route-night"
+  collapsed_cathedral_barrier: "route-night",
+  merger_ossuary: "route-merger"
 };
 
 const routeBriefings = {
@@ -74,6 +75,14 @@ const routeBriefings = {
     reward: "Final scroll unlock + current end-of-slice completion",
     hazard: "Blackout cadence, seal pressure, and the harshest boss lane",
     unlock: "Completes the authored route ladder in the current slice"
+  },
+  merger_ossuary: {
+    label: "Merger Descent",
+    summary: "An endgame ossuary route built around orbit drag, merger static, and the heaviest reward gear in the current slice.",
+    directive: "Anchor the merger seam, survive the orbit drag, then break the convergence curse on the final breach.",
+    reward: "Legendary route-core weapon payoff + endgame material bank",
+    hazard: "Merger static, vector crush, and the steepest CE tax in the ladder",
+    unlock: "Extends the authored ladder past Night Cathedral into the current endgame rung"
   }
 };
 
@@ -117,6 +126,10 @@ function isRouteCleared(regionId, clearedRegionIds, unlockedRegionIds) {
     return unlockedRegionIds.includes("collapsed_cathedral_barrier");
   }
 
+  if (regionId === "collapsed_cathedral_barrier") {
+    return unlockedRegionIds.includes("merger_ossuary");
+  }
+
   return false;
 }
 
@@ -139,6 +152,10 @@ function mapRuntimeRegionToRouteId(regionId, selectedRegionId) {
 
   if (regionId === "collapsed_cathedral_barrier_dungeon" || regionId === "collapsed_cathedral_barrier_boss_vault") {
     return "collapsed_cathedral_barrier";
+  }
+
+  if (regionId === "merger_ossuary_dungeon" || regionId === "merger_ossuary_boss_vault") {
+    return "merger_ossuary";
   }
 
   return regionId;
