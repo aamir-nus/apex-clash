@@ -1,0 +1,143 @@
+[
+  {
+    "id": "grade_4",
+    "name": "Grade 4 Sorcerer",
+    "rank": 4,
+    "description": "Entry-grade sorcerer. Newly admitted students and apprentices.",
+    "levelThreshold": 1,
+    "promotionRequirements": {
+      "nextGrade": "grade_3",
+      "levelRequired": 5,
+      "grade3KillsRequired": 5,
+      "grade3BossRequired": 1
+    },
+    "xpMultipliers": {
+      "sameGrade": 1.0,
+      "oneGradeAbove": 1.5,
+      "twoGradesAbove": 2.2,
+      "lowerGrade": 0.7
+    },
+    "unlocks": [
+      "basic_techniques",
+      "hub_jujutsu_high"
+    ]
+  },
+  {
+    "id": "grade_3",
+    "name": "Grade 3 Sorcerer",
+    "rank": 3,
+    "description": "Junior sorcerer capable of handling routine curse extermination.",
+    "levelThreshold": 5,
+    "promotionRequirements": {
+      "nextGrade": "grade_2",
+      "levelRequired": 10,
+      "grade2KillsRequired": 10,
+      "regionClearRequired": "detention_center"
+    },
+    "xpMultipliers": {
+      "sameGrade": 1.0,
+      "oneGradeAbove": 1.5,
+      "twoGradesAbove": 2.2,
+      "lowerGrade": 0.7
+    },
+    "unlocks": [
+      "intermediate_techniques",
+      "detention_center",
+      "barrier_shrine"
+    ]
+  },
+  {
+    "id": "grade_2",
+    "name": "Grade 2 Sorcerer",
+    "rank": 2,
+    "description": "Established sorcerer trusted with significant missions.",
+    "levelThreshold": 10,
+    "promotionRequirements": {
+      "nextGrade": "grade_1",
+      "levelRequired": 15,
+      "grade1UniqueKillsRequired": 3,
+      "grade1TotalKillsRequired": 10,
+      "grade1TrialRequired": true
+    },
+    "xpMultipliers": {
+      "sameGrade": 1.0,
+      "oneGradeAbove": 1.5,
+      "twoGradesAbove": 2.2,
+      "lowerGrade": 0.7
+    },
+    "unlocks": [
+      "advanced_techniques",
+      "shibuya_burn_sector",
+      "simple_domain"
+    ]
+  },
+  {
+    "id": "grade_1",
+    "name": "Grade 1 Sorcerer",
+    "rank": 1,
+    "description": "Elite sorcerer. Among the strongest active fighters.",
+    "levelThreshold": 15,
+    "promotionRequirements": {
+      "nextGrade": "special_grade_candidate",
+      "levelRequired": 20,
+      "firstGradeTrialClearRate": 0.9,
+      "specialGradeDefeatRequired": 1,
+      "techniqueMasteryRequired": "grade_1_caliber"
+    },
+    "xpMultipliers": {
+      "sameGrade": 1.0,
+      "oneGradeAbove": 1.5,
+      "twoGradesAbove": 2.2,
+      "lowerGrade": 0.7
+    },
+    "unlocks": [
+      "master_techniques",
+      "collapsed_cathedral_barrier",
+      "merger_ossuary",
+      "domain_expansion"
+    ]
+  },
+  {
+    "id": "special_grade_candidate",
+    "name": "Special Grade Candidate",
+    "rank": 0,
+    "description": "Proven elite eligible for special-grade designation.",
+    "levelThreshold": 20,
+    "promotionRequirements": {
+      "nextGrade": "special_grade",
+      "levelRequired": 25,
+      "specialGradeKillsRequired": 2,
+      "ascensionEncounterRequired": true,
+      "techniqueMasteryRequired": "special_grade_caliber"
+    },
+    "xpMultipliers": {
+      "sameGrade": 1.0,
+      "oneGradeAbove": 1.5,
+      "twoGradesAbove": 2.2,
+      "lowerGrade": 0.7
+    },
+    "unlocks": [
+      "special_grade_hunts",
+      "anomaly_sectors"
+    ]
+  },
+  {
+    "id": "special_grade",
+    "name": "Special Grade Sorcerer",
+    "rank": -1,
+    "description": "The highest tier. Legendary status among sorcerers.",
+    "levelThreshold": 25,
+    "promotionRequirements": null,
+    "xpMultipliers": {
+      "sameGrade": 1.0,
+      "oneGradeAbove": 1.5,
+      "twoGradesAbove": 2.2,
+      "lowerGrade": 0.7
+    },
+    "unlocks": [
+      "s_class_ascension",
+      "remixed_domains",
+      "cursed_tool_forging"
+    ]
+  }
+]

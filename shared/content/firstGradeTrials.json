@@ -1,0 +1,404 @@
+[
+  {
+    "id": "trial_combat_mastery",
+    "name": "Trial of Combat Mastery",
+    "description": "Defeat waves of Grade 2 and Grade 1 curses without taking fatal damage",
+    "regionId": "barrier_shrine",
+    "unlockRequirements": {
+      "minGrade": "grade_2",
+      "minLevel": 10
+    },
+    "trialType": "combat_waves",
+    "waveCount": 5,
+    "waves": [
+      {
+        "waveNumber": 1,
+        "enemies": [
+          { "enemyId": "blaze_curse", "count": 3 },
+          { "enemyId": "ember_curse", "count": 2 }
+        ]
+      },
+      {
+        "waveNumber": 2,
+        "enemies": [
+          { "enemyId": "riot_curse", "count": 2 },
+          { "enemyId": "wailing_curse", "count": 3 }
+        ]
+      },
+      {
+        "waveNumber": 3,
+        "enemies": [
+          { "enemyId": "guardian_curse", "count": 2 },
+          { "enemyId": "fang_curse", "count": 4 }
+        ]
+      },
+      {
+        "waveNumber": 4,
+        "enemies": [
+          { "enemyId": "ritual_curse", "count": 2 },
+          { "enemyId": "chanting_curse", "count": 2 }
+        ]
+      },
+      {
+        "waveNumber": 5,
+        "boss": {
+          "enemyId": "great_cathedral_curse",
+          "curseGrade": "grade_1"
+        }
+      }
+    ],
+    "successCondition": "clear_all_waves",
+    "failureConditions": ["player_death", "time_limit_exceeded"],
+    "timeLimitSeconds": 600,
+    "rewards": {
+      "xpBonus": 500,
+      "items": [
+        {
+          "id": "trial_mastery_emblem",
+          "name": "Mastery Emblem",
+          "type": "charm",
+          "rarity": "epic"
+        }
+      ]
+    }
+  },
+  {
+    "id": "trial_black_flash_mastery",
+    "name": "Trial of Black Flash",
+    "description": "Land 5 Black Flash hits within a single combat encounter",
+    "regionId": "shibuya_burn_sector",
+    "unlockRequirements": {
+      "minGrade": "grade_2",
+      "minLevel": 12,
+      "blackFlashChainRequired": 1
+    },
+    "trialType": "mechanic_challenge",
+    "mechanicType": "black_flash_chain",
+    "requiredHits": 5,
+    "timeWindowMs": 120000,
+    "enemies": [
+      { "enemyId": "blaze_curse", "count": 5 },
+      { "enemyId": "ember_curse", "count": 5 }
+    ],
+    "successCondition": "land_5_black_flash_hits",
+    "failureConditions": ["time_limit_exceeded", "player_death"],
+    "timeLimitSeconds": 180,
+    "rewards": {
+      "xpBonus": 800,
+      "items": [
+        {
+          "id": "black_flash_talisman",
+          "name": "Black Flash Talisman",
+          "type": "consumable",
+          "rarity": "legendary",
+          "quantity": 3
+        }
+      ],
+      "techniqueMasteryBonus": 10
+    }
+  },
+  {
+    "id": "trial_domain_counter",
+    "name": "Trial of Domain Counter",
+    "description": "Defeat a Grade 1 curse without letting it complete domain expansion",
+    "regionId": "collapsed_cathedral_barrier",
+    "unlockRequirements": {
+      "minGrade": "grade_1",
+      "minLevel": 15,
+      "simpleDomainSkillRequired": true
+    },
+    "trialType": "boss_encounter",
+    "boss": {
+      "enemyId": "great_cathedral_curse",
+      "curseGrade": "grade_1",
+      "hasDomainExpansion": true,
+      "domainHpThreshold": 0.5
+    },
+    "successCondition": "defeat_before_domain_or_break_domain",
+    "failureConditions": ["player_death", "domain_activates_fully"],
+    "timeLimitSeconds": 300,
+    "rewards": {
+      "xpBonus": 1000,
+      "items": [
+        {
+          "id": "domain_amplification_charm",
+          "name": "Domain Amplification Charm",
+          "type": "charm",
+          "rarity": "legendary"
+        }
+      ],
+      "unlocks": ["simple_domain_enhanced"]
+    }
+  },
+  {
+    "id": "trial_endurance",
+    "name": "Trial of Endurance",
+    "description": "Survive 10 waves of increasingly powerful curses",
+    "regionId": "merger_ossuary",
+    "unlockRequirements": {
+      "minGrade": "grade_1",
+      "minLevel": 18
+    },
+    "trialType": "combat_waves",
+    "waveCount": 10,
+    "waves": [
+      {
+        "waveNumber": 1,
+        "enemies": [
+          { "enemyId": "jailer_curse", "count": 3 }
+        ]
+      },
+      {
+        "waveNumber": 2,
+        "enemies": [
+          { "enemyId": "sutra_moth_curse", "count": 3 }
+        ]
+      },
+      {
+        "waveNumber": 3,
+        "enemies": [
+          { "enemyId": "soot_serpent_curse", "count": 2 }
+        ]
+      },
+      {
+        "waveNumber": 4,
+        "enemies": [
+          { "enemyId": "vesper_bell_curse", "count": 2 },
+          { "enemyId": "starved_orbit_curse", "count": 2 }
+        ]
+      },
+      {
+        "waveNumber": 5,
+        "enemies": [
+          { "enemyId": "merger_wisp_curse", "count": 4 }
+        ]
+      },
+      {
+        "waveNumber": 6,
+        "enemies": [
+          { "enemyId": "ossuary_keeper_curse", "count": 2 }
+        ]
+      },
+      {
+        "waveNumber": 7,
+        "enemies": [
+          { "enemyId": "grave_vector_curse", "count": 1 },
+          { "enemyId": "merger_wisp_curse", "count": 3 }
+        ]
+      },
+      {
+        "waveNumber": 8,
+        "enemies": [
+          { "enemyId": "grave_vector_curse", "count": 2 }
+        ]
+      },
+      {
+        "waveNumber": 9,
+        "enemies": [
+          { "enemyId": "grave_vector_curse", "count": 3 }
+        ]
+      },
+      {
+        "waveNumber": 10,
+        "boss": {
+          "enemyId": "merger_boss",
+          "curseGrade": "special_grade",
+          "modifiedStats": { "hpMultiplier": 1.5 }
+        }
+      }
+    ],
+    "successCondition": "clear_all_waves",
+    "failureConditions": ["player_death"],
+    "timeLimitSeconds": 1200,
+    "rewards": {
+      "xpBonus": 2000,
+      "items": [
+        {
+          "id": "merger_ink",
+          "name": "Merger Ink",
+          "type": "material",
+          "rarity": "legendary",
+          "quantity": 5
+        }
+      ],
+      "techniqueMasteryBonus": 20
+    }
+  },
+  {
+    "id": "trial_burnout_mastery",
+    "name": "Trial of Burnout Mastery",
+    "description": "Defeat a Grade 2 boss while avoiding burnout backlash",
+    "regionId": "shibuya_burn_sector",
+    "unlockRequirements": {
+      "minGrade": "grade_2",
+      "minLevel": 12
+    },
+    "trialType": "boss_encounter_with_restriction",
+    "boss": {
+      "enemyId": "burn_sector_boss",
+      "curseGrade": "grade_2"
+    },
+    "restriction": {
+      "type": "burnout_limit",
+      "maxBurnoutStacks": 1,
+      "failOnExceed": true
+    },
+    "successCondition": "defeat_boss_without_exceeding_burnout_limit",
+    "failureConditions": ["player_death", "burnout_limit_exceeded"],
+    "timeLimitSeconds": 300,
+    "rewards": {
+      "xpBonus": 700,
+      "items": [
+        {
+          "id": "ce_output_prism",
+          "name": "Maximum Output Prism",
+          "type": "charm",
+          "rarity": "epic"
+        }
+      ],
+      "statBoosts": {
+        "ceOutput": 5
+      }
+    }
+  },
+  {
+    "id": "trial_technique_mastery",
+    "name": "Trial of Technique Mastery",
+    "description": "Clear a challenge encounter using only technique skills",
+    "regionId": "barrier_shrine",
+    "unlockRequirements": {
+      "minGrade": "grade_2",
+      "minLevel": 11,
+      "techniqueUsageCountRequired": 50
+    },
+    "trialType": "restricted_combat",
+    "restriction": {
+      "type": "technique_only",
+      "allowBasicAttacks": false,
+      "allowItems": false
+    },
+    "enemies": [
+      { "enemyId": "guardian_curse", "count": 3 },
+      { "enemyId": "chanting_curse", "count": 2 },
+      {
+        "boss": {
+          "enemyId": "ritual_curse",
+          "curseGrade": "grade_2"
+        }
+      }
+    ],
+    "successCondition": "defeat_all_using_only_techniques",
+    "failureConditions": ["player_death", "basic_attack_used"],
+    "timeLimitSeconds": 400,
+    "rewards": {
+      "xpBonus": 900,
+      "items": [
+        {
+          "id": "technique_prism",
+          "name": "Cursed Technique Prism",
+          "type": "charm",
+          "rarity": "legendary"
+        }
+      ],
+      "unlocks": ["technique_mastery_tier_2"]
+    }
+  },
+  {
+    "id": "trial_ascension_prep",
+    "name": "Trial of Ascension Preparation",
+    "description": "Defeat a special grade curse to prove readiness for ascension",
+    "regionId": "merger_ossuary",
+    "unlockRequirements": {
+      "minGrade": "special_grade_candidate",
+      "minLevel": 23,
+      "firstGradeTrialClearsRequired": 8
+    },
+    "trialType": "special_grade_encounter",
+    "specialGradeId": "hunger_census",
+    "successCondition": "defeat_special_grade",
+    "failureConditions": ["player_death"],
+    "timeLimitSeconds": 600,
+    "rewards": {
+      "xpBonus": 3000,
+      "items": [
+        {
+          "id": "ascension_key",
+          "name": "Ascension Key",
+          "type": "key_item",
+          "rarity": "legendary"
+        }
+      ],
+      "unlocks": ["ascension_encounter"],
+      "techniqueMasteryBonus": 30
+    }
+  },
+  {
+    "id": "trial_s_class_candidate",
+    "name": "Trial of S-Class Candidacy",
+    "description": "Complete all challenges to achieve S-Class Sorcerer status",
+    "regionId": "tokyo_jujutsu_high",
+    "unlockRequirements": {
+      "minGrade": "special_grade_candidate",
+      "minLevel": 25,
+      "specialGradeKillsRequired": 2,
+      "ascensionKeyRequired": true,
+      "techniqueMasteryRequired": "special_grade_caliber",
+      "allFirstGradeTrialsComplete": true
+    },
+    "trialType": "ascension_sequence",
+    "stages": [
+      {
+        "stageId": "combat gauntlet",
+        "description": "Defeat 20 Grade 1 curses without healing",
+        "enemies": [
+          { "enemyId": "grave_vector_curse", "count": 20 }
+        ],
+        "restrictions": ["no_healing"]
+      },
+      {
+        "stageId": "domain_clash",
+        "description": "Break a special grade domain",
+        "specialGradeId": "bell_of_last_rite",
+        "condition": "break_domain_before_boss_hp_50"
+      },
+      {
+        "stageId": "black_flash_mastery",
+        "description": "Land 10 Black Flash hits in one encounter",
+        "mechanic": "black_flash_chain",
+        "requiredHits": 10,
+        "timeLimit": 180
+      },
+      {
+        "stageId": "ascension duel",
+        "description": "Defeat the ascension guardian",
+        "boss": {
+          "enemyId": "ascension_guardian",
+          "curseGrade": "special_grade",
+          "baseStats": { "hp": 800, "attack": 35, "speed": 12 }
+        }
+      }
+    ],
+    "successCondition": "complete_all_stages",
+    "failureConditions": ["fail_any_stage"],
+    "timeLimitSeconds": 1800,
+    "rewards": {
+      "xpBonus": 5000,
+      "items": [
+        {
+          "id": "s_class_emblem",
+          "name": "S-Class Sorcerer Emblem",
+          "type": "key_item",
+          "rarity": "legendary"
+        },
+        {
+          "id": "cursed_tool_forge_hammer",
+          "name": "Cursed Tool Forge Hammer",
+          "type": "key_item",
+          "rarity": "legendary"
+        }
+      ],
+      "unlocks": ["s_class_sorcerer", "cursed_tool_forging", "remixed_domains"],
+      "promotionGrade": "special_grade"
+    }
+  }
+]

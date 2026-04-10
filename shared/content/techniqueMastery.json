@@ -1,0 +1,89 @@
+[
+  {
+    "id": "novice",
+    "name": "Novice",
+    "rank": 0,
+    "description": "Beginning practitioner. Basic technique usage only.",
+    "masteryProgress": 0,
+    "unlockThreshold": 0,
+    "bonuses": {
+      "techniqueDamage": 1.0,
+      "ceCostReduction": 0.0,
+      "cooldownReduction": 0.0
+    },
+    "abilities": []
+  },
+  {
+    "id": "refined",
+    "name": "Refined",
+    "rank": 1,
+    "description": "Competent practitioner. Techniques flow naturally.",
+    "masteryProgress": 25,
+    "unlockThreshold": 25,
+    "bonuses": {
+      "techniqueDamage": 1.1,
+      "ceCostReduction": 0.05,
+      "cooldownReduction": 0.05
+    },
+    "abilities": ["enhanced_technique_flow"]
+  },
+  {
+    "id": "advanced",
+    "name": "Advanced",
+    "rank": 2,
+    "description": "Skilled practitioner. Can chain techniques effectively.",
+    "masteryProgress": 50,
+    "unlockThreshold": 50,
+    "bonuses": {
+      "techniqueDamage": 1.2,
+      "ceCostReduction": 0.1,
+      "cooldownReduction": 0.1
+    },
+    "abilities": ["technique_chain_finisher", "reduced_burnout_risk"]
+  },
+  {
+    "id": "grade_1_caliber",
+    "name": "Grade 1 Caliber",
+    "rank": 3,
+    "description": "Elite technique mastery. Approaching special-grade potential.",
+    "masteryProgress": 75,
+    "unlockThreshold": 75,
+    "bonuses": {
+      "techniqueDamage": 1.35,
+      "ceCostReduction": 0.15,
+      "cooldownReduction": 0.15
+    },
+    "abilities": ["technique_chain_finisher", "reduced_burnout_risk", "black_flash_affinity_boost"],
+    "specialUnlocks": {
+      "striker": ["black_flash_cascade_plus"],
+      "technique_fighter": ["sealed_technique_release"],
+      "projection_sorcerer": ["domain_amplification"],
+      "heavenly_restriction": ["cursed_tool_mastery_plus"]
+    }
+  },
+  {
+    "id": "special_grade_caliber",
+    "name": "Special Grade Caliber",
+    "rank": 4,
+    "description": "Transcendent technique mastery. Maximum potential realized.",
+    "masteryProgress": 100,
+    "unlockThreshold": 100,
+    "bonuses": {
+      "techniqueDamage": 1.5,
+      "ceCostReduction": 0.2,
+      "cooldownReduction": 0.2
+    },
+    "abilities": [
+      "technique_chain_finisher",
+      "reduced_burnout_risk",
+      "black_flash_affinity_boost",
+      "domain_expansion_mastery"
+    ],
+    "specialUnlocks": {
+      "striker": ["infinite_void_suite"],
+      "technique_fighter": ["technique_supremacy"],
+      "projection_sorcerer": ["domain_expansion_plus"],
+      "heavenly_restriction": ["heavenly_restriction_ascension"]
+    }
+  }
+]

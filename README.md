@@ -26,7 +26,7 @@ Current honest status:
 - deploy proof: green
 - presentation polish: demo-ready on the proven 5-route slice
 - content breadth: improving, still below full `v3` target
-- JJK migration: Phase 1 terminology pass and Phase 2 system pass complete; Phase 3 content expansion remains
+- JJK migration: Phases 1 through 5 are implemented; current work is polish, presentation, and UX flow
 
 Browser-proven now:
 - browser launcher and Phaser play surface
@@ -80,6 +80,7 @@ Browser-proven now:
 - moveset surfaces now spell out combat role and build impact so new scrolls and rebound slots read like real technique decisions instead of raw cooldown cards
 - the live HUD now carries that same skill-role language, so bound techniques remain readable during active route play instead of only in the side panel
 - the live HUD now gives actionable route guidance for tonic timing, ready crafts, and the next unlock push instead of only describing current state
+- grade, technique mastery, trial progress, anomaly access, and ascension readiness now surface in both the shell and live HUD instead of living only in backend endpoints
 - the current combat slice now includes Phase 2 JJK systems: CE Output vs CE Reserve, Black Flash timing windows, technique burnout, domain/anti-domain setup, and cursed tool identity passives
 - backend-owned XP, level-up choices, session sync, and reward claims
 - manual save snapshots plus profile-session resume

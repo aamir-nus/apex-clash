@@ -28,7 +28,22 @@ function serializeMongoProfile(document) {
     equippedItemIds: clone(document.equippedItemIds),
     unlockedSkillIds: clone(document.unlockedSkillIds),
     equippedSkillIds: clone(document.equippedSkillIds),
-    computedStats: clone(document.computedStats)
+    computedStats: clone(document.computedStats),
+    // Phase 4: Grade progression fields
+    sorcererGrade: document.sorcererGrade ?? "grade_4",
+    gradePromotionProgress: document.gradePromotionProgress ?? 0,
+    gradeKillLedger: clone(document.gradeKillLedger ?? {}),
+    firstGradeTrialClears: clone(document.firstGradeTrialClears ?? []),
+    specialGradeCandidate: document.specialGradeCandidate ?? false,
+    specialGradeSightings: clone(document.specialGradeSightings ?? []),
+    specialGradeKills: clone(document.specialGradeKills ?? []),
+    // Phase 4B: Technique mastery fields
+    techniqueMasteryRank: document.techniqueMasteryRank ?? "novice",
+    techniqueMasteryProgress: document.techniqueMasteryProgress ?? 0,
+    techniqueUsageCount: clone(document.techniqueUsageCount ?? {}),
+    bossKillCount: document.bossKillCount ?? 0,
+    blackFlashChainCount: document.blackFlashChainCount ?? 0,
+    domainClashCount: document.domainClashCount ?? 0
   };
 }
 
@@ -44,8 +59,24 @@ export async function getPlayerProfileRecord(userId) {
 
 export async function upsertPlayerProfileRecord(profile) {
   if (!isMongoReady()) {
-    profiles.set(profile.userId, clone(profile));
-    return clone(profile);
+    const completeProfile = {
+      sorcererGrade: profile.sorcererGrade ?? "grade_4",
+      gradePromotionProgress: profile.gradePromotionProgress ?? 0,
+      gradeKillLedger: profile.gradeKillLedger ?? {},
+      firstGradeTrialClears: profile.firstGradeTrialClears ?? [],
+      specialGradeCandidate: profile.specialGradeCandidate ?? false,
+      specialGradeSightings: profile.specialGradeSightings ?? [],
+      specialGradeKills: profile.specialGradeKills ?? [],
+      techniqueMasteryRank: profile.techniqueMasteryRank ?? "novice",
+      techniqueMasteryProgress: profile.techniqueMasteryProgress ?? 0,
+      techniqueUsageCount: profile.techniqueUsageCount ?? {},
+      bossKillCount: profile.bossKillCount ?? 0,
+      blackFlashChainCount: profile.blackFlashChainCount ?? 0,
+      domainClashCount: profile.domainClashCount ?? 0,
+      ...profile
+    };
+    profiles.set(profile.userId, clone(completeProfile));
+    return clone(completeProfile);
   }
 
   const document = await PlayerProfileModel.findOneAndUpdate(
@@ -66,7 +97,22 @@ export async function upsertPlayerProfileRecord(profile) {
         equippedItemIds: profile.equippedItemIds,
         unlockedSkillIds: profile.unlockedSkillIds,
         equippedSkillIds: profile.equippedSkillIds,
-        computedStats: profile.computedStats
+        computedStats: profile.computedStats,
+        // Phase 4: Grade progression fields
+        sorcererGrade: profile.sorcererGrade ?? "grade_4",
+        gradePromotionProgress: profile.gradePromotionProgress ?? 0,
+        gradeKillLedger: profile.gradeKillLedger ?? {},
+        firstGradeTrialClears: profile.firstGradeTrialClears ?? [],
+        specialGradeCandidate: profile.specialGradeCandidate ?? false,
+        specialGradeSightings: profile.specialGradeSightings ?? [],
+        specialGradeKills: profile.specialGradeKills ?? [],
+        // Phase 4B: Technique mastery fields
+        techniqueMasteryRank: profile.techniqueMasteryRank ?? "novice",
+        techniqueMasteryProgress: profile.techniqueMasteryProgress ?? 0,
+        techniqueUsageCount: profile.techniqueUsageCount ?? {},
+        bossKillCount: profile.bossKillCount ?? 0,
+        blackFlashChainCount: profile.blackFlashChainCount ?? 0,
+        domainClashCount: profile.domainClashCount ?? 0
       }
     },
     {

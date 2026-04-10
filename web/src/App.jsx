@@ -161,6 +161,18 @@ function mapRuntimeRegionToRouteId(regionId, selectedRegionId) {
   return regionId;
 }
 
+function formatGradeLabel(grade) {
+  const labels = {
+    special_grade: "Special Grade",
+    special_grade_candidate: "Special Grade Candidate",
+    grade_1: "Grade 1",
+    grade_2: "Grade 2",
+    grade_3: "Grade 3",
+    grade_4: "Grade 4"
+  };
+  return labels[grade] ?? "Grade 4";
+}
+
 function buildSceneActions(scene, regionCards, selectedRegionId, encounterStatus) {
   if (scene === "hub") {
     return {
@@ -323,6 +335,25 @@ function App() {
       : mapRuntimeRegionToRouteId(runtime.regionId, runtime.selectedRegionId);
   const highlightedRoute = routeTracker.find((route) => route.id === highlightedRouteId) ?? routeTracker[0];
   const highlightedBriefing = routeBriefings[highlightedRoute?.id] ?? routeBriefings.detention_center;
+  const promotionSummary = playerProfile.gradeStatus?.eligible
+    ? `Promotion ready: ${playerProfile.gradeStatus?.nextGrade?.name ?? "next grade"}`
+    : playerProfile.gradeStatus?.issues?.[0] ?? "Keep clearing stronger curses to open the next promotion.";
+  const masterySummary = playerProfile.endgameStatus
+    ? `${(playerProfile.endgameStatus.techniqueMasteryRank ?? "novice").replace(/_/g, " ")} · ${playerProfile.endgameStatus.techniqueMasteryProgress ?? 0}%`
+    : `${(playerProfile.profile?.techniqueMasteryRank ?? "novice").replace(/_/g, " ")} · ${playerProfile.profile?.techniqueMasteryProgress ?? 0}%`;
+  const endgameSummary = playerProfile.endgameStatus
+    ? playerProfile.endgameStatus.ascensionComplete
+      ? "Ascension complete. Special Grade authority secured."
+      : playerProfile.endgameStatus.ascensionEligible
+        ? "Ascension ready. The S-Class trial can be attempted now."
+        : playerProfile.endgameStatus.ascensionIssues?.[0] ?? "Endgame systems locked behind grade and trial progress."
+    : "Endgame status sync pending.";
+  const trialSummary = playerProfile.endgameStatus?.trialCompletion
+    ? `${playerProfile.endgameStatus.trialCompletion.completed}/${playerProfile.endgameStatus.trialCompletion.total} trials cleared`
+    : `${playerProfile.profile?.firstGradeTrialClears?.length ?? 0} trials cleared`;
+  const anomalySummary = playerProfile.endgameStatus?.anomalySectorAccess?.length
+    ? `${playerProfile.endgameStatus.anomalySectorAccess.length} anomaly sectors accessible`
+    : "No anomaly sectors unlocked yet";
   const onboardingState = (() => {
     if (!firstRunTutorial) {
       return null;
@@ -614,6 +645,8 @@ function App() {
             loadoutFeedback={playerProfile.loadoutFeedback}
             profile={playerProfile.profile}
             routeBriefing={highlightedBriefing}
+            gradeStatus={playerProfile.gradeStatus}
+            endgameStatus={playerProfile.endgameStatus}
             nextCraftLabel={
               readyCraftRecipes[0]
                 ? `${readyCraftRecipes[0].result?.name ?? "Unknown recipe"} is ready to craft`
@@ -644,8 +677,20 @@ function App() {
             <div className="note-block">
               <strong>Current push</strong>
               <p>
-                Hold the proven four-route path, sharpen scene readability, and keep pushing toward authored encounter depth.
+                Hold the proven five-route path, sharpen scene readability, and keep pushing toward authored encounter depth.
               </p>
+            </div>
+            <div className="note-block progress-block">
+              <strong>Grade Track</strong>
+              <p>{formatGradeLabel(playerProfile.profile?.sorcererGrade)}</p>
+              <small>{promotionSummary}</small>
+              <small>Technique mastery: {masterySummary}</small>
+            </div>
+            <div className="note-block progress-block">
+              <strong>Endgame Status</strong>
+              <p>{endgameSummary}</p>
+              <small>{trialSummary}</small>
+              <small>{anomalySummary}</small>
             </div>
             <div className="note-block progress-block">
               <strong>Route Payoff</strong>
@@ -677,6 +722,18 @@ function App() {
                     ? `${nextLockedRoute.name} · level ${nextLockedRoute.recommendedLevel ?? "?"}`
                     : "Current route ladder complete"}
                 </span>
+              </div>
+              <div className="resource-card">
+                <strong>Promotion</strong>
+                <span>{promotionSummary}</span>
+              </div>
+              <div className="resource-card">
+                <strong>Trials</strong>
+                <span>{trialSummary}</span>
+              </div>
+              <div className="resource-card">
+                <strong>Anomaly Access</strong>
+                <span>{anomalySummary}</span>
               </div>
             </div>
             <div className="ux-list">

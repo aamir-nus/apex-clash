@@ -8,7 +8,14 @@ const requiredFiles = [
   "enemies.json",
   "items.json",
   "regions.json",
-  "skills.json"
+  "skills.json",
+  "promotionRules.json",
+  "specialGrades.json",
+  "techniqueMastery.json",
+  "encounterTables.json",
+  "anomalySectors.json",
+  "firstGradeTrials.json",
+  "ascensionEncounter.json"
 ];
 
 function assert(condition, message) {

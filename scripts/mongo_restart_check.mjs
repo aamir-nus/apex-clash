@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import crypto from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 
 const rootDir = process.cwd();
@@ -91,7 +92,7 @@ async function login(username, password) {
 }
 
 async function run() {
-  const username = `mongo_restart_${Date.now()}`;
+  const username = `r${crypto.randomUUID().replace(/-/g, "").slice(0, 11)}`;
   const password = "secret12";
   let server = spawnServer();
   let firstHealth = null;

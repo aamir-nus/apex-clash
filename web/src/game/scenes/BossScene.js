@@ -7,6 +7,7 @@ import {
   emitTransitionUpdate,
   subscribeToControlCommands
 } from "../runtime/runtimeBridge";
+import { recordBossKill } from "../../utils/gradeUtils";
 
 const arena = {
   width: 960,
@@ -856,12 +857,17 @@ export class BossScene extends Phaser.Scene {
     }
 
     this.rewardClaimed = true;
+    // Phase 4: Track boss kill for grade progression
+    const bossId = this.currentRegionId.replace("_boss_vault", "") + "_boss";
+
     if (this.currentRegionId === "detention_center_boss_vault") {
       emitInventoryReward({
         rewardSource: "shatter_boss_scroll",
         regionId: this.currentRegionId,
         sessionState: {
-          clearedBossRegionId: this.currentRegionId
+          clearedBossRegionId: this.currentRegionId,
+          bossKillCount: 1,
+          bossId
         }
       });
     }
@@ -870,7 +876,9 @@ export class BossScene extends Phaser.Scene {
         rewardSource: "veil_boss_scroll",
         regionId: this.currentRegionId,
         sessionState: {
-          clearedBossRegionId: this.currentRegionId
+          clearedBossRegionId: this.currentRegionId,
+          bossKillCount: 1,
+          bossId: "barrier_shrine_boss"
         }
       });
     }
@@ -879,7 +887,9 @@ export class BossScene extends Phaser.Scene {
         rewardSource: "cinder_boss_core",
         regionId: this.currentRegionId,
         sessionState: {
-          clearedBossRegionId: this.currentRegionId
+          clearedBossRegionId: this.currentRegionId,
+          bossKillCount: 1,
+          bossId: "shibuya_burn_sector_boss"
         }
       });
     }
@@ -888,7 +898,9 @@ export class BossScene extends Phaser.Scene {
         rewardSource: "night_boss_scroll",
         regionId: this.currentRegionId,
         sessionState: {
-          clearedBossRegionId: this.currentRegionId
+          clearedBossRegionId: this.currentRegionId,
+          bossKillCount: 1,
+          bossId: "collapsed_cathedral_barrier_boss"
         }
       });
     }
@@ -897,7 +909,9 @@ export class BossScene extends Phaser.Scene {
         rewardSource: "merger_boss_core",
         regionId: this.currentRegionId,
         sessionState: {
-          clearedBossRegionId: this.currentRegionId
+          clearedBossRegionId: this.currentRegionId,
+          bossKillCount: 1,
+          bossId: "merger_ossuary_boss"
         }
       });
     }

@@ -7,6 +7,8 @@ import {
   craftPlayerItem,
   equipPlayerItem,
   equipPlayerSkills,
+  fetchPlayerEndgameStatus,
+  fetchPlayerGradeStatus,
   fetchPlayerProfile,
   updatePlayerSessionState,
   updatePlayerClassType
@@ -86,23 +88,48 @@ function mergeProfileState(currentProfile, nextProfile) {
 
 export function usePlayerProfile(authToken, selectedArchetype) {
   const [profile, setProfile] = useState(null);
+  const [gradeStatus, setGradeStatus] = useState(null);
+  const [endgameStatus, setEndgameStatus] = useState(null);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
   const [latestReward, setLatestReward] = useState(null);
   const [loadoutFeedback, setLoadoutFeedback] = useState(null);
 
+  async function refreshProgressionStatus(token) {
+    if (!token) {
+      setGradeStatus(null);
+      setEndgameStatus(null);
+      return;
+    }
+
+    try {
+      const [nextGradeStatus, nextEndgameStatus] = await Promise.all([
+        fetchPlayerGradeStatus(token),
+        fetchPlayerEndgameStatus(token)
+      ]);
+      setGradeStatus(nextGradeStatus);
+      setEndgameStatus(nextEndgameStatus);
+    } catch (loadError) {
+      setError(loadError.message);
+    }
+  }
+
   useEffect(() => {
     if (!authToken) {
       setProfile(null);
+      setGradeStatus(null);
+      setEndgameStatus(null);
       setLatestReward(null);
       setLoadoutFeedback(null);
       return;
     }
 
     setStatus("loading");
-    fetchPlayerProfile(authToken)
-      .then((data) => {
+    Promise.all([fetchPlayerProfile(authToken), fetchPlayerGradeStatus(authToken), fetchPlayerEndgameStatus(authToken)])
+      .then(([data, nextGradeStatus, nextEndgameStatus]) => {
         setProfile(data);
+        setGradeStatus(nextGradeStatus);
+        setEndgameStatus(nextEndgameStatus);
         setStatus("ready");
       })
       .catch((loadError) => {
@@ -117,7 +144,10 @@ export function usePlayerProfile(authToken, selectedArchetype) {
     }
 
     updatePlayerClassType(authToken, selectedArchetype)
-      .then(setProfile)
+      .then(async (data) => {
+        setProfile(data);
+        await refreshProgressionStatus(authToken);
+      })
       .catch((updateError) => setError(updateError.message));
   }, [authToken, profile, selectedArchetype]);
 
@@ -130,6 +160,7 @@ export function usePlayerProfile(authToken, selectedArchetype) {
       try {
         const data = await applyPlayerCombatReward(authToken, rewardState);
         setProfile(data);
+        await refreshProgressionStatus(authToken);
       } catch (rewardError) {
         setError(rewardError.message);
       }
@@ -148,6 +179,7 @@ export function usePlayerProfile(authToken, selectedArchetype) {
           sessionState: rewardEvent.sessionState
         });
         setProfile(data.profile);
+        await refreshProgressionStatus(authToken);
         const hasPrimaryReward = Boolean(data.reward);
         const hasBonusRewards = (data.bonusRewards?.length ?? 0) > 0;
         setLatestReward(
@@ -174,6 +206,7 @@ export function usePlayerProfile(authToken, selectedArchetype) {
     const previousEquippedItems = profile?.equippedItems ?? [];
     const data = await equipPlayerItem(authToken, itemId);
     setProfile(data);
+    await refreshProgressionStatus(authToken);
     const equippedItem = data.equippedItems?.find((item) => item.id === itemId);
     setLoadoutFeedback({
       type: "gear",
@@ -200,6 +233,7 @@ export function usePlayerProfile(authToken, selectedArchetype) {
     const previousStats = profile?.computedStats ?? {};
     const data = await equipPlayerSkills(authToken, skillIds);
     setProfile(data);
+    await refreshProgressionStatus(authToken);
     const bindingSummary = buildSkillBindingSummary(data.equippedSkills ?? []);
     setLoadoutFeedback({
       type: "skills",
@@ -234,6 +268,7 @@ export function usePlayerProfile(authToken, selectedArchetype) {
     const previousStats = profile?.computedStats ?? {};
     const data = await consumePlayerItem(authToken, itemId);
     setProfile(data.profile);
+    await refreshProgressionStatus(authToken);
     setLoadoutFeedback({
       type: "consumable",
       createdAt: Date.now(),
@@ -252,6 +287,7 @@ export function usePlayerProfile(authToken, selectedArchetype) {
     const previousStats = profile?.computedStats ?? {};
     const data = await craftPlayerItem(authToken, recipeId);
     setProfile(data.profile);
+    await refreshProgressionStatus(authToken);
     setLatestReward(
       data.craftedItem
         ? {
@@ -282,12 +318,14 @@ export function usePlayerProfile(authToken, selectedArchetype) {
       pendingStatPoints: runtimePlayer.pendingStatPoints
     });
     setProfile(data);
+    await refreshProgressionStatus(authToken);
     return data;
   }
 
   async function syncSessionState(sessionUpdate) {
     const data = await updatePlayerSessionState(authToken, sessionUpdate);
     setProfile(data);
+    await refreshProgressionStatus(authToken);
     return data;
   }
 
@@ -301,6 +339,8 @@ export function usePlayerProfile(authToken, selectedArchetype) {
 
   return {
     profile,
+    gradeStatus,
+    endgameStatus,
     status,
     error,
     latestReward,

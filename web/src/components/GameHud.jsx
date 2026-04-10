@@ -42,12 +42,26 @@ function formatDelta(delta) {
   return `${delta > 0 ? "+" : ""}${delta}`;
 }
 
+function getGradeDisplay(gradeId) {
+  const gradeNames = {
+    special_grade: "Special",
+    special_grade_candidate: "Candidate",
+    grade_1: "1st",
+    grade_2: "2nd",
+    grade_3: "3rd",
+    grade_4: "4th"
+  };
+  return gradeNames[gradeId] || "4th";
+}
+
 export function GameHud({
   runtime,
   latestReward,
   loadoutFeedback,
   profile,
   routeBriefing,
+  gradeStatus,
+  endgameStatus,
   nextCraftLabel,
   nextUnlockLabel,
   soundEnabled,
@@ -60,6 +74,22 @@ export function GameHud({
   const activeConsumables = (profile?.inventoryItems ?? []).filter((item) =>
     activeConsumableIds.includes(item.id)
   );
+  const promotionLabel = gradeStatus?.eligible
+    ? `Promotion ready: ${gradeStatus?.nextGrade?.name ?? "next grade"}`
+    : gradeStatus?.issues?.[0] ?? "Promotion progress pending";
+  const masteryLabel = endgameStatus
+    ? `${(endgameStatus.techniqueMasteryRank ?? "novice").replace(/_/g, " ")} · ${endgameStatus.techniqueMasteryProgress ?? 0}%`
+    : `${(profile?.techniqueMasteryRank ?? "novice").replace(/_/g, " ")} · ${profile?.techniqueMasteryProgress ?? 0}%`;
+  const ascensionLabel = endgameStatus
+    ? endgameStatus.ascensionComplete
+      ? "Ascension complete"
+      : endgameStatus.ascensionEligible
+        ? "Ascension ready"
+        : endgameStatus.ascensionIssues?.[0] ?? "Ascension locked"
+    : "Ascension sync pending";
+  const anomalyLabel = endgameStatus?.anomalySectorAccess?.length
+    ? `${endgameStatus.anomalySectorAccess.length} anomaly sectors available`
+    : "No anomaly sectors open";
   const skillBindings = BINDABLE_SKILL_KEYS;
   const feedbackFresh = loadoutFeedback?.createdAt === activeFeedbackId;
   const highlightedCooldownKeys = new Set(
@@ -161,6 +191,7 @@ export function GameHud({
           <StatBar label="CE" value={runtime.player.ce} max={runtime.player.maxCe} tone="ce" />
           <div className="hud-meta">
             <span>Level {runtime.player.level}</span>
+            <span>Grade {getGradeDisplay(runtime.player.sorcererGrade)}</span>
             <span>XP {runtime.player.xp}</span>
             <span>Next {runtime.player.xpToNextLevel}</span>
             <span>Pts {runtime.player.pendingStatPoints}</span>
@@ -260,6 +291,36 @@ export function GameHud({
             <div className="effect-chip neutral">
               <strong>Do Next</strong>
               <span>{nextUnlockLabel ?? "Hold the current route ladder until the next unlock opens."}</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="hud-panel">
+          <p className="hud-kicker">Rank Track</p>
+          <div className="effect-grid">
+            <div className="effect-chip boon">
+              <strong>{gradeStatus?.currentGrade?.name ?? `Grade ${getGradeDisplay(runtime.player.sorcererGrade)}`}</strong>
+              <span>{promotionLabel}</span>
+            </div>
+            <div className="effect-chip neutral">
+              <strong>Technique Mastery</strong>
+              <span>{masteryLabel}</span>
+            </div>
+            <div className="effect-chip neutral">
+              <strong>Trials</strong>
+              <span>
+                {endgameStatus?.trialCompletion
+                  ? `${endgameStatus.trialCompletion.completed}/${endgameStatus.trialCompletion.total} cleared`
+                  : `${profile?.firstGradeTrialClears?.length ?? 0} cleared`}
+              </span>
+            </div>
+            <div className="effect-chip danger">
+              <strong>Ascension</strong>
+              <span>{ascensionLabel}</span>
+            </div>
+            <div className="effect-chip neutral">
+              <strong>Anomaly Access</strong>
+              <span>{anomalyLabel}</span>
             </div>
           </div>
         </section>

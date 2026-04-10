@@ -1,0 +1,170 @@
+[
+  {
+    "id": "ascension_trial",
+    "name": "S-Class Ascension Trial",
+    "description": "The final test to become a Special Grade Sorcerer",
+    "unlockRequirements": {
+      "minGrade": "special_grade_candidate",
+      "minLevel": 25,
+      "specialGradeKillsRequired": 2,
+      "techniqueMasteryRequired": "special_grade_caliber",
+      "allFirstGradeTrialsRequired": true,
+      "requiredItemId": "ascension_key"
+    },
+    "encounterType": "multi_stage_boss",
+    "stages": [
+      {
+        "stageId": "preparation",
+        "description": "Choose your loadout and preparation for the trial",
+        "allowPreparation": true,
+        "timeLimitSeconds": 60
+      },
+      {
+        "stageId": "combat_gauntlet",
+        "description": "Defeat waves of Grade 1 curses",
+        "waveCount": 5,
+        "waves": [
+          {
+            "waveNumber": 1,
+            "enemies": [{ "enemyId": "grave_vector_curse", "count": 3 }]
+          },
+          {
+            "waveNumber": 2,
+            "enemies": [{ "enemyId": "great_cathedral_curse", "count": 2 }]
+          },
+          {
+            "waveNumber": 3,
+            "enemies": [
+              { "enemyId": "grave_vector_curse", "count": 2 },
+              { "enemyId": "great_cathedral_curse", "count": 1 }
+            ]
+          },
+          {
+            "waveNumber": 4,
+            "enemies": [{ "enemyId": "grade_1_boss_variant", "count": 1 }]
+          },
+          {
+            "waveNumber": 5,
+            "enemies": [{ "enemyId": "grade_1_boss_variant", "count": 2 }]
+          }
+        ],
+        "restrictions": ["no_healing_items"],
+        "successCondition": "clear_all_waves",
+        "timeLimitSeconds": 600
+      },
+      {
+        "stageId": "black_flash_challenge",
+        "description": "Land 5 Black Flash hits within the time window",
+        "mechanic": "black_flash_chain",
+        "requiredHits": 5,
+        "timeWindowMs": 90000,
+        "enemies": [
+          { "enemyId": "training_dummy_curse", "count": 1 }
+        ],
+        "successCondition": "achieve_5_black_flash_hits",
+        "timeLimitSeconds": 120
+      },
+      {
+        "stageId": "domain_clash",
+        "description": "Break the ascension guardian's domain",
+        "boss": {
+          "enemyId": "ascension_guardian_phase1",
+          "curseGrade": "special_grade",
+          "baseStats": { "hp": 600, "attack": 30, "speed": 10 },
+          "hasDomainExpansion": true,
+          "domainBreakCondition": "land_10_hits_while_domain_active"
+        },
+        "successCondition": "break_domain_then_defeat",
+        "timeLimitSeconds": 300
+      },
+      {
+        "stageId": "final_trial",
+        "description": "Defeat the Ascension Guardian in true combat",
+        "boss": {
+          "enemyId": "ascension_guardian_phase2",
+          "curseGrade": "special_grade",
+          "baseStats": { "hp": 1000, "attack": 40, "speed": 14 },
+          "phases": [
+            {
+              "phase": 1,
+              "hpThreshold": 1.0,
+              "behavior": "Uses core moveset, tests player fundamentals"
+            },
+            {
+              "phase": 2,
+              "hpThreshold": 0.7,
+              "behavior": "Activates domain, player must counter"
+            },
+            {
+              "phase": 3,
+              "hpThreshold": 0.4,
+              "behavior": "Uses reversal, player must exploit opening"
+            },
+            {
+              "phase": 4,
+              "hpThreshold": 0.15,
+              "behavior": "Enraged state, all abilities available"
+            }
+          ],
+          "specialAbilities": [
+            "adaptive_counter",
+            "burnout_immunity",
+            "chain_ult_access",
+            "rct_on_phase_change"
+          ]
+        },
+        "successCondition": "defeat_guardian",
+        "failureConditions": ["player_death", "time_limit_exceeded"],
+        "timeLimitSeconds": 600
+      }
+    ],
+    "overallFailureConditions": ["fail_any_stage", "total_time_exceeded"],
+    "totalTimeLimitSeconds": 1800,
+    "rewards": {
+      "promotionGrade": "special_grade",
+      "title": "S-Class Sorcerer",
+      "xpBonus": 10000,
+      "items": [
+        {
+          "id": "s_class_emblem",
+          "name": "S-Class Sorcerer Emblem",
+          "type": "key_item",
+          "rarity": "legendary",
+          "description": "Proof of S-Class status. Unlocks endgame content."
+        },
+        {
+          "id": "cursed_tool_forge_hammer",
+          "name": "Cursed Tool Forge Hammer",
+          "type": "key_item",
+          "rarity": "legendary",
+          "description": "Enables cursed tool forging at the workshop."
+        },
+        {
+          "id": "domain_crystal",
+          "name": "Domain Crystal",
+          "type": "material",
+          "rarity": "legendary",
+          "description": "Used to create remixed domains."
+        }
+      ],
+      "unlocks": [
+        "s_class_sorcerer_status",
+        "cursed_tool_forging",
+        "remixed_domains",
+        "anomaly_sectors_full_access",
+        "special_grade_hunt_board"
+      ],
+      "statBoosts": {
+        "allStats": 5,
+        "ceOutput": 10,
+        "ceReserve": 10
+      },
+      "techniqueMasteryBonus": 50
+    },
+    "completionFlags": {
+      "flagId": "ascension_complete",
+      "persistOnProfile": true,
+      "unlocksNewGamePlus": true
+    }
+  }
+]

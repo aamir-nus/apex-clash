@@ -6,6 +6,14 @@ import {
   emitSoundEvent,
   emitTransitionUpdate
 } from "../runtime/runtimeBridge";
+import {
+  calculateXPReward,
+  curseGradeToGradeId,
+  getGradeDisplayInfo,
+  recordBossKill,
+  recordGradeKill,
+  recordTechniqueUsage
+} from "../../utils/gradeUtils";
 
 const arena = {
   width: 960,
@@ -121,6 +129,9 @@ export class CombatSandboxScene extends Phaser.Scene {
       enemy.staggeredUntil = 0;
       enemy.retreatUntil = 0;
       enemy.phaseShifted = false;
+      // Phase 4: Assign curseGrade based on enemy type for progression tracking
+      enemy.curseGrade = enemy.enemyType === "Crusher" ? 2 : enemy.enemyType === "Biter" ? 3 : 4;
+      enemy.enemyId = `sandbox_${enemy.enemyType.toLowerCase()}_${Date.now()}`;
       this.startEnemyIdleTween(enemy);
     });
 
@@ -696,8 +707,11 @@ export class CombatSandboxScene extends Phaser.Scene {
       target.active = false;
       target.body.enable = false;
       this.animateEnemyDefeat(target);
-      this.gainXp(15);
-      this.pushFeed("Curse eliminated. XP +15.");
+      // Phase 4: Track grade kills and apply XP multipliers
+      const enemyGrade = target.curseGrade ?? 4;
+      this.gainXp(15, enemyGrade, target.enemyId);
+      const gradeId = curseGradeToGradeId(enemyGrade);
+      this.pushFeed(`Curse eliminated (${gradeId.replace('_', ' ')}). XP +15.`);
       if (this.getEnemiesRemaining() === 0) {
         this.enemyRespawnCooldown = 2;
         this.playWaveClearFeedback();
@@ -1069,21 +1083,35 @@ export class CombatSandboxScene extends Phaser.Scene {
     return 30 + (level - 1) * 20;
   }
 
-  gainXp(amount) {
+  gainXp(amount, enemyCurseGrade = null, enemyId = null) {
+    const playerGrade = this.playerState?.sorcererGrade ?? "grade_4";
+    const finalXp = enemyCurseGrade !== null
+      ? calculateXPReward(amount, playerGrade, enemyCurseGrade)
+      : amount;
+
     if (this.playerProfile?.userId) {
       emitProgressionReward({
         level: this.playerState.level,
         xp: this.playerState.xp,
         pendingStatPoints: this.playerState.pendingStatPoints,
-        xpGained: amount,
-        source: "combat"
+        xpGained: finalXp,
+        source: "combat",
+        // Phase 4: Include grade tracking data
+        enemyCurseGrade,
+        playerGrade
       });
-      this.pushFeed(`Gained ${amount} XP. Syncing progression...`);
+      const gradeInfo = getGradeDisplayInfo(playerGrade);
+      const multiplier = enemyCurseGrade !== null
+        ? calculateXPReward(1, playerGrade, enemyCurseGrade)
+        : 1;
+      this.pushFeed(
+        `Gained ${finalXp} XP${multiplier > 1 ? ` (${multiplier}x vs Grade ${enemyCurseGrade})` : ""}. Syncing...`
+      );
       this.emitRuntime();
       return;
     }
 
-    this.playerState.xp += amount;
+    this.playerState.xp += finalXp;
     this.playerState.xpToNextLevel = this.getXpThreshold(this.playerState.level);
 
     while (this.playerState.xp >= this.playerState.xpToNextLevel) {
@@ -1176,6 +1204,12 @@ export class CombatSandboxScene extends Phaser.Scene {
       if (abilityId !== "basic") {
         this.combatSnapshot.skillsUsed += 1;
         this.playerState.ce = Math.max(0, this.playerState.ce - ceCost);
+        // Phase 4B: Track technique usage for mastery
+        // Map abilityId to skill slot - in full implementation, this would use equippedSkillIds from profile
+        const skillSlotMap = { skill_1: "q_slot", skill_2: "e_slot", domain: "r_slot" };
+        const skillSlot = skillSlotMap[abilityId] ?? abilityId;
+        this.combatSnapshot.techniqueUsage = this.combatSnapshot.techniqueUsage || {};
+        this.combatSnapshot.techniqueUsage[skillSlot] = (this.combatSnapshot.techniqueUsage[skillSlot] || 0) + 1;
       } else {
         this.combatSnapshot.basicsUsed += 1;
         this.openPrecisionWindow(320);

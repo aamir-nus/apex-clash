@@ -1,0 +1,390 @@
+[
+  {
+    "id": "smallpox_deity",
+    "name": "Smallpox Deity",
+    "title": "Plague Incarnate",
+    "origin": "Manifested from collective fear of disease during historic epidemics",
+    "threatClass": "special_grade",
+    "encounterType": "fixed",
+    "spawnRules": {
+      "regions": ["shibuya_burn_sector_dungeon"],
+      "trigger": "boss_vault",
+      "conditions": {
+        "minGrade": "grade_2",
+        "minLevel": 12
+      }
+    },
+    "visualTheme": {
+      "silhouette": "Rotund, draped in funeral shrouds, coffin floating behind",
+      "colorLanguage": "Decayed purples, infection greens, funeral blacks",
+      "vfxLanguage": "Spores, miasma clouds, burial chains"
+    },
+    "curseConcept": "Disease, burial rituals, anti-heal",
+    "passiveAura": {
+      "name": "Miasma Field",
+      "effect": "Healing reduced by 50% within domain radius",
+      "radius": 300
+    },
+    "buffs": [
+      {
+        "name": "Burial Stacks",
+        "description": "Each hit applies a burial stack. At 5 stacks, player is briefly buried."
+      }
+    ],
+    "debuffs": [
+      {
+        "name": "Decay",
+        "description": "Player max HP gradually decreases while in domain."
+      }
+    ],
+    "baseStats": {
+      "hp": 500,
+      "attack": 25,
+      "speed": 8,
+      "ceOutput": 80,
+      "ceReserve": 50
+    },
+    "moveset": {
+      "core": ["spore_cloud", "coffin_summon", "burial_chains"],
+      "variants": ["plague_wave", "funeral_rite", "infection_burst"],
+      "ultPool": ["coffain_domain_expansion", "rebirth_cycle"]
+    },
+    "phases": [
+      {
+        "id": "phase_1",
+        "hpThreshold": 1.0,
+        "behavior": "Uses core moveset, applies burial stacks",
+        "specialRules": []
+      },
+      {
+        "id": "phase_2",
+        "hpThreshold": 0.6,
+        "behavior": "Coffin activates, gains funeral rites",
+        "specialRules": ["coffain_activates"]
+      },
+      {
+        "id": "phase_3",
+        "hpThreshold": 0.3,
+        "behavior": "Domain expansion, rebirth cycle",
+        "specialRules": ["domain_active", "rebirth_cycle"]
+      }
+    ],
+    "domainExpansion": {
+      "id": "coffain_domain",
+      "name": "Coffin Domain: Funeral Procession",
+      "description": "Endless coffins surround the arena. Player must dodge while finding opening.",
+      "effects": [
+        "Healing disabled",
+        "Max HP drain per second",
+        "Limited movement due to coffin obstacles"
+      ]
+    },
+    "rct": {
+      "hasRCT": false,
+      "reversalAccess": true
+    },
+    "techniqueReversal": {
+      "available": true,
+      "trigger": "Player uses domain expansion skill"
+    },
+    "counterplay": {
+      "weaknesses": [
+        "Anti-domain skills interrupt coffin domain",
+        "Black Flash chains stagger rebirth cycle"
+      ],
+      "strategies": [
+        "Clear burial stacks by moving quickly",
+        "Destroy coffin during phase 2",
+        "Chain Black Flash hits during rebirth window"
+      ]
+    },
+    "requiredKillCondition": {
+      "type": "mechanic_chain",
+      "description": "Chain 3 Black Flash hits during rebirth window to permanently kill",
+      "failState": "If failed, Smallpox Deity heals to 50% and restarts phase 3"
+    },
+    "rewardTable": {
+      "baseRewards": [
+        {
+          "id": "smallpox_relic",
+          "name": "Smallpox Relic",
+          "type": "material",
+          "rarity": "legendary"
+        }
+      ],
+      "techniqueMastery": "grade_1_caliber",
+      "xpBonus": 500
+    },
+    "artBrief": {
+      "intro": "Rises from ground as miasma parts, coffin floats from behind",
+      "idle": "Gentle hovering, occasional miasma exhalation",
+      "telegraphs": "Spore clouds gather before large attacks",
+      "domainTransition": "Arena darkens, countless coffins rise from ground",
+      "death": "Body crumbles into spores, coffin shatters"
+    }
+  },
+  {
+    "id": "hunger_census",
+    "name": "The Hunger Census",
+    "title": "Debt Collector",
+    "origin": "Born from collective fear of famine, debt, and counting calories",
+    "threatClass": "special_grade",
+    "encounterType": "random_invasion",
+    "spawnRules": {
+      "regions": ["merger_ossuary_dungeon"],
+      "trigger": "random_invasion",
+      "chancePerRoom": 0.05,
+      "conditions": {
+        "minGrade": "grade_1",
+        "minLevel": 15
+      }
+    },
+    "visualTheme": {
+      "silhouette": "Tall, gaunt figure with counting ledger floating, skeletal hands",
+      "colorLanguage": "Dried blood reds, parchment yellows, void blacks",
+      "vfxLanguage": "Counting numerals, debt chains, stomach rumbling shockwaves"
+    },
+    "curseConcept": "Famine, counting, debt, healing-to-damage conversion",
+    "passiveAura": {
+      "name": "Hunger Field",
+      "effect": "Player healing instead deals damage equal to heal amount",
+      "radius": 250
+    },
+    "buffs": [
+      {
+        "name": "Debt Stacks",
+        "description": "Each player attack adds debt. At 10 debt, Hunger Census heals."
+      }
+    ],
+    "debuffs": [
+      {
+        "name": "Starving",
+        "description": "Player CE costs doubled while debuff active."
+      }
+    ],
+    "baseStats": {
+      "hp": 450,
+      "attack": 28,
+      "speed": 10,
+      "ceOutput": 70,
+      "ceReserve": 60
+    },
+    "moveset": {
+      "core": ["ledger_slash", "debt_chain", "calorie_drain"],
+      "variants": ["famine_field", "counting_curse", "void_hand_grab"],
+      "ultPool": ["hunger_domain", "census_execution"]
+    },
+    "phases": [
+      {
+        "id": "phase_1",
+        "hpThreshold": 1.0,
+        "behavior": "Counts player attacks, builds debt stacks",
+        "specialRules": []
+      },
+      {
+        "id": "phase_2",
+        "hpThreshold": 0.5,
+        "behavior": "Uses reversal at 30% HP, converts healing to damage",
+        "specialRules": ["reversal_access", "heal_conversion"]
+      }
+    ],
+    "domainExpansion": {
+      "id": "hunger_domain",
+      "name": "Domain: Empty Pantry",
+      "description": "Player CE drains constantly. Healing kills player.",
+      "effects": [
+        "Player CE drains per second",
+        "All healing converted to self-damage",
+        "Visibility reduced to counting distance"
+      ]
+    },
+    "rct": {
+      "hasRCT": true,
+      "triggerHp": 0.3
+    },
+    "techniqueReversal": {
+      "available": true,
+      "trigger": "Player uses healing skills"
+    },
+    "counterplay": {
+      "weaknesses": [
+        "Damage window during reversal animation",
+        "Burnout prevents reversal use"
+      ],
+      "strategies": [
+        "Avoid using healing items/skills during fight",
+        "Force burnout before reversal phase",
+        "Chain interrupts during reversal window"
+      ]
+    },
+    "requiredKillCondition": {
+      "type": "interrupt_chain",
+      "description": "Land 3 chained weakpoint interrupts during single burnout cycle",
+      "failState": "If failed, Hunger Census uses reversal and heals to 70%"
+    },
+    "rewardTable": {
+      "baseRewards": [
+        {
+          "id": "census_ledger_fragment",
+          "name": "Census Ledger Fragment",
+          "type": "material",
+          "rarity": "legendary"
+        }
+      ],
+      "techniqueMastery": "grade_1_caliber",
+      "xpBonus": 600
+    },
+    "artBrief": {
+      "intro": "Manifests from shadows with counting numerals swirling",
+      "idle": "Constantly scribbles in floating ledger",
+      "telegraphs": "Numerals intensify before big attacks",
+      "domainTransition": "World turns grayscale, counting numbers fill vision",
+      "death": "Body dissolves into counting numerals, ledger burns"
+    }
+  },
+  {
+    "id": "bell_of_last_rite",
+    "name": "Bell of the Last Rite",
+    "title": "Funeral Judge",
+    "origin": "Cursed object that gained sentience from centuries of funeral rites",
+    "threatClass": "special_grade",
+    "encounterType": "hunt_only",
+    "spawnRules": {
+      "regions": ["collapsed_cathedral_barrier_dungeon"],
+      "trigger": "special_hunt",
+      "conditions": {
+        "minGrade": "grade_1",
+        "specialGradeCandidate": true,
+        "requiredItem": "cathedral_bell_fragment"
+      }
+    },
+    "visualTheme": {
+      "silhouette": "Massive bell with humanoid form emerging from top",
+      "colorLanguage": "Brass golds, funeral whites, judgment crimsons",
+      "vfxLanguage": "Sound waves, resonance ripples, ritual circles"
+    },
+    "curseConcept": "Sound, judgment, execution, ritual zones",
+    "passiveAura": {
+      "name": "Judgment Toll",
+      "effect": "Each bell toll increases player damage taken by 5% (stacks to 50%)",
+      "radius": 400
+    },
+    "buffs": [
+      {
+        "name": "Resonance",
+        "description": "Damage increases with each successful bell toll."
+      }
+    ],
+    "debuffs": [
+      {
+        "name": "Deafening",
+        "description": "Player sound cues and telegraphs become harder to read."
+      }
+    ],
+    "baseStats": {
+      "hp": 600,
+      "attack": 22,
+      "speed": 6,
+      "ceOutput": 90,
+      "ceReserve": 70
+    },
+    "moveset": {
+      "core": ["bell_strike", "resonance_wave", "judgment_gavel"],
+      "variants": ["toll_sequence", "ritual_circle", "summon_pillars"],
+      "ultPool": ["funeral_domain", "execution_bell_sequence"]
+    },
+    "phases": [
+      {
+        "id": "phase_1",
+        "hpThreshold": 1.0,
+        "behavior": "Regular bell strikes, builds resonance stacks",
+        "specialRules": []
+      },
+      {
+        "id": "phase_2",
+        "hpThreshold": 0.7,
+        "behavior": "Summons resonance pillars, domain distorts cooldown timing",
+        "specialRules": ["pillars_active", "cooldown_distortion"]
+      },
+      {
+        "id": "phase_3",
+        "hpThreshold": 0.4,
+        "behavior": "3 resonance pillars must be destroyed before damage phase",
+        "specialRules": ["pillar_phase", "domain_prep"]
+      },
+      {
+        "id": "phase_4",
+        "hpThreshold": 0.2,
+        "behavior": "Domain active. RCT if pillars not destroyed fast enough.",
+        "specialRules": ["domain_active", "rct_on_fail"]
+      }
+    ],
+    "domainExpansion": {
+      "id": "funeral_domain",
+      "name": "Domain: Final Procession",
+      "description": "3 resonance pillars must be destroyed, then domain break, then burst phase",
+      "effects": [
+        "Cooldowns distorted (randomly extended/shortened)",
+        "Massive toll damage if pillars not destroyed",
+        "RCT heals boss if player fails pillar mechanic"
+      ]
+    },
+    "rct": {
+      "hasRCT": true,
+      "trigger": "pillar_phase_fail"
+    },
+    "techniqueReversal": {
+      "available": false
+    },
+    "counterplay": {
+      "weaknesses": [
+        "Anti-domain skills weaken resonance pillars",
+        "Black Flash during pillar destruction phase"
+      ],
+      "strategies": [
+        "Destroy pillars quickly during phase 3",
+        "Save burst skills for post-domain burst phase",
+        "Track toll stacks and play defensively at high stacks"
+      ]
+    },
+    "requiredKillCondition": {
+      "type": "multi_stage",
+      "description": "1) Destroy 3 resonance pillars, 2) Break domain, 3) Burst damage phase",
+      "failState": "If pillars not destroyed in time, Bell uses RCT and restarts phase 3"
+    },
+    "rewardTable": {
+      "baseRewards": [
+        {
+          "id": "last_rite_bell_fragment",
+          "name": "Last Rite Bell Fragment",
+          "type": "material",
+          "rarity": "legendary"
+        },
+        {
+          "id": "judgment_bell",
+          "name": "Judgment Bell",
+          "type": "weapon",
+          "rarity": "legendary",
+          "statModifiers": {
+            "attack": 8,
+            "technique": 4,
+            "ceOutput": 10
+          },
+          "identityPassive": {
+            "type": "judgment",
+            "effect": "Each hit adds Judgment stack. At 5, next attack deals 200% damage."
+          }
+        }
+      ],
+      "techniqueMastery": "special_grade_caliber",
+      "xpBonus": 800
+    },
+    "artBrief": {
+      "intro": "Bell materializes from resonance, humanoid form slowly emerges",
+      "idle": "Gentle ringing sounds, humanoid figure prays within bell",
+      "telegraphs": "Sound waves visible before bell strikes",
+      "domainTransition": "Arena transforms into cathedral, pillars rise from ground",
+      "death": "Bell cracks and shatters, humanoid form dissolves into light"
+    }
+  }
+]

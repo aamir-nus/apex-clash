@@ -30,16 +30,41 @@ export async function listUsers() {
 }
 
 export async function findUserByUsername(username) {
+  // Add input validation and sanitization
+  if (!username || typeof username !== "string") {
+    return null;
+  }
+
+  // Sanitize: trim whitespace and convert to lowercase
+  const sanitizedUsername = username.trim().toLowerCase();
+
+  // Validate username format (alphanumeric, underscores, hyphens, 3-20 chars)
+  if (!/^[a-z0-9_-]{3,20}$/.test(sanitizedUsername)) {
+    return null;
+  }
+
   if (!isMongoReady()) {
-    const user = users.find((entry) => entry.username === username);
+    const user = users.find((entry) => entry.username === sanitizedUsername);
     return user ? clone(user) : null;
   }
 
-  const document = await UserModel.findOne({ username }).lean();
+  // Use sanitized username in MongoDB query with additional safety
+  const document = await UserModel.findOne({ username: sanitizedUsername }).lean();
   return document ? serializeMongoUser(document) : null;
 }
 
 export async function findUserById(userId) {
+  // Add input validation
+  if (!userId || typeof userId !== "string") {
+    return null;
+  }
+
+  // Validate UUID format (basic check for UUID v4 format)
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(userId)) {
+    return null;
+  }
+
   if (!isMongoReady()) {
     const user = users.find((entry) => entry.id === userId);
     return user ? clone(user) : null;

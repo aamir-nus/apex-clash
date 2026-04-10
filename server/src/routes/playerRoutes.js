@@ -9,7 +9,17 @@ import {
   getPlayerProfile,
   usePlayerInventoryConsumable,
   updatePlayerSession,
-  updatePlayerClass
+  updatePlayerClass,
+  getGradePromotionStatus,
+  promotePlayerGrade,
+  recordCombatGradeData,
+  // Phase 5: Endgame routes
+  getEndgameStatusEndpoint,
+  getAnomalySectors,
+  getFirstGradeTrials,
+  completeFirstGradeTrial,
+  getAscensionStatus,
+  completeAscensionEncounter
 } from "../controllers/playerController.js";
 
 export const playerRoutes = Router();
@@ -24,3 +34,14 @@ playerRoutes.put("/player/loadout/item", equipPlayerInventoryItem);
 playerRoutes.put("/player/loadout/skills", equipPlayerLoadoutSkills);
 playerRoutes.post("/player/inventory/use", usePlayerInventoryConsumable);
 playerRoutes.post("/player/inventory/craft", craftPlayerInventoryReward);
+// Phase 4: Grade promotion routes
+playerRoutes.get("/player/grade/status", getGradePromotionStatus);
+playerRoutes.post("/player/grade/promote", promotePlayerGrade);
+playerRoutes.post("/player/grade/record", recordCombatGradeData);
+// Phase 5: Endgame routes
+playerRoutes.get("/player/endgame/status", getEndgameStatusEndpoint);
+playerRoutes.get("/player/endgame/anomaly-sectors", getAnomalySectors);
+playerRoutes.get("/player/endgame/trials", getFirstGradeTrials);
+playerRoutes.post("/player/endgame/trials/complete", completeFirstGradeTrial);
+playerRoutes.get("/player/endgame/ascension/status", getAscensionStatus);
+playerRoutes.post("/player/endgame/ascension/complete", completeAscensionEncounter);

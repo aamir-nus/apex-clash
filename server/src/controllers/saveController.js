@@ -27,7 +27,28 @@ function createDefaultPlayerState(archetypeId = "striker") {
     attack: classDefinition?.baseStats?.attack ?? 16,
     defense: classDefinition?.baseStats?.defense ?? 10,
     speed: classDefinition?.baseStats?.speed ?? 12,
-    pendingStatPoints: 0
+    pendingStatPoints: 0,
+    // Phase 4: Grade progression fields (synced from profile)
+    sorcererGrade: "grade_4",
+    gradePromotionProgress: 0,
+    gradeKillLedger: {
+      grade_4: 0,
+      grade_3: 0,
+      grade_2: 0,
+      grade_1: 0,
+      special_grade: 0
+    },
+    firstGradeTrialClears: [],
+    specialGradeCandidate: false,
+    specialGradeSightings: [],
+    specialGradeKills: [],
+    // Phase 4B: Technique mastery fields
+    techniqueMasteryRank: "novice",
+    techniqueMasteryProgress: 0,
+    techniqueUsageCount: {},
+    bossKillCount: 0,
+    blackFlashChainCount: 0,
+    domainClashCount: 0
   };
 }
 

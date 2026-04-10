@@ -53,6 +53,11 @@ Returns the bootstrap content bundle used by the client:
 ### Player
 
 - `GET /player/profile`
+- `GET /player/grade/status`
+- `GET /player/endgame/status`
+- `GET /player/endgame/anomaly-sectors`
+- `GET /player/endgame/trials`
+- `GET /player/endgame/ascension/status`
 - `PUT /player/profile/class`
 - `PUT /player/loadout/item`
 - `PUT /player/loadout/skills`
@@ -62,6 +67,10 @@ Returns the bootstrap content bundle used by the client:
 - `PUT /player/progression/choice`
 - `PUT /player/session-state`
 - `POST /player/rewards/claim`
+- `POST /player/grade/promote`
+- `POST /player/grade/record`
+- `POST /player/endgame/trials/complete`
+- `POST /player/endgame/ascension/complete`
 
 Player contract rules:
 
@@ -100,6 +109,10 @@ Player contract rules:
   - technique burnout thresholds are class-specific
   - domain and anti-domain state can be tracked in session state
   - cursed tool passives are applied through the computed profile/loadout path
+- Phase 4 and 5 progression state is part of the current player-facing contract:
+  - grade status and promotion eligibility are available through `GET /player/grade/status`
+  - endgame, anomaly, trial, and ascension readiness are available through `GET /player/endgame/status`
+  - the browser shell and live HUD now consume those read endpoints to keep rank-track state visible during normal play
 
 ### Saves
 
@@ -175,3 +188,5 @@ Current public contract status:
 - Phase 1 terminology pass: complete
 - Phase 2 system pass: complete
 - Phase 3 content expansion: active
+- Phase 4 grade system and special grade framework: complete
+- Phase 5 endgame and ascension framework: complete

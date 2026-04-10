@@ -1,0 +1,115 @@
+[
+  {
+    "id": "merger_ossuary_invasion_table",
+    "regionId": "merger_ossuary_dungeon",
+    "description": "Special grade may invade while exploring Merger Ossuary",
+    "spawnChancePerRoom": 0.05,
+    "spawnTriggers": ["room_clear", "event_trigger"],
+    "ominSignals": [
+      "temperature_drop",
+      "static_interference",
+      "whispering_void"
+    ],
+    "threatMeterBuildup": "gradual",
+    "specialGrades": ["hunger_census"],
+    "spawnRules": {
+      "minGrade": "grade_1",
+      "minLevel": 15,
+      "blockIfUndergeared": true,
+      "allowNarrativeOverride": false
+    },
+    "escapeOptions": [
+      "flee_to_hub",
+      "use_sealed_object"
+    ],
+    "rewardModifiers": {
+      "xpMultiplier": 3.0,
+      "techniqueMasteryBonus": 10
+    }
+  },
+  {
+    "id": "collapsed_cathedral_invasion_table",
+    "regionId": "collapsed_cathedral_barrier_dungeon",
+    "description": "Bell of the Last Rite may invade during exploration",
+    "spawnChancePerRoom": 0.03,
+    "spawnTriggers": ["room_clear", "bell_toll"],
+    "ominSignals": [
+      "distant_bell",
+      "judgment_chant",
+      "funeral_procession"
+    ],
+    "threatMeterBuildup": "rapid",
+    "specialGrades": ["bell_of_last_rite"],
+    "spawnRules": {
+      "minGrade": "grade_1",
+      "minLevel": 15,
+      "blockIfUndergeared": true,
+      "allowNarrativeOverride": true
+    },
+    "escapeOptions": [
+      "destroy_resonance_pillars",
+      "survive_until_dawn"
+    ],
+    "rewardModifiers": {
+      "xpMultiplier": 4.0,
+      "techniqueMasteryBonus": 15
+    }
+  },
+  {
+    "id": "shibuya_burn_sector_invasion_table",
+    "regionId": "shibuya_burn_sector_dungeon",
+    "description": "Smallpox Deity may invade during the burn sector",
+    "spawnChancePerRoom": 0.04,
+    "spawnTriggers": ["room_clear", "after_boss"],
+    "ominSignals": [
+      "plague_scent",
+      "coffin_rattle",
+      "miasma_cloud"
+    ],
+    "threatMeterBuildup": "gradual",
+    "specialGrades": ["smallpox_deity"],
+    "spawnRules": {
+      "minGrade": "grade_2",
+      "minLevel": 12,
+      "blockIfUndergeared": false,
+      "allowNarrativeOverride": true
+    },
+    "escapeOptions": [
+      "break_ritual_cycle",
+      "survive_coffin_phase"
+    ],
+    "rewardModifiers": {
+      "xpMultiplier": 3.5,
+      "techniqueMasteryBonus": 12
+    }
+  },
+  {
+    "id": "anomaly_sector_invasion_table",
+    "regionId": "merger_ossuary_dungeon",
+    "description": "Random anomaly invasions in endgame areas",
+    "spawnChancePerRoom": 0.08,
+    "spawnTriggers": ["room_clear", "time_elapsed"],
+    "ominSignals": [
+      "reality_distortion",
+      "void_tremors",
+      "domain_leak"
+    ],
+    "threatMeterBuildup": "rapid",
+    "specialGrades": ["smallpox_deity", "hunger_census", "bell_of_last_rite"],
+    "spawnRules": {
+      "minGrade": "special_grade_candidate",
+      "minLevel": 20,
+      "blockIfUndergeared": true,
+      "allowNarrativeOverride": false
+    },
+    "escapeOptions": [
+      "defeat_to_dismiss",
+      "use_domain_counter"
+    ],
+    "rewardModifiers": {
+      "xpMultiplier": 5.0,
+      "techniqueMasteryBonus": 20,
+      "guaranteedDrop": true
+    }
+  }
+]

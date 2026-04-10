@@ -26,6 +26,13 @@ export function getBootstrapContent() {
     enemies: readContentFile("enemies.json"),
     items: readContentFile("items.json"),
     regions: readContentFile("regions.json"),
-    skills: readContentFile("skills.json")
+    skills: readContentFile("skills.json"),
+    promotionRules: readContentFile("promotionRules.json"),
+    specialGrades: readContentFile("specialGrades.json"),
+    techniqueMastery: readContentFile("techniqueMastery.json"),
+    encounterTables: readContentFile("encounterTables.json"),
+    anomalySectors: readContentFile("anomalySectors.json"),
+    firstGradeTrials: readContentFile("firstGradeTrials.json"),
+    ascensionEncounter: readContentFile("ascensionEncounter.json")
   };
 }

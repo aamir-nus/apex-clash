@@ -22,6 +22,14 @@ export function fetchPlayerProfile(token) {
   return request("/player/profile", token);
 }
 
+export function fetchPlayerGradeStatus(token) {
+  return request("/player/grade/status", token);
+}
+
+export function fetchPlayerEndgameStatus(token) {
+  return request("/player/endgame/status", token);
+}
+
 export function updatePlayerClassType(token, classType) {
   return request("/player/profile/class", token, {
     method: "PUT",

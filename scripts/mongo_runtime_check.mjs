@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import crypto from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 
 const rootDir = process.cwd();
@@ -85,7 +86,7 @@ async function request(path, options = {}) {
 
 async function run() {
   const server = spawnServer();
-  const username = `mongo_probe_${Date.now()}`;
+  const username = `m${crypto.randomUUID().replace(/-/g, "").slice(0, 11)}`;
   let health = null;
   let initialProfile = null;
   let sessionProfile = null;

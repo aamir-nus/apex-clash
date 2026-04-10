@@ -17,7 +17,22 @@ const playerProfileSchema = new mongoose.Schema(
     equippedItemIds: { type: mongoose.Schema.Types.Mixed, required: true, default: {} },
     unlockedSkillIds: { type: [String], required: true, default: [] },
     equippedSkillIds: { type: [String], required: true, default: [] },
-    computedStats: { type: mongoose.Schema.Types.Mixed, required: true, default: {} }
+    computedStats: { type: mongoose.Schema.Types.Mixed, required: true, default: {} },
+    // Phase 4: Grade progression fields
+    sorcererGrade: { type: String, required: true, default: "grade_4" },
+    gradePromotionProgress: { type: Number, required: true, default: 0 },
+    gradeKillLedger: { type: mongoose.Schema.Types.Mixed, required: true, default: {} },
+    firstGradeTrialClears: { type: [String], required: true, default: [] },
+    specialGradeCandidate: { type: Boolean, required: true, default: false },
+    specialGradeSightings: { type: [String], required: true, default: [] },
+    specialGradeKills: { type: [String], required: true, default: [] },
+    // Phase 4B: Technique mastery fields
+    techniqueMasteryRank: { type: String, required: true, default: "novice" },
+    techniqueMasteryProgress: { type: Number, required: true, default: 0 },
+    techniqueUsageCount: { type: mongoose.Schema.Types.Mixed, required: true, default: {} },
+    bossKillCount: { type: Number, required: true, default: 0 },
+    blackFlashChainCount: { type: Number, required: true, default: 0 },
+    domainClashCount: { type: Number, required: true, default: 0 }
   },
   {
     timestamps: true,

@@ -53,8 +53,9 @@ Current truth split:
   - Shatter, Veil, Cinder, Night Cathedral, and Merger Ossuary full route flow
   - save/resume, reward claim, quick bind, quick equip, and cleared-route tracking
   - backend-owned profile, loadout, progression, and reward contracts
+  - grade, mastery, trial, anomaly, and ascension state surfaced in the shell and live HUD
   - longer browser proof for consumable use, crafting, snapshot/live resume, and manual sync
-  - JJK migration Phase 1 terminology pass and Phase 2 system pass
+  - JJK migration Phases 1 through 5
 - implemented but not polished enough to call release-ready:
   - launcher, HUD, route progression presentation, and inventory/moveset UX
   - combat presentation and scene dressing

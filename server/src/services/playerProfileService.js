@@ -526,7 +526,28 @@ function buildProfile(userId, classType = "striker") {
     equippedItemIds,
     unlockedSkillIds,
     equippedSkillIds,
-    computedStats: computeStats(classType, equippedItemIds, statAllocations)
+    computedStats: computeStats(classType, equippedItemIds, statAllocations),
+    // Phase 4: Grade progression fields
+    sorcererGrade: "grade_4",
+    gradePromotionProgress: 0,
+    gradeKillLedger: {
+      grade_4: 0,
+      grade_3: 0,
+      grade_2: 0,
+      grade_1: 0,
+      special_grade: 0
+    },
+    firstGradeTrialClears: [],
+    specialGradeCandidate: false,
+    specialGradeSightings: [],
+    specialGradeKills: [],
+    // Phase 4B: Technique mastery fields
+    techniqueMasteryRank: "novice",
+    techniqueMasteryProgress: 0,
+    techniqueUsageCount: {},
+    bossKillCount: 0,
+    blackFlashChainCount: 0,
+    domainClashCount: 0
   };
 }
 
@@ -739,6 +760,41 @@ export async function claimPlayerReward(userId, rewardSource, regionId, sessionS
   normalizeInventory(profile);
   if (sessionState && typeof sessionState === "object") {
     profile.currentRegionId = regionId ?? profile.currentRegionId;
+    // Phase 4: Handle boss kill tracking
+    if (sessionState.bossKillCount) {
+      profile.bossKillCount = (profile.bossKillCount ?? 0) + sessionState.bossKillCount;
+    }
+    // Phase 4: Track special grade kills
+    if (sessionState.bossId && (sessionState.bossId.includes("special_grade") ||
+        sessionState.bossId.includes("smallpox") || sessionState.bossId.includes("hunger") ||
+        sessionState.bossId.includes("bell"))) {
+      profile.specialGradeKills = profile.specialGradeKills ?? [];
+      if (!profile.specialGradeKills.includes(sessionState.bossId)) {
+        profile.specialGradeKills.push(sessionState.bossId);
+      }
+    }
+    // Phase 4: Merge technique usage count
+    if (sessionState.techniqueUsageCount) {
+      profile.techniqueUsageCount = {
+        ...(profile.techniqueUsageCount ?? {}),
+        ...sessionState.techniqueUsageCount
+      };
+      // Recalculate technique mastery progress
+      const totalUses = Object.values(profile.techniqueUsageCount).reduce((a, b) => a + b, 0);
+      const bossKills = profile.bossKillCount ?? 0;
+      const newProgress = Math.min(100, (profile.techniqueMasteryProgress ?? 0) + 0.5 + (bossKills * 2));
+      profile.techniqueMasteryProgress = newProgress;
+      // Check for rank up
+      if (newProgress >= 25 && profile.techniqueMasteryRank === "novice") {
+        profile.techniqueMasteryRank = "refined";
+      } else if (newProgress >= 50 && profile.techniqueMasteryRank === "refined") {
+        profile.techniqueMasteryRank = "advanced";
+      } else if (newProgress >= 75 && profile.techniqueMasteryRank === "advanced") {
+        profile.techniqueMasteryRank = "grade_1_caliber";
+      } else if (newProgress >= 100 && profile.techniqueMasteryRank === "grade_1_caliber") {
+        profile.techniqueMasteryRank = "special_grade_caliber";
+      }
+    }
     profile.sessionState = mergeSessionState(
       profile.sessionState,
       sessionState,

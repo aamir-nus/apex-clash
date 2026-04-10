@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import crypto from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 
 const rootDir = process.cwd();
@@ -95,7 +96,7 @@ async function request(path, options = {}) {
 }
 
 async function run() {
-  const username = `docker_probe_${Date.now()}`;
+  const username = `d${crypto.randomUUID().replace(/-/g, "").slice(0, 11)}`;
   const password = "secret12";
   let composeLogs = "";
 

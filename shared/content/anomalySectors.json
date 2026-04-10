@@ -1,0 +1,116 @@
+[
+  {
+    "id": "void_fracture",
+    "name": "Void Fracture",
+    "description": "A dimensional tear where cursed energy leaks uncontrollably",
+    "unlockRequirements": {
+      "minGrade": "special_grade_candidate",
+      "minLevel": 20,
+      "specialGradeKillsRequired": 1
+    },
+    "entryCost": {
+      "itemId": "cursed_ichor",
+      "quantity": 5
+    },
+    "encounterTableId": "anomaly_sector_invasion_table",
+    "modifiers": {
+      "ceDrainPerSecond": 2,
+      "enemyDamageMultiplier": 1.5,
+      "enemySpawnRateMultiplier": 2.0,
+      "specialGradeSpawnChance": 0.15
+    },
+    "timeLimitSeconds": 600,
+    "rewards": {
+      "baseRewards": [
+        {
+          "id": "void_essence",
+          "name": "Void Essence",
+          "type": "material",
+          "rarity": "legendary",
+          "quantity": 1
+        }
+      ],
+      "completionBonus": {
+        "xpBonus": 2000,
+        "techniqueMasteryBonus": 25,
+        "guaranteedDrop": true
+      }
+    },
+    "exitCondition": "time_limit_or_death"
+  },
+  {
+    "id": "domain_remnant",
+    "name": "Domain Remnant",
+    "description": "Fading remnants of an ancient domain expansion",
+    "unlockRequirements": {
+      "minGrade": "grade_1",
+      "minLevel": 18,
+      "clearedRegionsRequired": ["collapsed_cathedral_barrier", "merger_ossuary"]
+    },
+    "entryCost": {
+      "itemId": "barrier_fragment",
+      "quantity": 10
+    },
+    "encounterTableId": "domain_remnant_invasion_table",
+    "modifiers": {
+      "domainInstability": 0.3,
+      "techniqueCostMultiplier": 1.2,
+      "enemyTechniqueAmplified": true
+    },
+    "timeLimitSeconds": 900,
+    "rewards": {
+      "baseRewards": [
+        {
+          "id": "domain_shard",
+          "name": "Domain Shard",
+          "type": "material",
+          "rarity": "legendary",
+          "quantity": 1
+        }
+      ],
+      "completionBonus": {
+        "xpBonus": 1500,
+        "techniqueMasteryBonus": 15
+      }
+    },
+    "exitCondition": "clear_all_waves"
+  },
+  {
+    "id": "cursed_tool_graveyard",
+    "name": "Cursed Tool Graveyard",
+    "description": "A burial ground for corrupted cursed tools",
+    "unlockRequirements": {
+      "minGrade": "special_grade_candidate",
+      "minLevel": 22,
+      "bossKillCountRequired": 10
+    },
+    "entryCost": {
+      "itemId": "cursed_resin",
+      "quantity": 20
+    },
+    "encounterTableId": "tool_graveyard_invasion_table",
+    "modifiers": {
+      "weaponDropChanceMultiplier": 3.0,
+      "enemyWeaponized": true,
+      "curseBuildupSpeed": 1.5
+    },
+    "timeLimitSeconds": 720,
+    "rewards": {
+      "baseRewards": [
+        {
+          "id": "forged_material",
+          "name": "Star-Forged Steel",
+          "type": "material",
+          "rarity": "legendary",
+          "quantity": 1
+        }
+      ],
+      "completionBonus": {
+        "xpBonus": 1800,
+        "techniqueMasteryBonus": 20,
+        "guaranteedWeaponDrop": true
+      }
+    },
+    "exitCondition": "defeat_weapon_master_boss"
+  }
+]

@@ -107,18 +107,30 @@ test("auth controller registers, logs in, and returns current session", async ()
 });
 
 test("auth controller logs into the seeded admin account", async () => {
-  const loginResponse = createMockResponse();
-  await loginUserSession(
-    {
-      id: "req-login-admin",
-      body: { username: "admin", password: "admin" }
-    },
-    loginResponse
-  );
+  // Set environment variables for admin credentials (development only)
+  const originalAdminUser = process.env.ADMIN_USERNAME;
+  const originalAdminPass = process.env.ADMIN_PASSWORD;
+  process.env.ADMIN_USERNAME = "admin";
+  process.env.ADMIN_PASSWORD = "admin";
 
-  assert.equal(loginResponse.statusCode, 200);
-  assert.equal(loginResponse.payload.data.user.username, "admin");
-  assert.equal(loginResponse.payload.data.user.role, "admin");
+  try {
+    const loginResponse = createMockResponse();
+    await loginUserSession(
+      {
+        id: "req-login-admin",
+        body: { username: "admin", password: "admin" }
+      },
+      loginResponse
+    );
+
+    assert.equal(loginResponse.statusCode, 200);
+    assert.equal(loginResponse.payload.data.user.username, "admin");
+    assert.equal(loginResponse.payload.data.user.role, "admin");
+  } finally {
+    // Restore original environment variables
+    process.env.ADMIN_USERNAME = originalAdminUser;
+    process.env.ADMIN_PASSWORD = originalAdminPass;
+  }
 });
 
 test("player profile endpoints keep loadout logic server-side", async () => {

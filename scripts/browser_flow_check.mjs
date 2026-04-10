@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import http from "node:http";
+import crypto from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import { chromium } from "playwright";
 
@@ -134,8 +135,8 @@ async function run() {
   let page = null;
   const pageLogs = [];
   const testUser = {
-    username: `flow_${Date.now()}`,
-    password: "flowpass"
+    username: `f${crypto.randomUUID().replace(/-/g, "").slice(0, 11)}`,
+    password: "flowpass1"
   };
 
   try {
