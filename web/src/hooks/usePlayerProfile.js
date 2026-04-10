@@ -3,6 +3,8 @@ import {
   applyPlayerCombatReward,
   applyPlayerLevelChoice,
   claimPlayerReward,
+  consumePlayerItem,
+  craftPlayerItem,
   equipPlayerItem,
   equipPlayerSkills,
   fetchPlayerProfile,
@@ -228,6 +230,50 @@ export function usePlayerProfile(authToken, selectedArchetype) {
     }
   }
 
+  async function consumeItem(itemId) {
+    const previousStats = profile?.computedStats ?? {};
+    const data = await consumePlayerItem(authToken, itemId);
+    setProfile(data.profile);
+    setLoadoutFeedback({
+      type: "consumable",
+      createdAt: Date.now(),
+      title: `Used ${data.effect.name}`,
+      detail: "Consumable effect synced into the active route state.",
+      equippedSummary: data.profile?.equippedItems ?? profile?.equippedItems ?? [],
+      statDelta: buildStatDelta(previousStats, data.profile?.computedStats ?? previousStats)
+    });
+    emitCombatFeedEvent({
+      id: `use-consumable-${itemId}-${Date.now()}`,
+      message: `${data.effect.name} applied to the current route state.`
+    });
+  }
+
+  async function craftItem(recipeId) {
+    const previousStats = profile?.computedStats ?? {};
+    const data = await craftPlayerItem(authToken, recipeId);
+    setProfile(data.profile);
+    setLatestReward(
+      data.craftedItem
+        ? {
+            ...data.craftedItem,
+            bonusRewards: []
+          }
+        : null
+    );
+    setLoadoutFeedback({
+      type: "craft",
+      createdAt: Date.now(),
+      title: `Crafted ${data.craftedItem?.name ?? "new item"}`,
+      detail: "Materials were consumed and the crafted item was added to inventory.",
+      equippedSummary: data.profile?.equippedItems ?? profile?.equippedItems ?? [],
+      statDelta: buildStatDelta(previousStats, data.profile?.computedStats ?? previousStats)
+    });
+    emitCombatFeedEvent({
+      id: `craft-item-${recipeId}-${Date.now()}`,
+      message: `${data.craftedItem?.name ?? "Crafted item"} added to inventory.`
+    });
+  }
+
   async function applyLevelChoiceChoice(optionId, runtimePlayer) {
     const data = await applyPlayerLevelChoice(authToken, optionId, {
       level: runtimePlayer.level,
@@ -261,6 +307,8 @@ export function usePlayerProfile(authToken, selectedArchetype) {
     loadoutFeedback,
     equipItem,
     equipSkills,
+    consumeItem,
+    craftItem,
     applyLevelChoice: applyLevelChoiceChoice,
     syncSessionState,
     applyProfileUpdate,

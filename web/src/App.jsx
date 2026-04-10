@@ -38,26 +38,67 @@ const experiencePillars = [
 const routeToneById = {
   shatter_block: "route-shatter",
   veil_shrine: "route-veil",
-  cinder_ward: "route-cinder"
+  cinder_ward: "route-cinder",
+  night_cathedral: "route-night"
 };
 
 const routeBriefings = {
   shatter_block: {
     label: "Rupture Sweep",
     summary: "Broken streets, low-rank curse pressure, and the fastest first clear in the build.",
-    directive: "Secure one boon fast, crack the relic room, and push cleanly into the first boss vault."
+    directive: "Secure one boon fast, crack the relic room, and push cleanly into the first boss vault.",
+    reward: "Boss scroll unlock + first route ladder break",
+    hazard: "Fast breach pressure with the simplest first-run cadence",
+    unlock: "Opens Veil Shrine and broadens the scroll path"
   },
   veil_shrine: {
     label: "Sanctum Descent",
     summary: "A timing route built around sealed pressure, rupture windows, and scroll progression.",
-    directive: "Strip the sanctum shield, respect the lane, then bind the scroll reward immediately."
+    directive: "Strip the sanctum shield, respect the lane, then bind the scroll reward immediately.",
+    reward: "Boss scroll unlock + sanctum reward gear",
+    hazard: "Shielded cadence and punished off-window greed",
+    unlock: "Opens Cinder Ward and extends technique routing"
   },
   cinder_ward: {
     label: "Furnace Descent",
     summary: "Heat pressure, cooling breaches, and faster reward-to-equip conversion.",
-    directive: "Stabilize the core, punish only on the breach, and extract with the emblem."
+    directive: "Stabilize the core, punish only on the breach, and extract with the emblem.",
+    reward: "Boss-core gear payoff + material-heavy crafting route",
+    hazard: "Heat cycling, breach windows, and faster chip damage",
+    unlock: "Opens Night Cathedral and pushes the final climb online"
+  },
+  night_cathedral: {
+    label: "Final Ascent",
+    summary: "A final-chapter climb through blackout cycles, cathedral seals, and the last scroll unlock of the current run.",
+    directive: "Anchor the eclipse sigil, break the cathedral sentinel, then survive the final boss cadence cleanly.",
+    reward: "Final scroll unlock + current end-of-slice completion",
+    hazard: "Blackout cadence, seal pressure, and the harshest boss lane",
+    unlock: "Completes the authored route ladder in the current slice"
   }
 };
+
+const onboardingStages = [
+  {
+    id: "deploy",
+    label: "Deploy",
+    detail: "Lock Shatter Block, then leave Blacksite."
+  },
+  {
+    id: "boon",
+    label: "Secure Boon",
+    detail: "Claim one marked boon before taking the field gate."
+  },
+  {
+    id: "dungeon",
+    label: "Enter Dungeon",
+    detail: "Carry the boon into the chamber and crack the relic room."
+  },
+  {
+    id: "boss",
+    label: "Clear Boss",
+    detail: "Break the route boss, extract, and bring the reward back to hub."
+  }
+];
 
 function isRouteCleared(regionId, clearedRegionIds, unlockedRegionIds) {
   if (clearedRegionIds.includes(regionId)) {
@@ -72,7 +113,35 @@ function isRouteCleared(regionId, clearedRegionIds, unlockedRegionIds) {
     return unlockedRegionIds.includes("cinder_ward");
   }
 
+  if (regionId === "cinder_ward") {
+    return unlockedRegionIds.includes("night_cathedral");
+  }
+
   return false;
+}
+
+function mapRuntimeRegionToRouteId(regionId, selectedRegionId) {
+  if (!regionId || regionId === "hub_blacksite") {
+    return selectedRegionId;
+  }
+
+  if (regionId === "shatter_dungeon" || regionId === "shatter_boss_vault") {
+    return "shatter_block";
+  }
+
+  if (regionId === "veil_dungeon" || regionId === "veil_boss_vault") {
+    return "veil_shrine";
+  }
+
+  if (regionId === "cinder_dungeon" || regionId === "cinder_boss_vault") {
+    return "cinder_ward";
+  }
+
+  if (regionId === "night_dungeon" || regionId === "night_boss_vault") {
+    return "night_cathedral";
+  }
+
+  return regionId;
 }
 
 function buildSceneActions(scene, regionCards, selectedRegionId, encounterStatus) {
@@ -171,6 +240,7 @@ function App() {
     backgroundSync,
     selectedSlotId,
     setSelectedSlotId,
+    useLiveProfileResume,
     activeSave,
     createSlot,
     saveCurrentRun
@@ -199,6 +269,9 @@ function App() {
   const equippedItems = playerProfile.profile?.equippedItems ?? [];
   const availableSkills = playerProfile.profile?.availableSkills ?? [];
   const equippedSkillIds = playerProfile.profile?.equippedSkills?.map((skill) => skill.id) ?? [];
+  const activeConsumableIds = playerProfile.profile?.activeConsumableIds ?? [];
+  const activeConsumables = compatibleItems.filter((item) => activeConsumableIds.includes(item.id));
+  const readyCraftRecipes = playerProfile.profile?.craftRecipes?.filter((recipe) => recipe.canCraft) ?? [];
   const unlockedRegionIds = [
     ...new Set([
       ...(playerProfile.profile?.unlockedRegionIds ?? ["shatter_block"]),
@@ -219,28 +292,45 @@ function App() {
       ...region,
       unlocked: unlockedRegionIds.includes(region.id),
       cleared: isRouteCleared(region.id, clearedRegionIds, unlockedRegionIds),
-      active:
-        runtime.selectedRegionId === region.id ||
-        runtime.regionId === region.id ||
-        runtime.regionId === region.id.replace("_block", "_dungeon")
+      active: mapRuntimeRegionToRouteId(runtime.regionId, runtime.selectedRegionId) === region.id
     }));
   const clearedRouteCount = routeTracker.filter((route) => route.cleared).length;
   const unlockedRouteCount = routeTracker.filter((route) => route.unlocked).length;
   const routeCompletionPercent = routeTracker.length
     ? Math.round((clearedRouteCount / routeTracker.length) * 100)
     : 0;
+  const nextLockedRoute = routeTracker.find((route) => !route.unlocked) ?? null;
   const highlightedRouteId =
     runtime.scene.scene === "hub"
       ? runtime.selectedRegionId
-      : runtime.regionId === "shatter_dungeon" || runtime.regionId === "shatter_boss_vault"
-        ? "shatter_block"
-        : runtime.regionId === "veil_dungeon" || runtime.regionId === "veil_boss_vault"
-          ? "veil_shrine"
-          : runtime.regionId === "cinder_dungeon" || runtime.regionId === "cinder_boss_vault"
-            ? "cinder_ward"
-            : runtime.regionId;
+      : mapRuntimeRegionToRouteId(runtime.regionId, runtime.selectedRegionId);
   const highlightedRoute = routeTracker.find((route) => route.id === highlightedRouteId) ?? routeTracker[0];
   const highlightedBriefing = routeBriefings[highlightedRoute?.id] ?? routeBriefings.shatter_block;
+  const onboardingState = (() => {
+    if (!firstRunTutorial) {
+      return null;
+    }
+
+    if (runtime.scene.scene === "hub") {
+      return "deploy";
+    }
+
+    if (runtime.scene.scene === "region") {
+      return runtime.sessionState?.explorationBonus ? "dungeon" : "boon";
+    }
+
+    if (runtime.scene.scene === "dungeon" || runtime.scene.scene === "boss" || runtime.scene.scene === "combat") {
+      return "boss";
+    }
+
+    return "deploy";
+  })();
+  const activeOnboardingIndex = onboardingState
+    ? onboardingStages.findIndex((stage) => stage.id === onboardingState)
+    : -1;
+  const stageActionLabel = sceneActions?.primaryAction?.label
+    ?? sceneActions?.secondaryActions?.[0]?.label
+    ?? "Follow the highlighted objective";
 
   return (
     <main className="app-shell">
@@ -322,6 +412,43 @@ function App() {
               <span>{highlightedBriefing.directive}</span>
             </div>
           </div>
+          {firstRunTutorial ? (
+            <div className="onboarding-strip">
+              <div className="onboarding-copy">
+                <strong>First-Run Route Guide</strong>
+                <span>Follow the stable Shatter onboarding path first. Each stage below reflects the current live scene.</span>
+              </div>
+              <div className="onboarding-stage-grid">
+                {onboardingStages.map((stage, index) => {
+                  const completed = activeOnboardingIndex > index;
+                  const active = activeOnboardingIndex === index;
+                  return (
+                    <div
+                      key={stage.id}
+                      className={
+                        active
+                          ? "onboarding-stage active"
+                          : completed
+                            ? "onboarding-stage completed"
+                            : "onboarding-stage"
+                      }
+                    >
+                      <strong>{stage.label}</strong>
+                      <span>{stage.detail}</span>
+                      <small>
+                        {completed ? "Cleared" : active ? "Current step" : "Pending"}
+                      </small>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="onboarding-action-callout">
+                <strong>Do this now</strong>
+                <span>{runtime.objective?.detail ?? highlightedBriefing.directive}</span>
+                <small>{stageActionLabel}</small>
+              </div>
+            </div>
+          ) : null}
           <Suspense fallback={<div className="canvas-loading">Loading Phaser runtime...</div>}>
             <GameCanvas
               content={content}
@@ -329,6 +456,7 @@ function App() {
               playerProfile={playerProfile.profile}
               activeSave={activeSave}
               firstRunTutorial={firstRunTutorial}
+              resumeSelectionKey={selectedSlotId || "live-profile"}
               ready={status === "ready"}
             />
           </Suspense>
@@ -360,7 +488,11 @@ function App() {
                   {sceneActions.secondaryActions.map((action) => (
                     <button
                       key={action.label}
-                      className="hub-action"
+                      className={
+                        firstRunTutorial && action === sceneActions.secondaryActions[0]
+                          ? "hub-action tutorial-emphasis"
+                          : "hub-action"
+                      }
                       onClick={() => emitControlCommand(action.command)}
                       type="button"
                     >
@@ -371,7 +503,7 @@ function App() {
               ) : null}
               {sceneActions.primaryAction ? (
                 <button
-                  className="deploy-action"
+                  className={firstRunTutorial ? "deploy-action tutorial-emphasis" : "deploy-action"}
                   onClick={() => emitControlCommand(sceneActions.primaryAction.command)}
                   type="button"
                 >
@@ -394,7 +526,13 @@ function App() {
                 <strong>{highlightedRoute?.name ?? "Blacksite Route"}</strong>
                 <span>{highlightedBriefing.summary}</span>
               </div>
-              <small>{highlightedBriefing.directive}</small>
+              <div className="route-brief-side">
+                <small>{highlightedBriefing.directive}</small>
+                <div className="route-brief-meta">
+                  <span>{highlightedBriefing.reward}</span>
+                  <span>{highlightedBriefing.unlock}</span>
+                </div>
+              </div>
             </div>
             <div className="route-progress-summary">
               <div className="route-progress-meter" aria-hidden="true">
@@ -408,7 +546,7 @@ function App() {
                 </strong>
                 <small>
                   {clearedRouteCount === routeTracker.length && routeTracker.length
-                    ? "Shatter, Veil, and Cinder are all represented as cleared."
+                    ? "Shatter, Veil, Cinder, and Night are all represented as cleared."
                     : "Hub cards reflect active, cleared, and unlocked route state from runtime and profile sync."}
                 </small>
               </div>
@@ -442,6 +580,8 @@ function App() {
                       : "Locked route"}
                   </span>
                   <small>Recommended level {route.recommendedLevel ?? "?"}</small>
+                  <small>{routeBriefings[route.id]?.reward ?? "Route reward pending"}</small>
+                  <small>{routeBriefings[route.id]?.unlock ?? "Unlock path pending"}</small>
                 </div>
               ))}
             </div>
@@ -456,6 +596,17 @@ function App() {
             latestReward={playerProfile.latestReward}
             loadoutFeedback={playerProfile.loadoutFeedback}
             profile={playerProfile.profile}
+            routeBriefing={highlightedBriefing}
+            nextCraftLabel={
+              readyCraftRecipes[0]
+                ? `${readyCraftRecipes[0].result?.name ?? "Unknown recipe"} is ready to craft`
+                : null
+            }
+            nextUnlockLabel={
+              nextLockedRoute
+                ? `${nextLockedRoute.name} unlocks at the next route break.`
+                : "Current route ladder complete. Hold the run and sharpen the build."
+            }
             soundEnabled={soundEnabled}
             onToggleSound={() => setSoundEnabled((current) => !current)}
           />
@@ -476,8 +627,40 @@ function App() {
             <div className="note-block">
               <strong>Current push</strong>
               <p>
-                Hold the proven three-route path, sharpen scene readability, and keep pushing toward authored encounter depth.
+                Hold the proven four-route path, sharpen scene readability, and keep pushing toward authored encounter depth.
               </p>
+            </div>
+            <div className="note-block progress-block">
+              <strong>Route Payoff</strong>
+              <p>{highlightedBriefing.reward}</p>
+              <small>{highlightedBriefing.hazard}</small>
+              <small>{highlightedBriefing.unlock}</small>
+            </div>
+            <div className="resource-grid">
+              <div className="resource-card">
+                <strong>Active Tonics</strong>
+                <span>
+                  {activeConsumables.length
+                    ? activeConsumables.map((item) => item.name).join(", ")
+                    : "No active consumables"}
+                </span>
+              </div>
+              <div className="resource-card">
+                <strong>Ready Crafts</strong>
+                <span>
+                  {readyCraftRecipes.length
+                    ? readyCraftRecipes.map((recipe) => recipe.result?.name ?? "Unknown recipe").join(", ")
+                    : "No recipes ready"}
+                </span>
+              </div>
+              <div className="resource-card">
+                <strong>Next Unlock</strong>
+                <span>
+                  {nextLockedRoute
+                    ? `${nextLockedRoute.name} · level ${nextLockedRoute.recommendedLevel ?? "?"}`
+                    : "Current route ladder complete"}
+                </span>
+              </div>
             </div>
             <div className="ux-list">
               <strong>Browser UX checklist</strong>
@@ -493,6 +676,7 @@ function App() {
             skills={availableSkills}
             equippedSkillIds={equippedSkillIds}
             latestReward={playerProfile.latestReward}
+            loadoutFeedback={playerProfile.loadoutFeedback}
             locked={!auth.isAuthenticated}
             onEquipSkills={(skillIds) => playerProfile.equipSkills(skillIds)}
             onQuickBindReward={() => {
@@ -510,9 +694,14 @@ function App() {
           <InventoryPanel
             items={compatibleItems}
             equippedItems={equippedItems}
+            craftRecipes={playerProfile.profile?.craftRecipes ?? []}
+            activeConsumableIds={activeConsumableIds}
             latestReward={playerProfile.latestReward}
+            loadoutFeedback={playerProfile.loadoutFeedback}
             locked={!auth.isAuthenticated}
             onEquip={(item) => playerProfile.equipItem(item.id)}
+            onUse={(item) => playerProfile.consumeItem(item.id)}
+            onCraft={(recipe) => playerProfile.craftItem(recipe.id)}
           />
           <SavePanel
             slots={slots}
@@ -520,9 +709,10 @@ function App() {
             error={saveError}
             backgroundSync={backgroundSync}
             profileResumeRegion={playerProfile.profile?.currentRegionId}
+            activeSave={activeSave}
             selectedSlotId={selectedSlotId}
             setSelectedSlotId={setSelectedSlotId}
-            onUseProfileResume={() => setSelectedSlotId("")}
+            onUseProfileResume={useLiveProfileResume}
             onCreateSlot={async () => {
               try {
                 setSaveStatus("creating");

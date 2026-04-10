@@ -162,6 +162,41 @@ requests.push(
 );
 
 requests.push(
+  await runRequest("POST /player/rewards/claim shatter boss scroll invalid", claimPlayerDungeonReward, {
+    id: "req-backend-shatter-scroll-invalid",
+    authUser: rewardAuthUser,
+    body: {
+      rewardSource: "shatter_boss_scroll",
+      regionId: "shatter_boss_vault"
+    }
+  })
+);
+
+requests.push(
+  await runRequest("PUT /player/session-state shatter boss cleared", updatePlayerSession, {
+    id: "req-backend-shatter-boss-cleared",
+    authUser: rewardAuthUser,
+    body: {
+      regionId: "shatter_boss_vault",
+      sessionState: {
+        clearedBossRegionId: "shatter_boss_vault"
+      }
+    }
+  })
+);
+
+requests.push(
+  await runRequest("POST /player/rewards/claim shatter boss scroll", claimPlayerDungeonReward, {
+    id: "req-backend-shatter-scroll",
+    authUser: rewardAuthUser,
+    body: {
+      rewardSource: "shatter_boss_scroll",
+      regionId: "shatter_boss_vault"
+    }
+  })
+);
+
+requests.push(
   await runRequest("PUT /player/session-state veil boss uncleared", updatePlayerSession, {
     id: "req-backend-veil-boss-uncleared",
     authUser: rewardAuthUser,
@@ -181,6 +216,30 @@ requests.push(
     body: {
       rewardSource: "veil_boss_scroll",
       regionId: "veil_boss_vault"
+    }
+  })
+);
+
+requests.push(
+  await runRequest("PUT /player/session-state night boss cleared", updatePlayerSession, {
+    id: "req-backend-night-boss-cleared",
+    authUser: rewardAuthUser,
+    body: {
+      regionId: "night_boss_vault",
+      sessionState: {
+        clearedBossRegionId: "night_boss_vault"
+      }
+    }
+  })
+);
+
+requests.push(
+  await runRequest("POST /player/rewards/claim night boss scroll", claimPlayerDungeonReward, {
+    id: "req-backend-night-scroll",
+    authUser: rewardAuthUser,
+    body: {
+      rewardSource: "night_boss_scroll",
+      regionId: "night_boss_vault"
     }
   })
 );
@@ -246,6 +305,29 @@ const analysis = requests.map((entry) => {
   if (entry.label === "POST /player/rewards/claim veil boss scroll") {
     expectation =
       entry.statusCode === 400 && entry.payload?.error === "Invalid reward context" ? "OK" : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim shatter boss scroll invalid") {
+    expectation =
+      entry.statusCode === 400 && entry.payload?.error === "Invalid reward context" ? "OK" : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim shatter boss scroll") {
+    expectation =
+      entry.statusCode === 200 &&
+      entry.payload?.data?.reward?.type === "scroll" &&
+      (entry.payload?.data?.bonusRewards?.length ?? 0) <= 2
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim night boss scroll") {
+    expectation =
+      entry.statusCode === 200 &&
+      entry.payload?.data?.reward?.type === "scroll" &&
+      entry.payload?.data?.bonusRewards?.length === 2
+        ? "OK"
+        : "BUG";
   }
 
   return {

@@ -44,6 +44,7 @@ Health payload includes:
 Returns the bootstrap content bundle used by the client:
 
 - classes
+- dungeons
 - enemies
 - items
 - regions
@@ -55,6 +56,8 @@ Returns the bootstrap content bundle used by the client:
 - `PUT /player/profile/class`
 - `PUT /player/loadout/item`
 - `PUT /player/loadout/skills`
+- `POST /player/inventory/use`
+- `POST /player/inventory/craft`
 - `PUT /player/progression/reward`
 - `PUT /player/progression/choice`
 - `PUT /player/session-state`
@@ -85,6 +88,9 @@ Player contract rules:
 - duplicate reward claims are idempotent for both the primary reward and any bonus rewards
 - `veil_boss_scroll` unlocks one class-specific skill and returns a `scroll` reward payload
 - `cinder_boss_core` grants one class-specific epic item reward and can also return bonus consumables/materials
+- inventory items now carry server-owned `quantity` values for stackable consumables/materials
+- `POST /player/inventory/use` consumes one stack of a consumable and updates `activeConsumableIds`
+- `POST /player/inventory/craft` consumes recipe materials and returns the crafted item plus updated profile state
 
 ### Saves
 
@@ -112,7 +118,10 @@ Before calling the build `v3`-ready, these API expectations need to hold:
 - the current authored routes remain contract-valid: `dungeon_miniboss` for `shatter_dungeon`
 - the current authored routes remain contract-valid: `veil_miniboss` for `veil_dungeon`
 - the current authored routes remain contract-valid: `cinder_miniboss` for `cinder_dungeon`
+- the current authored routes remain contract-valid: `night_miniboss` for `night_dungeon`
 - the current authored routes remain contract-valid: `veil_boss_scroll` for `veil_boss_vault`
+- the current authored routes remain contract-valid: `shatter_boss_scroll` for `shatter_boss_vault`
+- the current authored routes remain contract-valid: `night_boss_scroll` for `night_boss_vault`
 
 ## Quality Harness
 
@@ -121,6 +130,7 @@ Current public regression gates:
 - `npm run test:server`
 - `npm run test:backend-contract`
 - `npm run test:auth-profile-contract`
+- `npm run test:bundle-audit`
 - `npm run test:skill-binding-contract`
 - `npm run test:experience-audit`
 - `npm run test:debug-audit`
@@ -134,13 +144,15 @@ Current public regression gates:
 
 The experience audit keeps the build aligned with the intended gameplay slice, not just backend response shapes. It checks current content breadth, Q/E skill-slot truth, first-run tutorial coverage, objective coverage, live profile sync coverage, and smoke-suite composition.
 The debug audit keeps our troubleshooting surface honest. It checks request/error logs, reward and skill-equip rejection logs, save-slot mutation logs, and the client-side background sync error context.
-The Docker browser-flow check boots the Compose stack and runs the same multi-route headless gameplay proof against the deployed web and API surfaces.
+The bundle audit keeps the browser build honest. It enforces explicit size budgets for the main app chunk, React vendor chunk, game runtime chunk, lazy GameCanvas chunk, and the known Phaser runtime exception budget.
+The Docker browser-flow check boots the Compose stack from a fresh Mongo volume and runs the same multi-route headless gameplay proof against the deployed web and API surfaces.
 The Docker deploy check boots the Compose stack, verifies the host-facing web and API surfaces, and checks Mongo-backed auth/profile/save flows through the deployed endpoints.
 The Mongo restart check proves that a Mongo-backed player can re-authenticate after a server restart and still recover the same profile region, cleared-route progression, and save slots.
 The Mongo runtime check starts the API against a real Mongo URI, asserts `/health` reports `persistence.mode === "mongo"`, then verifies profile, session, and save-slot flows against that live backing store.
 The UI flow audit checks the player-visible browser path: transition overlay messaging, onboarding visibility, save/resume visibility, reward banners, and reward-to-bind confirmation surfaces.
 The browser flow check proves the first authored route through boon, dungeon, miniboss, boss, and extract, verifies unlocked-route visibility, creates a save slot, and verifies resume-mode and manual-sync behavior.
-The browser flow check also proves the unlocked-route continuation paths: unlock -> Veil route -> Veil boss scroll reward -> quick bind -> extract -> Cinder route -> Cinder boss reward -> quick equip -> extract.
+The browser flow check also proves the unlocked-route continuation paths: unlock -> Veil route -> Veil boss scroll reward -> quick bind -> extract -> Cinder route -> Cinder boss reward -> quick equip -> extract -> Night Cathedral route -> Night boss scroll reward -> quick bind -> extract.
+The browser flow check now also proves the longer profile loop: one consumable use, one required successful craft, optional second craft when materials allow, save-slot creation, snapshot resume, live-profile resume, snapshot return, and manual sync.
 The browser flow check now also verifies that fully completed routes stay visibly cleared in the hub after extraction.
-The browser flow check also covers the current onboarding/readability baseline: HUD objective surfacing, first-run completion persistence, and the guided three-route path remaining stable after scene-marker polish.
-The next browser-hardening target is broader content pacing and richer authored route depth beyond the current three-route slice.
+The browser flow check also covers the current onboarding/readability baseline: HUD objective surfacing, first-run completion persistence, and the guided four-route path remaining stable after scene-marker polish.
+The next browser-hardening target is broader content pacing and richer authored route depth beyond the current four-route slice.

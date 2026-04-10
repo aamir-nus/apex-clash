@@ -34,5 +34,113 @@
       "attack": 14,
       "speed": 8
     }
+  },
+  {
+    "id": "glass_hound_grade_3",
+    "name": "Glass Hound",
+    "curseGrade": 3,
+    "aiTier": "fsm",
+    "moveset": ["fracture_dash", "snap_bite"],
+    "baseStats": {
+      "hp": 48,
+      "attack": 11,
+      "speed": 13
+    }
+  },
+  {
+    "id": "breaker_grade_2",
+    "name": "Collapse Breaker",
+    "curseGrade": 2,
+    "aiTier": "fsm_utility",
+    "moveset": ["wall_rush", "guard_shift"],
+    "baseStats": {
+      "hp": 82,
+      "attack": 15,
+      "speed": 7
+    }
+  },
+  {
+    "id": "cantor_grade_2",
+    "name": "Sanctum Cantor",
+    "curseGrade": 2,
+    "aiTier": "fsm_utility",
+    "moveset": ["seal_pulse", "rupture_call"],
+    "baseStats": {
+      "hp": 78,
+      "attack": 13,
+      "speed": 9
+    }
+  },
+  {
+    "id": "seal_leech_grade_3",
+    "name": "Seal Leech",
+    "curseGrade": 3,
+    "aiTier": "fsm",
+    "moveset": ["drain_spit", "cling_burst"],
+    "baseStats": {
+      "hp": 46,
+      "attack": 10,
+      "speed": 12
+    }
+  },
+  {
+    "id": "kiln_imp_grade_3",
+    "name": "Kiln Imp",
+    "curseGrade": 3,
+    "aiTier": "fsm",
+    "moveset": ["ember_spit", "heat_hop"],
+    "baseStats": {
+      "hp": 45,
+      "attack": 12,
+      "speed": 11
+    }
+  },
+  {
+    "id": "slag_brute_grade_2",
+    "name": "Slag Brute",
+    "curseGrade": 2,
+    "aiTier": "fsm_utility",
+    "moveset": ["melt_slam", "furnace_guard"],
+    "baseStats": {
+      "hp": 88,
+      "attack": 16,
+      "speed": 7
+    }
+  },
+  {
+    "id": "nocturne_feeder_grade_3",
+    "name": "Nocturne Feeder",
+    "curseGrade": 3,
+    "aiTier": "fsm",
+    "moveset": ["hush_bite", "shade_skip"],
+    "baseStats": {
+      "hp": 52,
+      "attack": 13,
+      "speed": 13
+    }
+  },
+  {
+    "id": "eclipse_monk_grade_2",
+    "name": "Eclipse Monk",
+    "curseGrade": 2,
+    "aiTier": "fsm_utility",
+    "moveset": ["choir_pulse", "blindstep"],
+    "baseStats": {
+      "hp": 86,
+      "attack": 15,
+      "speed": 10
+    }
+  },
+  {
+    "id": "cathedral_giant_grade_1",
+    "name": "Cathedral Giant",
+    "curseGrade": 1,
+    "aiTier": "utility_reactive",
+    "moveset": ["grave_slam", "eclipse_guard"],
+    "baseStats": {
+      "hp": 118,
+      "attack": 19,
+      "speed": 6
+    }
   }
 ]

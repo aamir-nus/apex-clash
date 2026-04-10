@@ -4,6 +4,7 @@ import path from "node:path";
 const contentRoot = path.resolve("shared/content");
 const requiredFiles = [
   "classes.json",
+  "dungeons.json",
   "enemies.json",
   "items.json",
   "regions.json",

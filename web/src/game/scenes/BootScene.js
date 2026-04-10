@@ -1,11 +1,11 @@
 import Phaser from "phaser";
 
 function getSceneFromRegionId(regionId) {
-  return regionId === "shatter_boss_vault" || regionId === "veil_boss_vault" || regionId === "cinder_boss_vault"
+  return regionId === "shatter_boss_vault" || regionId === "veil_boss_vault" || regionId === "cinder_boss_vault" || regionId === "night_boss_vault"
     ? "BossScene"
-    : regionId === "shatter_dungeon" || regionId === "veil_dungeon" || regionId === "cinder_dungeon"
+    : regionId === "shatter_dungeon" || regionId === "veil_dungeon" || regionId === "cinder_dungeon" || regionId === "night_dungeon"
       ? "DungeonScene"
-      : regionId === "shatter_block" || regionId === "veil_shrine" || regionId === "cinder_ward"
+      : regionId === "shatter_block" || regionId === "veil_shrine" || regionId === "cinder_ward" || regionId === "night_cathedral"
         ? "RegionScene"
         : "HubScene";
 }
@@ -39,18 +39,26 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
-    this.registry.set("content", this.runtimeConfig.content);
-    this.registry.set("selectedArchetype", this.runtimeConfig.selectedArchetype);
-    this.registry.set("playerProfile", this.runtimeConfig.playerProfile ?? null);
-    this.registry.set("activeSave", this.runtimeConfig.activeSave ?? null);
-    this.registry.set("firstRunTutorial", this.runtimeConfig.firstRunTutorial ?? false);
+    const content = this.registry.get("content") ?? this.runtimeConfig.content;
+    const selectedArchetype =
+      this.registry.get("selectedArchetype") ?? this.runtimeConfig.selectedArchetype;
+    const playerProfile =
+      this.registry.get("playerProfile") ?? this.runtimeConfig.playerProfile ?? null;
+    const activeSave = this.registry.get("activeSave") ?? this.runtimeConfig.activeSave ?? null;
+    const firstRunTutorial =
+      this.registry.get("firstRunTutorial") ?? this.runtimeConfig.firstRunTutorial ?? false;
+
+    this.registry.set("content", content);
+    this.registry.set("selectedArchetype", selectedArchetype);
+    this.registry.set("playerProfile", playerProfile);
+    this.registry.set("activeSave", activeSave);
+    this.registry.set("firstRunTutorial", firstRunTutorial);
     this.registry.set("currentRegionId", "hub_blacksite");
     this.registry.set("resumeSource", "fresh-start");
 
-    const activeSave = this.runtimeConfig.activeSave ?? null;
     if (activeSave) {
       this.registry.set("resumeSource", "save-snapshot");
-      this.registry.set("selectedArchetype", activeSave.archetypeId ?? this.runtimeConfig.selectedArchetype);
+      this.registry.set("selectedArchetype", activeSave.archetypeId ?? selectedArchetype);
       this.registry.set("loadedPlayerState", activeSave.playerState ?? null);
       this.registry.set("loadedSessionSummary", activeSave.sessionSummary ?? null);
       this.registry.set("currentRegionId", activeSave.regionId ?? "hub_blacksite");
@@ -58,7 +66,7 @@ export class BootScene extends Phaser.Scene {
       return;
     }
 
-    const profile = this.runtimeConfig.playerProfile ?? null;
+    const profile = playerProfile ?? null;
     const sessionState = profile?.sessionState ?? {};
     const currentRegionId = profile?.currentRegionId ?? "hub_blacksite";
     const hasSessionState = Object.keys(sessionState).length > 0;
@@ -66,10 +74,10 @@ export class BootScene extends Phaser.Scene {
 
     if (shouldResumeFromProfile) {
       this.registry.set("resumeSource", "profile-session");
-      this.registry.set("selectedArchetype", profile.classType ?? this.runtimeConfig.selectedArchetype);
+      this.registry.set("selectedArchetype", profile.classType ?? selectedArchetype);
       this.registry.set(
         "loadedPlayerState",
-        buildLoadedPlayerState(profile, this.runtimeConfig.selectedArchetype)
+        buildLoadedPlayerState(profile, selectedArchetype)
       );
       this.registry.set("currentRegionId", currentRegionId);
       this.registry.set("loadedSessionSummary", {

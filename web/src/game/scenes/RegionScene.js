@@ -12,10 +12,35 @@ const arena = {
   height: 540
 };
 
+function selectDungeonVariant(regionId, variants, combatSnapshot) {
+  const regionVariants = variants.filter((entry) => entry.regionId === regionId);
+  if (regionVariants.length === 0) {
+    return null;
+  }
+
+  const style = combatSnapshot?.style ?? "balanced";
+  return (
+    regionVariants.find((entry) => (entry.styleTags ?? []).includes(style)) ??
+    regionVariants[0]
+  );
+}
+
+function formatEncounterMix(content, variant) {
+  if (!variant?.enemyIds?.length) {
+    return "Unknown threat mix";
+  }
+
+  const names = variant.enemyIds
+    .map((enemyId) => content.enemies?.find((entry) => entry.id === enemyId)?.name)
+    .filter(Boolean);
+  return names.length > 0 ? names.join(" / ") : "Unknown threat mix";
+}
+
 export class RegionScene extends Phaser.Scene {
   constructor() {
     super("RegionScene");
     this.content = {};
+    this.dungeonVariant = null;
     this.selectedArchetype = "close_combat";
     this.enterKey = null;
     this.returnKey = null;
@@ -61,6 +86,15 @@ export class RegionScene extends Phaser.Scene {
       this.explorationBonus = loadedSessionState.explorationBonus;
       this.registry.set("explorationBonus", this.explorationBonus);
     }
+    const dungeonRegionId =
+      this.currentRegionId === "veil_shrine"
+        ? "veil_dungeon"
+        : this.currentRegionId === "cinder_ward"
+          ? "cinder_dungeon"
+          : this.currentRegionId === "night_cathedral"
+            ? "night_dungeon"
+            : "shatter_dungeon";
+    this.dungeonVariant = selectDungeonVariant(dungeonRegionId, this.content.dungeons ?? [], this.combatSnapshot);
     this.registry.set("loadedSessionSummary", null);
     this.enterKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.returnKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H);
@@ -93,6 +127,19 @@ export class RegionScene extends Phaser.Scene {
               title: "Cinder Ward",
               copy:
                 "Move with WASD or arrows.\nWalk into the ember gate area and press E to enter the furnace descent.\nPress H to return to the hub."
+            }
+        : this.currentRegionId === "night_cathedral"
+          ? {
+              bg: 0x0c1022,
+              frame: 0x171f3d,
+              frameStroke: 0xa9c4ff,
+              gateFill: 0x24345a,
+              gateStroke: 0xd7e3ff,
+              accentFill: 0x1c1730,
+              accentStroke: 0x8e9cff,
+              title: "Night Cathedral",
+              copy:
+                "Move with WASD or arrows.\nWalk into the moon gate area and press E to enter the final ascent.\nPress H to return to the hub."
             }
         : {
             bg: 0x101f14,
@@ -146,12 +193,12 @@ export class RegionScene extends Phaser.Scene {
       fontFamily: "monospace",
       fontSize: "12px"
     });
-    this.add.text(224, 350, this.currentRegionId === "veil_shrine" ? "Veil residue" : this.currentRegionId === "cinder_ward" ? "Heat fractures" : "Collapse traces", {
+    this.add.text(224, 350, this.currentRegionId === "veil_shrine" ? "Veil residue" : this.currentRegionId === "cinder_ward" ? "Heat fractures" : this.currentRegionId === "night_cathedral" ? "Cathedral hush" : "Collapse traces", {
       color: "#c6d2dc",
       fontFamily: "monospace",
       fontSize: "12px"
     });
-    this.add.text(612, 350, this.currentRegionId === "veil_shrine" ? "Shrine descent" : this.currentRegionId === "cinder_ward" ? "Furnace descent" : "Dungeon breach", {
+    this.add.text(612, 350, this.currentRegionId === "veil_shrine" ? "Shrine descent" : this.currentRegionId === "cinder_ward" ? "Furnace descent" : this.currentRegionId === "night_cathedral" ? "Final ascent" : "Dungeon breach", {
       color: "#ffd98b",
       fontFamily: "monospace",
       fontSize: "12px"
@@ -162,7 +209,7 @@ export class RegionScene extends Phaser.Scene {
       fontFamily: "monospace",
       fontSize: "28px"
     });
-    this.add.text(100, 114, `Route pressure: ${this.currentRegionId === "veil_shrine" ? "sanctum descent" : this.currentRegionId === "cinder_ward" ? "furnace descent" : "rupture sweep"}`, {
+    this.add.text(100, 114, `Route pressure: ${this.currentRegionId === "veil_shrine" ? "sanctum descent" : this.currentRegionId === "cinder_ward" ? "furnace descent" : this.currentRegionId === "night_cathedral" ? "final ascent" : "rupture sweep"}`, {
       color: "#ffd98b",
       fontFamily: "monospace",
       fontSize: "13px"
@@ -273,8 +320,9 @@ export class RegionScene extends Phaser.Scene {
     const instinctLabel =
       this.selectedArchetype === "heavenly_restriction" ? "Tool Intuition" : "Explore Radius";
     const combatStyle = this.combatSnapshot?.style ?? "unread";
+    const encounterMix = formatEncounterMix(this.content, this.dungeonVariant);
     this.summaryText?.setText(
-      `Build: ${definition?.name ?? "Unknown"}\nRegion: ${region?.name ?? "Unknown"}\nRecommended level: ${region?.recommendedLevel ?? "?"}\nSense: ${instinctLabel}\nRecent combat read: ${combatStyle}`
+      `Build: ${definition?.name ?? "Unknown"}\nRegion: ${region?.name ?? "Unknown"}\nRecommended level: ${region?.recommendedLevel ?? "?"}\nSense: ${instinctLabel}\nRecent combat read: ${combatStyle}\nNext chamber: ${this.dungeonVariant?.name ?? "Standard ingress"}\nEncounter mix: ${encounterMix}`
     );
   }
 
@@ -408,11 +456,15 @@ export class RegionScene extends Phaser.Scene {
     const stats = this.playerProfile?.computedStats ?? definition?.baseStats ?? {};
     const bonusText = this.explorationBonus?.label ?? "No exploration boon";
     const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
+    const nextDungeon = this.dungeonVariant?.name ?? "Standard ingress";
+    const encounterMix = formatEncounterMix(this.content, this.dungeonVariant);
     const gateLabel =
       this.currentRegionId === "veil_shrine"
         ? "sanctum descent"
         : this.currentRegionId === "cinder_ward"
           ? "furnace descent"
+          : this.currentRegionId === "night_cathedral"
+            ? "final ascent"
           : "dungeon ingress";
     emitRuntimeUpdate({
       scene: {
@@ -444,10 +496,10 @@ export class RegionScene extends Phaser.Scene {
       objective: {
         title: this.firstRunTutorial ? "Secure your first boon" : "Probe the route",
         detail: this.explorationBonus
-          ? `Carry ${this.explorationBonus.label} into the ${gateLabel}.`
+          ? `Carry ${this.explorationBonus.label} into ${nextDungeon}.`
           : this.firstRunTutorial
-            ? `Scan the marked boon zone first, then push into the ${gateLabel}.`
-            : `Search the area, secure a boon, and enter the ${gateLabel}.`,
+            ? `Scan the marked boon zone first, then push into ${nextDungeon}.`
+            : `Search the area, secure a boon, and enter ${nextDungeon}.`,
         step: this.explorationBonus
           ? "Move to the gate and press E"
           : this.firstRunTutorial
@@ -455,8 +507,29 @@ export class RegionScene extends Phaser.Scene {
             : "Claim a point of interest, then head to the gate"
       },
       activeEffects: this.explorationBonus
-        ? [{ id: "region-boon", label: this.explorationBonus.label, detail: "Recovered from prior sweep", tone: "boon" }]
-        : [],
+        ? [
+            { id: "region-boon", label: this.explorationBonus.label, detail: "Recovered from prior sweep", tone: "boon" },
+            ...(this.dungeonVariant
+              ? [
+                  {
+                    id: "region-forecast",
+                    label: this.dungeonVariant.name,
+                    detail: `${this.dungeonVariant.pressureLabel} · ${encounterMix}`,
+                    tone: "neutral"
+                  }
+                ]
+              : [])
+          ]
+        : this.dungeonVariant
+          ? [
+              {
+                id: "region-forecast",
+                label: this.dungeonVariant.name,
+                detail: `${this.dungeonVariant.pressureLabel} · ${encounterMix}`,
+                tone: "neutral"
+              }
+            ]
+          : [],
       sessionState: {
         explorationBonus: this.explorationBonus,
         combatSnapshot: this.combatSnapshot,
@@ -465,6 +538,18 @@ export class RegionScene extends Phaser.Scene {
       combatFeed: [
         { id: 1, message: `Exploration boon: ${bonusText}` },
         { id: 2, message: `Route pressure: ${gateLabel}` },
+        ...(this.dungeonVariant
+          ? [
+              {
+                id: 3,
+                message: `Projected chamber: ${this.dungeonVariant.name} · ${this.dungeonVariant.pressureLabel}`
+              },
+              {
+                id: 4,
+                message: `Encounter mix: ${encounterMix}`
+              }
+            ]
+          : []),
         ...this.discoveryFeed
       ],
       encounter: {
@@ -543,6 +628,8 @@ export class RegionScene extends Phaser.Scene {
         ? "veil_dungeon"
         : this.currentRegionId === "cinder_ward"
           ? "cinder_dungeon"
+          : this.currentRegionId === "night_cathedral"
+            ? "night_dungeon"
           : "shatter_dungeon"
     );
     emitSoundEvent({ type: "skill_cast" });
@@ -554,6 +641,8 @@ export class RegionScene extends Phaser.Scene {
           ? "Dropping into the Veil Depth..."
           : this.currentRegionId === "cinder_ward"
             ? "Dropping into the furnace descent..."
+            : this.currentRegionId === "night_cathedral"
+              ? "Climbing into the cathedral ascent..."
             : "Dropping into the Shatter Dungeon..."
     });
     this.time.delayedCall(220, () => {
@@ -680,6 +769,8 @@ export class RegionScene extends Phaser.Scene {
           ? "Press E to enter the sanctum descent"
           : this.currentRegionId === "cinder_ward"
             ? "Press E to enter the furnace descent"
+            : this.currentRegionId === "night_cathedral"
+              ? "Press E to enter the final ascent"
             : "Press E to enter the dungeon";
       this.gateMarker.setAlpha(1);
     } else {

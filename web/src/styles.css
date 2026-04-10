@@ -372,6 +372,12 @@ h1 {
   box-shadow: 0 0 0 1px rgba(244, 185, 66, 0.18);
 }
 
+.hub-action.tutorial-emphasis,
+.deploy-action.tutorial-emphasis {
+  border-color: rgba(184, 242, 155, 0.72);
+  box-shadow: 0 0 0 1px rgba(184, 242, 155, 0.24), 0 0 24px rgba(184, 242, 155, 0.12);
+}
+
 .route-status-pill {
   display: inline-flex;
   align-items: center;
@@ -397,6 +403,10 @@ h1 {
   border-color: rgba(255, 179, 107, 0.38);
 }
 
+.route-night {
+  border-color: rgba(169, 196, 255, 0.38);
+}
+
 .deploy-action {
   min-height: 44px;
   padding: 12px 16px;
@@ -410,6 +420,73 @@ h1 {
   border: 1px solid rgba(255, 217, 139, 0.14);
   border-radius: 16px;
   background: rgba(10, 18, 27, 0.86);
+}
+
+.onboarding-strip {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 242, 155, 0.2);
+  background:
+    linear-gradient(135deg, rgba(20, 46, 35, 0.42), rgba(12, 20, 29, 0.9)),
+    rgba(12, 20, 29, 0.9);
+}
+
+.onboarding-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.onboarding-copy span {
+  color: var(--muted);
+}
+
+.onboarding-stage-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.onboarding-stage {
+  display: grid;
+  gap: 6px;
+  min-height: 100px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(184, 242, 155, 0.14);
+  background: rgba(18, 28, 39, 0.86);
+}
+
+.onboarding-stage span,
+.onboarding-stage small {
+  color: var(--muted);
+}
+
+.onboarding-stage.active {
+  border-color: rgba(184, 242, 155, 0.72);
+  box-shadow: 0 0 0 1px rgba(184, 242, 155, 0.22);
+  background: linear-gradient(180deg, rgba(32, 58, 45, 0.92), rgba(18, 28, 39, 0.9));
+}
+
+.onboarding-stage.completed {
+  border-color: rgba(154, 219, 242, 0.4);
+  box-shadow: 0 0 0 1px rgba(154, 219, 242, 0.14);
+}
+
+.onboarding-action-callout {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 217, 139, 0.14);
+  background: rgba(16, 25, 35, 0.92);
+}
+
+.onboarding-action-callout span,
+.onboarding-action-callout small {
+  color: var(--muted);
 }
 
 .route-progress-summary {
@@ -442,14 +519,43 @@ h1 {
   border-color: rgba(255, 179, 107, 0.3);
 }
 
+.route-brief-card.route-night {
+  border-color: rgba(169, 196, 255, 0.3);
+}
+
 .route-brief-copy {
   display: grid;
   gap: 4px;
 }
 
+.route-brief-side {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+}
+
 .route-brief-card span,
 .route-brief-card small {
   color: var(--muted);
+}
+
+.route-brief-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.route-brief-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 217, 139, 0.14);
+  background: rgba(18, 28, 39, 0.58);
+  color: var(--accent-soft);
+  font-size: 0.78rem;
 }
 
 .route-progress-meter {
@@ -516,6 +622,34 @@ h1 {
 
 .route-progress-card span,
 .route-progress-card small {
+  color: var(--muted);
+}
+
+.progress-block {
+  gap: 6px;
+}
+
+.progress-block small {
+  color: var(--muted);
+}
+
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+
+.resource-card {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 217, 139, 0.12);
+  background: rgba(12, 20, 29, 0.82);
+}
+
+.resource-card span {
   color: var(--muted);
 }
 
@@ -755,6 +889,12 @@ h1 {
   margin-top: 10px;
 }
 
+.payoff-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
 .effect-chip {
   display: grid;
   gap: 4px;
@@ -810,6 +950,16 @@ h1 {
   box-shadow: 0 0 0 1px rgba(76, 201, 240, 0.18);
 }
 
+.hud-skill-role {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.hud-skill-role small {
+  color: var(--muted);
+}
+
 .combat-feed {
   display: grid;
   gap: 8px;
@@ -828,6 +978,19 @@ h1 {
   border: 1px solid rgba(255, 217, 139, 0.4);
   background: linear-gradient(90deg, rgba(244, 185, 66, 0.18), rgba(143, 185, 255, 0.16));
   color: var(--ink);
+}
+
+.reward-banner-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.reward-banner-copy small {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  color: rgba(246, 241, 223, 0.86);
 }
 
 .objective-banner {
@@ -960,6 +1123,54 @@ h1 {
   gap: 10px;
 }
 
+.inventory-crafting {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.inventory-section {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.inventory-guide {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(245, 214, 122, 0.3);
+  background: rgba(46, 35, 12, 0.28);
+}
+
+.inventory-guide strong {
+  color: #f5d67a;
+}
+
+.inventory-guide small {
+  color: rgba(239, 231, 208, 0.82);
+}
+
+.moveset-guide {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(111, 209, 177, 0.28);
+  background: rgba(17, 43, 36, 0.28);
+}
+
+.moveset-guide strong {
+  color: #9ce8c4;
+}
+
+.moveset-guide small {
+  color: rgba(239, 231, 208, 0.82);
+}
+
 .moveset-section {
   margin-bottom: 12px;
 }
@@ -976,6 +1187,11 @@ h1 {
   border: 1px solid rgba(255, 217, 139, 0.12);
   background: rgba(8, 14, 20, 0.45);
   padding: 12px;
+}
+
+.active-card {
+  border-color: rgba(76, 201, 240, 0.28);
+  background: rgba(12, 24, 34, 0.7);
 }
 
 .move-slot.active {
@@ -1020,6 +1236,51 @@ h1 {
   color: var(--muted);
 }
 
+.move-role-summary {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--muted);
+}
+
+.move-role-summary.compact {
+  margin-top: 8px;
+}
+
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 28px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 217, 139, 0.18);
+  background: rgba(18, 29, 39, 0.88);
+  color: var(--ink);
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+}
+
+.role-chip.spacing {
+  border-color: rgba(116, 192, 252, 0.4);
+  background: rgba(21, 42, 61, 0.9);
+}
+
+.role-chip.burst {
+  border-color: rgba(255, 143, 112, 0.4);
+  background: rgba(58, 28, 20, 0.9);
+}
+
+.role-chip.pressure {
+  border-color: rgba(244, 185, 66, 0.36);
+  background: rgba(62, 42, 16, 0.9);
+}
+
+.role-chip.tempo {
+  border-color: rgba(111, 209, 177, 0.4);
+  background: rgba(18, 48, 40, 0.9);
+}
+
 .slot-card {
   width: 100%;
   text-align: left;
@@ -1042,13 +1303,68 @@ h1 {
   display: block;
 }
 
+.inventory-card {
+  display: grid;
+  gap: 8px;
+}
+
+.inventory-card .mini-button {
+  justify-self: start;
+}
+
 .slot-card span {
   margin-top: 6px;
 }
 
-.save-meta {
-  margin-top: 10px;
+.panel-guide {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 217, 139, 0.18);
+  background: rgba(15, 24, 33, 0.5);
+}
+
+.panel-guide strong {
+  color: var(--accent-soft);
+}
+
+.panel-guide small {
   color: var(--muted);
+}
+
+.save-status-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.save-meta {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 217, 139, 0.12);
+  background: rgba(8, 14, 20, 0.38);
+  color: var(--muted);
+}
+
+.save-meta strong {
+  color: var(--accent-soft);
+}
+
+.save-meta span {
+  color: var(--ink);
+}
+
+.save-meta-wide {
+  min-height: 72px;
+}
+
+.slot-impact {
+  color: var(--accent-soft);
 }
 
 .canvas-loading {
@@ -1164,9 +1480,22 @@ h1 {
 
   .auth-panel,
   .archetype-list,
+  .onboarding-stage-grid,
+  .resource-grid,
   .sandbox-meta,
   .hud-grid {
     grid-template-columns: 1fr;
+  }
+
+  .route-brief-card {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+
+  .route-brief-side,
+  .route-brief-meta {
+    justify-items: start;
+    justify-content: flex-start;
   }
 
   .game-focus-bar,
@@ -1185,6 +1514,12 @@ h1 {
   .pill,
   .status-card ul {
     font-size: 0.86rem;
+  }
+
+  .onboarding-strip,
+  .hub-command-deck,
+  .route-progress-panel {
+    padding: 12px;
   }
 
   .game-focus-bar {

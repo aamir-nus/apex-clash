@@ -1,9 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import { createGame } from "../game/config/createGame";
 
-export function GameCanvas({ content, selectedArchetype, playerProfile, activeSave, firstRunTutorial, ready }) {
+export function GameCanvas({
+  content,
+  selectedArchetype,
+  playerProfile,
+  activeSave,
+  firstRunTutorial,
+  ready,
+  resumeSelectionKey
+}) {
   const containerRef = useRef(null);
   const gameRef = useRef(null);
+  const effectiveResumeToken =
+    resumeSelectionKey === "live-profile"
+      ? "live-profile"
+      : `${resumeSelectionKey}:${activeSave?.id ?? "pending"}:${activeSave?.regionId ?? "pending"}`;
+  const lastResumeSelectionRef = useRef(effectiveResumeToken);
   const runtimeConfigRef = useRef({
     content,
     selectedArchetype,
@@ -86,6 +99,32 @@ export function GameCanvas({ content, selectedArchetype, playerProfile, activeSa
       }
     });
   }, [activeSave, firstRunTutorial, playerProfile, selectedArchetype]);
+
+  useEffect(() => {
+    if (!gameRef.current) {
+      lastResumeSelectionRef.current = effectiveResumeToken;
+      return;
+    }
+
+    if (resumeSelectionKey === "live-profile" && activeSave) {
+      return;
+    }
+
+    if (lastResumeSelectionRef.current === effectiveResumeToken) {
+      return;
+    }
+
+    if (resumeSelectionKey !== "live-profile" && !activeSave) {
+      return;
+    }
+
+    lastResumeSelectionRef.current = effectiveResumeToken;
+    gameRef.current.registry.set("selectedArchetype", selectedArchetype);
+    gameRef.current.registry.set("playerProfile", playerProfile ?? null);
+    gameRef.current.registry.set("activeSave", activeSave ?? null);
+    gameRef.current.registry.set("firstRunTutorial", firstRunTutorial);
+    gameRef.current.scene.start("BootScene");
+  }, [activeSave, effectiveResumeToken, firstRunTutorial, playerProfile, resumeSelectionKey, selectedArchetype]);
 
   return (
     <div className={focused ? "game-shell focused" : "game-shell"}>

@@ -6,9 +6,11 @@ import {
 import {
   applyPlayerCombatProgression,
   claimPlayerDungeonReward,
+  craftPlayerInventoryReward,
   equipPlayerInventoryItem,
   equipPlayerLoadoutSkills,
   getPlayerProfile,
+  usePlayerInventoryConsumable,
   updatePlayerSession,
   updatePlayerClass
 } from "../server/src/controllers/playerController.js";
@@ -331,6 +333,52 @@ results.push(
 );
 
 results.push(
+  await runStep("POST /player/rewards/claim shatter boss scroll invalid context", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-shatter-boss-invalid",
+    authUser,
+    body: {
+      rewardSource: "shatter_boss_scroll",
+      regionId: "shatter_boss_vault"
+    }
+  })
+);
+
+results.push(
+  await runStep("PUT /player/session-state shatter boss cleared", updatePlayerSession, {
+    id: "req-session-state-shatter-boss-cleared",
+    authUser,
+    body: {
+      regionId: "shatter_boss_vault",
+      sessionState: {
+        clearedBossRegionId: "shatter_boss_vault"
+      }
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim shatter boss scroll", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-shatter-boss",
+    authUser,
+    body: {
+      rewardSource: "shatter_boss_scroll",
+      regionId: "shatter_boss_vault"
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim shatter boss scroll duplicate", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-shatter-boss-duplicate",
+    authUser,
+    body: {
+      rewardSource: "shatter_boss_scroll",
+      regionId: "shatter_boss_vault"
+    }
+  })
+);
+
+results.push(
   await runStep("PUT /player/session-state veil boss", updatePlayerSession, {
     id: "req-session-state-veil-boss",
     authUser,
@@ -431,6 +479,95 @@ results.push(
     body: {
       rewardSource: "cinder_boss_core",
       regionId: "cinder_boss_vault"
+    }
+  })
+);
+
+results.push(
+  await runStep("PUT /player/session-state night dungeon cleared", updatePlayerSession, {
+    id: "req-session-state-night-dungeon-cleared",
+    authUser,
+    body: {
+      regionId: "night_dungeon",
+      sessionState: {
+        dungeonRelicClaimed: true,
+        dungeonRelicClaimedRegionId: "night_dungeon"
+      }
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim night miniboss", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-night-miniboss",
+    authUser,
+    body: {
+      rewardSource: "night_miniboss",
+      regionId: "night_dungeon"
+    }
+  })
+);
+
+results.push(
+  await runStep("PUT /player/session-state night boss cleared", updatePlayerSession, {
+    id: "req-session-state-night-boss-cleared",
+    authUser,
+    body: {
+      regionId: "night_boss_vault",
+      sessionState: {
+        clearedBossRegionId: "night_boss_vault"
+      }
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/rewards/claim night boss scroll", claimPlayerDungeonReward, {
+    id: "req-reward-claim-contract-night-boss",
+    authUser,
+    body: {
+      rewardSource: "night_boss_scroll",
+      regionId: "night_boss_vault"
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/inventory/use field tonic", usePlayerInventoryConsumable, {
+    id: "req-use-field-tonic-contract",
+    authUser,
+    body: {
+      itemId: "field_tonic"
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/inventory/craft resin elixir", craftPlayerInventoryReward, {
+    id: "req-craft-resin-elixir-contract",
+    authUser,
+    body: {
+      recipeId: "craft_resin_elixir"
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/inventory/use resin elixir", usePlayerInventoryConsumable, {
+    id: "req-use-resin-elixir-contract",
+    authUser,
+    body: {
+      itemId: "resin_elixir"
+    }
+  })
+);
+
+results.push(
+  await runStep("POST /player/inventory/craft furnace draught", craftPlayerInventoryReward, {
+    id: "req-craft-furnace-draught-contract",
+    authUser,
+    body: {
+      recipeId: "craft_furnace_draught"
     }
   })
 );
@@ -582,6 +719,31 @@ const assertions = results.map((entry) => {
         : "BUG";
   }
 
+  if (entry.label === "POST /player/rewards/claim shatter boss scroll invalid context") {
+    expectation = entry.statusCode === 400 ? "OK" : "BUG";
+  }
+
+  if (entry.label === "PUT /player/session-state shatter boss cleared") {
+    expectation =
+      entry.payload?.data?.currentRegionId === "shatter_boss_vault" &&
+      entry.payload?.data?.sessionState?.clearedBossRegionId === "shatter_boss_vault"
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim shatter boss scroll") {
+    expectation =
+      entry.statusCode === 200 &&
+      entry.payload?.data?.reward?.type === "scroll" &&
+      (entry.payload?.data?.bonusRewards?.length ?? 0) <= 2
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim shatter boss scroll duplicate") {
+    expectation = entry.statusCode === 200 && entry.payload?.data?.reward === null ? "OK" : "BUG";
+  }
+
   if (entry.label === "PUT /player/session-state veil boss cleared") {
     expectation =
       entry.payload?.data?.currentRegionId === "veil_boss_vault" &&
@@ -646,6 +808,70 @@ const assertions = results.map((entry) => {
     expectation =
       entry.payload?.data?.reward === null &&
       entry.payload?.data?.profile?.availableSkills?.some((skill) => skill.id === "void_pulse")
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "PUT /player/session-state night dungeon cleared") {
+    expectation =
+      entry.payload?.data?.currentRegionId === "night_dungeon" &&
+      entry.payload?.data?.sessionState?.dungeonRelicClaimedRegionId === "night_dungeon"
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim night miniboss") {
+    expectation =
+      entry.statusCode === 200 &&
+      entry.payload?.data?.reward?.rarity === "epic" &&
+      entry.payload?.data?.bonusRewards?.length === 2
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "PUT /player/session-state night boss cleared") {
+    expectation =
+      entry.payload?.data?.currentRegionId === "night_boss_vault" &&
+      entry.payload?.data?.sessionState?.clearedBossRegionId === "night_boss_vault"
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/rewards/claim night boss scroll") {
+    expectation =
+      entry.statusCode === 200 &&
+      entry.payload?.data?.reward?.type === "scroll" &&
+      entry.payload?.data?.bonusRewards?.length === 2
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/inventory/use field tonic") {
+    expectation =
+      entry.statusCode === 200 &&
+      entry.payload?.data?.profile?.activeConsumableIds?.includes("field_tonic")
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/inventory/craft resin elixir") {
+    expectation =
+      entry.statusCode === 200 && entry.payload?.data?.craftedItem?.id === "resin_elixir"
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/inventory/use resin elixir") {
+    expectation =
+      entry.statusCode === 200 &&
+      entry.payload?.data?.profile?.activeConsumableIds?.includes("resin_elixir")
+        ? "OK"
+        : "BUG";
+  }
+
+  if (entry.label === "POST /player/inventory/craft furnace draught") {
+    expectation =
+      entry.statusCode === 200 && entry.payload?.data?.craftedItem?.id === "furnace_draught"
         ? "OK"
         : "BUG";
   }

@@ -8,10 +8,7 @@ import { chromium } from "playwright";
 const rootDir = process.cwd();
 const webDistIndex = path.join(rootDir, "web", "dist", "index.html");
 const webDistDir = path.join(rootDir, "web", "dist");
-const apiBaseUrl = process.env.BROWSER_FLOW_API_BASE_URL ?? "http://localhost:4000";
-const webUrl = process.env.BROWSER_FLOW_WEB_URL ?? "http://localhost:5173";
 const managedMode = process.env.BROWSER_FLOW_MODE ?? "managed";
-const serverUrl = `${apiBaseUrl}/health`;
 const mimeTypes = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -34,13 +31,14 @@ function assert(condition, message) {
   }
 }
 
-function spawnManagedProcess(command, args) {
+function spawnManagedProcess(command, args, extraEnv = {}) {
   const child = spawn(command, args, {
     cwd: rootDir,
     stdio: ["ignore", "pipe", "pipe"],
     env: {
       ...process.env,
-      HOST: "127.0.0.1"
+      HOST: "127.0.0.1",
+      ...extraEnv
     }
   });
 
@@ -110,8 +108,21 @@ async function run() {
     assert(fs.existsSync(webDistIndex), "Missing built web assets. Run `npm run build` before browser flow checks.");
   }
 
+  const managedWebPort = managedMode === "managed"
+    ? Number(process.env.BROWSER_FLOW_MANAGED_WEB_PORT ?? 5173)
+    : null;
+  const apiBaseUrl =
+    process.env.BROWSER_FLOW_API_BASE_URL ??
+    "http://localhost:4000";
+  const webUrl =
+    process.env.BROWSER_FLOW_WEB_URL ??
+    (managedMode === "managed" ? `http://localhost:${managedWebPort}` : "http://localhost:5173");
+  const serverUrl = `${apiBaseUrl}/health`;
+
   const server = managedMode === "managed"
-    ? spawnManagedProcess("npm", ["run", "start", "-w", "server"])
+    ? spawnManagedProcess("npm", ["run", "start", "-w", "server"], {
+        CLIENT_ORIGIN: webUrl
+      })
     : null;
   const staticServer = managedMode === "managed" ? createStaticServer() : null;
   let browser = null;
@@ -127,7 +138,7 @@ async function run() {
     if (staticServer) {
       await new Promise((resolve, reject) => {
         staticServer.once("error", reject);
-        staticServer.listen(5173, "localhost", resolve);
+        staticServer.listen(managedWebPort, "127.0.0.1", resolve);
       });
     }
     await waitForHttp(serverUrl);
@@ -162,7 +173,8 @@ async function run() {
     metrics.loginMs = Date.now() - loginStartedAt;
 
     await page.getByText("Live Profile Resume").waitFor();
-    await page.getByText("Resume mode: live profile session").waitFor();
+    await page.getByText("Resume mode").waitFor();
+    await page.getByText("live profile session").waitFor();
     metrics.liveResumeDefault = true;
 
     const transitionStartedAt = Date.now();
@@ -172,7 +184,7 @@ async function run() {
     metrics.transitionToRegionMs = Date.now() - transitionStartedAt;
 
     await objectiveBanner(page).getByText("Probe the route").waitFor();
-    await page.getByText("Search the area, secure a boon, and enter the dungeon ingress.").waitFor();
+    await objectiveBanner(page).getByText(/Search the area, secure a boon, and enter/i).waitFor();
     const boonStartedAt = Date.now();
     await page.getByRole("button", { name: "Secure Boon" }).click();
     await page.getByText("Move to the gate and press E").waitFor();
@@ -366,19 +378,117 @@ async function run() {
     await page.getByRole("button", { name: "Extract" }).click();
     await page.getByText("Scene: Hub").waitFor();
     metrics.extractFromCinderMs = Date.now() - cinderExtractStartedAt;
-    metrics.clearedRouteCount = await page.locator(".route-progress-card.cleared").count();
-    metrics.clearedShatterVisible = await page
-      .locator(".route-progress-card.cleared", { hasText: "Shatter Block" })
-      .isVisible()
-      .catch(() => false);
-    metrics.clearedVeilVisible = await page
-      .locator(".route-progress-card.cleared", { hasText: "Veil Shrine" })
-      .isVisible()
-      .catch(() => false);
-    metrics.clearedCinderVisible = await page
-      .locator(".route-progress-card.cleared", { hasText: "Cinder Ward" })
-      .isVisible()
-      .catch(() => false);
+
+    await page.getByRole("button", { name: "Night Cathedral", exact: true }).waitFor();
+
+    const nightDeployStartedAt = Date.now();
+    await page.getByRole("button", { name: "Night Cathedral", exact: true }).click();
+    await page.getByRole("button", { name: /Deploy To Night Cathedral/ }).click();
+    await page.getByText("Scene: Region").waitFor();
+    await page.getByText("Route pressure: final ascent").waitFor();
+    metrics.transitionToNightRegionMs = Date.now() - nightDeployStartedAt;
+
+    const nightBoonStartedAt = Date.now();
+    await page.getByRole("button", { name: "Secure Boon" }).click();
+    await page.getByText("Move to the gate and press E").waitFor();
+    metrics.claimNightBoonMs = Date.now() - nightBoonStartedAt;
+
+    const nightDungeonStartedAt = Date.now();
+    await page.getByRole("button", { name: "Enter Dungeon" }).click();
+    await page.getByText("Scene: Dungeon").waitFor();
+    await page.getByText("Eclipse sigil search active").waitFor();
+    metrics.transitionToNightDungeonMs = Date.now() - nightDungeonStartedAt;
+
+    const nightRelicStartedAt = Date.now();
+    await page.getByRole("button", { name: "Claim Relic" }).click();
+    await routeStatus(page, "Miniboss chamber").waitFor();
+    await delay(250);
+    metrics.claimNightRelicMs = Date.now() - nightRelicStartedAt;
+
+    const nightMinibossStartedAt = Date.now();
+    const nightMinibossTimeout = Date.now() + 22000;
+    while (Date.now() < nightMinibossTimeout) {
+      const bossVaultOpen = await routeStatus(page, "Boss vault ready").isVisible().catch(() => false);
+      if (bossVaultOpen) {
+        break;
+      }
+
+      await page.getByRole("button", { name: "Strike Sentinel" }).click();
+      await delay(300);
+    }
+    await routeStatus(page, "Boss vault ready").waitFor();
+    metrics.nightMinibossClearMs = Date.now() - nightMinibossStartedAt;
+
+    const nightBossStartedAt = Date.now();
+    await page.getByRole("button", { name: "Enter Boss Vault" }).click();
+    await page.getByText("Scene: Boss Vault").waitFor();
+    await page.getByText("Midnight curse").waitFor();
+    metrics.transitionToNightBossMs = Date.now() - nightBossStartedAt;
+
+    const nightBossClearStartedAt = Date.now();
+    const nightBossTimeout = Date.now() + 28000;
+    while (Date.now() < nightBossTimeout) {
+      const extractReady = await objectiveBanner(page).getByText("Extract with the clear").isVisible().catch(() => false);
+      if (extractReady) {
+        break;
+      }
+
+      await page.getByRole("button", { name: "Strike Boss" }).click();
+      await delay(300);
+    }
+    await objectiveBanner(page).getByText("Extract with the clear").waitFor();
+    await page.getByText("New scroll: Moon Cleave").waitFor();
+    metrics.nightBossClearMs = Date.now() - nightBossClearStartedAt;
+
+    const nightQuickBindStartedAt = Date.now();
+    await page.getByRole("button", { name: "Quick bind" }).click();
+    await page.locator(".loadout-chip.skill-chip", { hasText: "Moon Cleave" }).first().waitFor();
+    metrics.nightQuickBindMs = Date.now() - nightQuickBindStartedAt;
+
+    const nightExtractStartedAt = Date.now();
+    await page.getByRole("button", { name: "Extract" }).click();
+    await page.getByText("Scene: Hub").waitFor();
+    metrics.extractFromNightMs = Date.now() - nightExtractStartedAt;
+
+    const useFieldTonicStartedAt = Date.now();
+    const fieldTonicCard = page.locator(".inventory-card", { hasText: "Field Tonic" }).first();
+    await fieldTonicCard.getByRole("button", { name: "Use" }).click();
+    await page.getByText("Used Field Tonic").waitFor();
+    metrics.useFieldTonicMs = Date.now() - useFieldTonicStartedAt;
+
+    const craftResinStartedAt = Date.now();
+    const resinRecipeCard = page.locator(".inventory-crafting .inventory-card", { hasText: "Resin Elixir" }).first();
+    await resinRecipeCard.getByRole("button", { name: "Craft" }).click();
+    await page.getByText("Crafted Resin Elixir").waitFor();
+    await page.locator(".inventory-card", { hasText: "Resin Elixir" }).first().waitFor();
+    metrics.craftResinElixirMs = Date.now() - craftResinStartedAt;
+
+    const furnaceRecipeCard = page.locator(".inventory-crafting .inventory-card", { hasText: "Furnace Draught" }).first();
+    const furnaceCraftButton = furnaceRecipeCard.getByRole("button", { name: "Craft" });
+    const furnaceCraftEnabled = await furnaceCraftButton.isEnabled().catch(() => false);
+    if (furnaceCraftEnabled) {
+      const craftFurnaceStartedAt = Date.now();
+      await furnaceCraftButton.click();
+      await page.getByText("Crafted Furnace Draught").waitFor();
+      await page.locator(".inventory-card", { hasText: "Furnace Draught" }).first().waitFor();
+      metrics.craftFurnaceDraughtMs = Date.now() - craftFurnaceStartedAt;
+      metrics.optionalSecondCraftWorked = true;
+    } else {
+      metrics.craftFurnaceDraughtMs = 0;
+      metrics.optionalSecondCraftWorked = false;
+    }
+
+    const clearedRouteCards = page.locator(".route-progress-card").filter({ hasText: "Cleared route" });
+    metrics.clearedRouteCount = await clearedRouteCards.count();
+    const routeProgressText = (await page.locator(".route-progress-panel").textContent()) ?? "";
+    metrics.clearedShatterVisible =
+      routeProgressText.includes("Shatter Block") && routeProgressText.includes("Cleared route");
+    metrics.clearedVeilVisible =
+      routeProgressText.includes("Veil Shrine") && routeProgressText.includes("Cleared route");
+    metrics.clearedCinderVisible =
+      routeProgressText.includes("Cinder Ward") && routeProgressText.includes("Cleared route");
+    metrics.clearedNightVisible =
+      routeProgressText.includes("Night Cathedral") && routeProgressText.includes("Current cleared route");
 
     const tutorialComplete = await page.evaluate(() =>
       window.localStorage.getItem("apex-clash:first-run-complete")
@@ -386,32 +496,57 @@ async function run() {
     metrics.firstRunTutorialComplete = tutorialComplete === "true";
 
     const createSlotStartedAt = Date.now();
-    await page.getByRole("button", { name: "New" }).click();
-    await page.getByText("Save status: slot created").waitFor();
-    await page.getByText(/Resume mode: save snapshot \(slot-/).waitFor();
+    const savePanel = page.locator("aside.panel", { hasText: "Save Slots" });
+    await savePanel.getByRole("button", { name: "New", exact: true }).click();
+    await savePanel.getByText("Save status").waitFor();
+    await savePanel.getByText("slot created").waitFor();
+    await savePanel.getByText("Resume mode").waitFor();
+    await savePanel.getByText(/save snapshot \(slot-/).waitFor();
+    await page.getByText("Resume: save-snapshot").waitFor();
     metrics.createSlotMs = Date.now() - createSlotStartedAt;
+    metrics.snapshotResumeBootWorks = true;
 
+    const liveResumeStartedAt = Date.now();
     await page.getByText("Live Profile Resume").click();
-    await page.getByText("Resume mode: live profile session").waitFor();
+    await savePanel.getByText("Resume mode").waitFor();
+    await savePanel.getByText("live profile session").waitFor();
+    await page.waitForFunction(
+      () => {
+        const bodyText = document.body.innerText;
+        return bodyText.includes("Resume: profile-session") || bodyText.includes("Resume: fresh-start");
+      },
+      { timeout: 10000 }
+    );
+    metrics.liveResumeBootMs = Date.now() - liveResumeStartedAt;
     metrics.liveResumeToggleWorks = true;
     metrics.snapshotResumeVisible = true;
     metrics.liveResumeVisible = true;
 
+    const snapshotResumeStartedAt = Date.now();
+    await page.locator(".slot-list .slot-card").first().click();
+    await savePanel.getByText("Resume mode").waitFor();
+    await savePanel.getByText(/save snapshot \(slot-/).waitFor();
+    await page.getByText("Resume: save-snapshot").waitFor();
+    metrics.snapshotResumeReturnMs = Date.now() - snapshotResumeStartedAt;
+
     const syncStartedAt = Date.now();
     await page.getByRole("button", { name: "Sync Current Run" }).click();
-    await page.getByText("Save status: synced").waitFor();
+    await savePanel.getByText("Save status").waitFor();
+    await savePanel.locator(".save-meta").filter({ hasText: "Save status" }).getByText("synced").waitFor();
     metrics.manualSyncMs = Date.now() - syncStartedAt;
 
     assert(metrics.shellReady, "Initial browser shell was not ready.");
     assert(metrics.liveResumeVisible, "Live profile resume state was not visible.");
     assert(metrics.liveResumeDefault, "Live profile resume was not the default mode.");
     assert(metrics.snapshotResumeVisible, "Snapshot resume state was not visible after slot creation.");
+    assert(metrics.snapshotResumeBootWorks, "Snapshot resume did not drive the runtime through BootScene.");
     assert(metrics.liveResumeToggleWorks, "Resume toggle did not return to live profile mode.");
     assert(metrics.firstRunTutorialComplete, "First-run tutorial completion flag was not persisted.");
-    assert(metrics.clearedRouteCount === 3, "Expected all three routes to remain visibly cleared in the hub.");
+    assert(metrics.clearedRouteCount === 4, "Expected all four routes to remain visibly cleared in the hub.");
     assert(metrics.clearedShatterVisible, "Shatter Block was not visibly marked cleared in the hub.");
     assert(metrics.clearedVeilVisible, "Veil Shrine was not visibly marked cleared in the hub.");
     assert(metrics.clearedCinderVisible, "Cinder Ward was not visibly marked cleared in the hub.");
+    assert(metrics.clearedNightVisible, "Night Cathedral was not visibly marked cleared in the hub.");
 
     await browser.close();
     browser = null;

@@ -12,9 +12,11 @@ import {
   applyPlayerCombatProgression,
   applyPlayerLevelChoice,
   claimPlayerDungeonReward,
+  craftPlayerInventoryReward,
   equipPlayerInventoryItem,
   equipPlayerLoadoutSkills,
   getPlayerProfile,
+  usePlayerInventoryConsumable,
   updatePlayerSession,
   updatePlayerClass
 } from "../src/controllers/playerController.js";
@@ -544,6 +546,84 @@ test("player profile endpoints keep loadout logic server-side", async () => {
     1
   );
 
+  const invalidShatterScrollRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "shatter_boss_scroll",
+        regionId: "shatter_boss_vault"
+      }
+    },
+    invalidShatterScrollRewardResponse
+  );
+  assert.equal(invalidShatterScrollRewardResponse.statusCode, 400);
+  assert.equal(invalidShatterScrollRewardResponse.payload.error, "Invalid reward context");
+
+  const clearedShatterBossSessionResponse = createMockResponse();
+  await updatePlayerSession(
+    {
+      ...request,
+      body: {
+        regionId: "shatter_boss_vault",
+        sessionState: {
+          clearedBossRegionId: "shatter_boss_vault"
+        }
+      }
+    },
+    clearedShatterBossSessionResponse
+  );
+  assert.equal(clearedShatterBossSessionResponse.statusCode, 200);
+
+  const shatterScrollRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "shatter_boss_scroll",
+        regionId: "shatter_boss_vault"
+      }
+    },
+    shatterScrollRewardResponse
+  );
+  assert.equal(shatterScrollRewardResponse.statusCode, 200);
+  assert.equal(shatterScrollRewardResponse.payload.data.reward.type, "scroll");
+  assert.equal(shatterScrollRewardResponse.payload.data.bonusRewards.length <= 2, true);
+  assert.equal(
+    shatterScrollRewardResponse.payload.data.profile.availableSkills.some(
+      (skill) => skill.id === shatterScrollRewardResponse.payload.data.reward.id
+    ),
+    true
+  );
+  assert.equal(
+    shatterScrollRewardResponse.payload.data.profile.inventoryItems.some((item) => item.id === "field_tonic"),
+    true
+  );
+  assert.equal(
+    shatterScrollRewardResponse.payload.data.profile.inventoryItems.some((item) => item.id === "cursed_resin"),
+    true
+  );
+
+  const duplicateShatterScrollRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "shatter_boss_scroll",
+        regionId: "shatter_boss_vault"
+      }
+    },
+    duplicateShatterScrollRewardResponse
+  );
+  assert.equal(duplicateShatterScrollRewardResponse.statusCode, 200);
+  assert.equal(duplicateShatterScrollRewardResponse.payload.data.reward, null);
+  assert.equal(
+    duplicateShatterScrollRewardResponse.payload.data.profile.availableSkills.filter(
+      (skill) => skill.id === shatterScrollRewardResponse.payload.data.reward.id
+    ).length,
+    1
+  );
+
   const veilBossSessionResponse = createMockResponse();
   await updatePlayerSession(
     {
@@ -700,6 +780,149 @@ test("player profile endpoints keep loadout logic server-side", async () => {
   );
   assert.equal(duplicateCinderBossRewardResponse.statusCode, 200);
   assert.equal(duplicateCinderBossRewardResponse.payload.data.reward, null);
+
+  const clearedNightRelicSessionResponse = createMockResponse();
+  await updatePlayerSession(
+    {
+      ...request,
+      body: {
+        regionId: "night_dungeon",
+        sessionState: {
+          dungeonRelicClaimed: true,
+          dungeonRelicClaimedRegionId: "night_dungeon"
+        }
+      }
+    },
+    clearedNightRelicSessionResponse
+  );
+  assert.equal(clearedNightRelicSessionResponse.statusCode, 200);
+
+  const nightMinibossRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "night_miniboss",
+        regionId: "night_dungeon"
+      }
+    },
+    nightMinibossRewardResponse
+  );
+  assert.equal(nightMinibossRewardResponse.statusCode, 200);
+  assert.equal(nightMinibossRewardResponse.payload.data.reward.rarity, "epic");
+  assert.equal(nightMinibossRewardResponse.payload.data.bonusRewards.length, 2);
+
+  const clearedNightBossSessionResponse = createMockResponse();
+  await updatePlayerSession(
+    {
+      ...request,
+      body: {
+        regionId: "night_boss_vault",
+        sessionState: {
+          clearedBossRegionId: "night_boss_vault"
+        }
+      }
+    },
+    clearedNightBossSessionResponse
+  );
+  assert.equal(clearedNightBossSessionResponse.statusCode, 200);
+
+  const nightBossRewardResponse = createMockResponse();
+  await claimPlayerDungeonReward(
+    {
+      ...request,
+      body: {
+        rewardSource: "night_boss_scroll",
+        regionId: "night_boss_vault"
+      }
+    },
+    nightBossRewardResponse
+  );
+  assert.equal(nightBossRewardResponse.statusCode, 200);
+  assert.equal(nightBossRewardResponse.payload.data.reward.type, "scroll");
+  assert.equal(nightBossRewardResponse.payload.data.bonusRewards.length, 2);
+  assert.equal(
+    nightBossRewardResponse.payload.data.profile.availableSkills.some(
+      (skill) => skill.id === nightBossRewardResponse.payload.data.reward.id
+    ),
+    true
+  );
+
+  const consumeFieldTonicResponse = createMockResponse();
+  await usePlayerInventoryConsumable(
+    {
+      ...request,
+      body: {
+        itemId: "field_tonic"
+      }
+    },
+    consumeFieldTonicResponse
+  );
+  assert.equal(consumeFieldTonicResponse.statusCode, 200);
+  assert.equal(
+    consumeFieldTonicResponse.payload.data.profile.activeConsumableIds.includes("field_tonic"),
+    true
+  );
+  assert.equal(
+    consumeFieldTonicResponse.payload.data.profile.inventoryItems.some(
+      (item) => item.id === "field_tonic" && item.quantity >= 1
+    ),
+    true
+  );
+
+  const craftResinElixirResponse = createMockResponse();
+  await craftPlayerInventoryReward(
+    {
+      ...request,
+      body: {
+        recipeId: "craft_resin_elixir"
+      }
+    },
+    craftResinElixirResponse
+  );
+  assert.equal(craftResinElixirResponse.statusCode, 200);
+  assert.equal(craftResinElixirResponse.payload.data.craftedItem.id, "resin_elixir");
+  assert.equal(
+    craftResinElixirResponse.payload.data.profile.inventoryItems.some(
+      (item) => item.id === "resin_elixir" && item.quantity >= 1
+    ),
+    true
+  );
+
+  const consumeResinElixirResponse = createMockResponse();
+  await usePlayerInventoryConsumable(
+    {
+      ...request,
+      body: {
+        itemId: "resin_elixir"
+      }
+    },
+    consumeResinElixirResponse
+  );
+  assert.equal(consumeResinElixirResponse.statusCode, 200);
+  assert.equal(
+    consumeResinElixirResponse.payload.data.profile.activeConsumableIds.includes("resin_elixir"),
+    true
+  );
+
+  const craftFurnaceDraughtResponse = createMockResponse();
+  await craftPlayerInventoryReward(
+    {
+      ...request,
+      body: {
+        recipeId: "craft_furnace_draught"
+      }
+    },
+    craftFurnaceDraughtResponse
+  );
+  assert.equal(craftFurnaceDraughtResponse.statusCode, 200);
+  assert.equal(craftFurnaceDraughtResponse.payload.data.craftedItem.id, "furnace_draught");
+  assert.equal(
+    craftFurnaceDraughtResponse.payload.data.profile.inventoryItems.some(
+      (item) => item.id === "furnace_draught" && item.quantity >= 1
+    ),
+    true
+  );
 });
 
 test("save controller stores progression-oriented player state", async () => {

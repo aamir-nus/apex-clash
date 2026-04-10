@@ -2,11 +2,13 @@ import { logger } from "../lib/logger.js";
 import {
   applyPlayerCombatReward,
   applyPlayerProgressionChoice,
+  craftPlayerInventoryItem,
   claimPlayerReward,
   equipPlayerItem,
   equipPlayerSkills,
   getOrCreatePlayerProfile,
   setPlayerClassType,
+  usePlayerConsumable,
   updatePlayerSessionState
 } from "../services/playerProfileService.js";
 
@@ -85,6 +87,44 @@ export async function equipPlayerLoadoutSkills(request, response) {
   }
 
   response.json({ ok: true, data: result.profile });
+}
+
+export async function usePlayerInventoryConsumable(request, response) {
+  if (!requireAuth(request, response)) {
+    return;
+  }
+
+  const result = await usePlayerConsumable(request.authUser.id, request.body?.itemId);
+  if (result.error) {
+    logger.warn("Rejected consumable use", {
+      requestId: request.id,
+      itemId: request.body?.itemId,
+      userId: request.authUser.id
+    });
+    response.status(400).json({ ok: false, error: result.error });
+    return;
+  }
+
+  response.json({ ok: true, data: result });
+}
+
+export async function craftPlayerInventoryReward(request, response) {
+  if (!requireAuth(request, response)) {
+    return;
+  }
+
+  const result = await craftPlayerInventoryItem(request.authUser.id, request.body?.recipeId);
+  if (result.error) {
+    logger.warn("Rejected item craft", {
+      requestId: request.id,
+      recipeId: request.body?.recipeId,
+      userId: request.authUser.id
+    });
+    response.status(400).json({ ok: false, error: result.error });
+    return;
+  }
+
+  response.json({ ok: true, data: result });
 }
 
 export async function applyPlayerLevelChoice(request, response) {

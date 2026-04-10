@@ -70,3 +70,17 @@ export function equipPlayerSkills(token, skillIds) {
     body: JSON.stringify({ skillIds })
   });
 }
+
+export function consumePlayerItem(token, itemId) {
+  return request("/player/inventory/use", token, {
+    method: "POST",
+    body: JSON.stringify({ itemId })
+  });
+}
+
+export function craftPlayerItem(token, recipeId) {
+  return request("/player/inventory/craft", token, {
+    method: "POST",
+    body: JSON.stringify({ recipeId })
+  });
+}

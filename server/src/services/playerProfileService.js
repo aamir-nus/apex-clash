@@ -83,6 +83,20 @@ function getRewardItemId(classType, rewardSource) {
     }
   }
 
+  if (rewardSource === "night_miniboss") {
+    switch (classType) {
+      case "mid_range":
+        return "cathedral_knot";
+      case "long_range":
+        return "moonwire_prism";
+      case "heavenly_restriction":
+        return "stalker_shroud";
+      case "close_combat":
+      default:
+        return "night_iron_chain";
+    }
+  }
+
   if (rewardSource === "cinder_boss_core") {
     switch (classType) {
       case "mid_range":
@@ -101,6 +115,20 @@ function getRewardItemId(classType, rewardSource) {
 }
 
 function getRewardSkillId(classType, rewardSource) {
+  if (rewardSource === "shatter_boss_scroll") {
+    switch (classType) {
+      case "mid_range":
+        return "thread_lance";
+      case "long_range":
+        return "comet_array";
+      case "heavenly_restriction":
+        return "predator_dive";
+      case "close_combat":
+      default:
+        return "sever_flash";
+    }
+  }
+
   if (rewardSource === "veil_boss_scroll") {
     switch (classType) {
       case "mid_range":
@@ -115,6 +143,20 @@ function getRewardSkillId(classType, rewardSource) {
     }
   }
 
+  if (rewardSource === "night_boss_scroll") {
+    switch (classType) {
+      case "mid_range":
+        return "eclipse_weave";
+      case "long_range":
+        return "black_starfall";
+      case "heavenly_restriction":
+        return "apex_predator";
+      case "close_combat":
+      default:
+        return "moon_cleave";
+    }
+  }
+
   return null;
 }
 
@@ -126,13 +168,34 @@ function getBonusRewardItemIds(rewardSource) {
       return ["field_tonic", "veil_shard"];
     case "cinder_miniboss":
       return ["ember_tonic", "furnace_core"];
+    case "night_miniboss":
+      return ["midnight_tonic", "night_ichor"];
+    case "shatter_boss_scroll":
+      return ["field_tonic", "cursed_resin"];
     case "veil_boss_scroll":
       return ["veil_shard"];
     case "cinder_boss_core":
       return ["ember_tonic", "furnace_core"];
+    case "night_boss_scroll":
+      return ["midnight_tonic", "night_ichor"];
     default:
       return [];
   }
+}
+
+function getCraftRecipes() {
+  return [
+    {
+      id: "craft_resin_elixir",
+      resultItemId: "resin_elixir",
+      ingredientIds: ["cursed_resin", "veil_shard"]
+    },
+    {
+      id: "craft_furnace_draught",
+      resultItemId: "furnace_draught",
+      ingredientIds: ["cursed_resin", "furnace_core"]
+    }
+  ];
 }
 
 function mapBossVaultToClearedRegion(regionId) {
@@ -142,6 +205,8 @@ function mapBossVaultToClearedRegion(regionId) {
       ? "veil_shrine"
       : regionId === "cinder_boss_vault"
         ? "cinder_ward"
+        : regionId === "night_boss_vault"
+          ? "night_cathedral"
         : null;
 }
 
@@ -220,8 +285,11 @@ function isRewardContextValid(rewardSource, regionId, profile) {
     dungeon_miniboss: ["shatter_dungeon"],
     veil_miniboss: ["veil_dungeon"],
     cinder_miniboss: ["cinder_dungeon"],
+    night_miniboss: ["night_dungeon"],
+    shatter_boss_scroll: ["shatter_boss_vault"],
     veil_boss_scroll: ["veil_boss_vault"],
-    cinder_boss_core: ["cinder_boss_vault"]
+    cinder_boss_core: ["cinder_boss_vault"],
+    night_boss_scroll: ["night_boss_vault"]
   };
 
   const allowedRegionIds = allowedRegionIdsByReward[rewardSource];
@@ -236,7 +304,8 @@ function isRewardContextValid(rewardSource, regionId, profile) {
   if (
     rewardSource === "dungeon_miniboss" ||
     rewardSource === "veil_miniboss" ||
-    rewardSource === "cinder_miniboss"
+    rewardSource === "cinder_miniboss" ||
+    rewardSource === "night_miniboss"
   ) {
     return (
       profile.sessionState?.dungeonRelicClaimed === true &&
@@ -244,7 +313,12 @@ function isRewardContextValid(rewardSource, regionId, profile) {
     );
   }
 
-  if (rewardSource === "veil_boss_scroll" || rewardSource === "cinder_boss_core") {
+  if (
+    rewardSource === "shatter_boss_scroll" ||
+    rewardSource === "veil_boss_scroll" ||
+    rewardSource === "cinder_boss_core" ||
+    rewardSource === "night_boss_scroll"
+  ) {
     return profile.sessionState?.clearedBossRegionId === effectiveRegionId;
   }
 
@@ -252,12 +326,17 @@ function isRewardContextValid(rewardSource, regionId, profile) {
 }
 
 function computeStats(classType, equippedItemIds, statAllocations = {}) {
+  return computeStatsWithBuffs(classType, equippedItemIds, statAllocations, []);
+}
+
+function computeStatsWithBuffs(classType, equippedItemIds, statAllocations = {}, activeBuffItemIds = []) {
   const classDefinition = getClassDefinition(classType);
   const items = getItemDefinitions();
   const baseStats = structuredClone(classDefinition?.baseStats ?? {});
   const equippedItems = items.filter((item) => Object.values(equippedItemIds).includes(item.id));
+  const activeBuffItems = items.filter((item) => activeBuffItemIds.includes(item.id));
 
-  for (const item of equippedItems) {
+  for (const item of [...equippedItems, ...activeBuffItems]) {
     for (const [key, value] of Object.entries(item.statModifiers ?? {})) {
       baseStats[key] = (baseStats[key] ?? 0) + value;
     }
@@ -280,6 +359,65 @@ function computeStats(classType, equippedItemIds, statAllocations = {}) {
     crit: baseStats.crit ?? 0,
     poise: baseStats.poise ?? 0
   };
+}
+
+function normalizeInventory(profile) {
+  const inventoryCounts = { ...(profile.inventoryCounts ?? {}) };
+  const inventoryItemIds = [...new Set(profile.inventoryItemIds ?? [])];
+
+  inventoryItemIds.forEach((itemId) => {
+    inventoryCounts[itemId] = Math.max(1, inventoryCounts[itemId] ?? 1);
+  });
+
+  Object.keys(inventoryCounts).forEach((itemId) => {
+    if ((inventoryCounts[itemId] ?? 0) <= 0) {
+      delete inventoryCounts[itemId];
+    }
+  });
+
+  profile.inventoryItemIds = inventoryItemIds.filter((itemId) => (inventoryCounts[itemId] ?? 0) > 0);
+  profile.inventoryCounts = inventoryCounts;
+}
+
+function hasInventoryItem(profile, itemId, quantity = 1) {
+  normalizeInventory(profile);
+  return (profile.inventoryCounts[itemId] ?? 0) >= quantity;
+}
+
+function addInventoryItem(profile, itemId, quantity = 1) {
+  normalizeInventory(profile);
+  profile.inventoryCounts[itemId] = (profile.inventoryCounts[itemId] ?? 0) + quantity;
+  if (!profile.inventoryItemIds.includes(itemId)) {
+    profile.inventoryItemIds = [...profile.inventoryItemIds, itemId];
+  }
+}
+
+function consumeInventoryItem(profile, itemId, quantity = 1) {
+  normalizeInventory(profile);
+  if (!hasInventoryItem(profile, itemId, quantity)) {
+    return false;
+  }
+
+  profile.inventoryCounts[itemId] -= quantity;
+  if (profile.inventoryCounts[itemId] <= 0) {
+    delete profile.inventoryCounts[itemId];
+    profile.inventoryItemIds = profile.inventoryItemIds.filter((entry) => entry !== itemId);
+  }
+
+  return true;
+}
+
+function getActiveConsumableIds(profile) {
+  return (profile.sessionState?.activeConsumableIds ?? []).filter(Boolean);
+}
+
+function recomputeProfileStats(profile) {
+  profile.computedStats = computeStatsWithBuffs(
+    profile.classType,
+    profile.equippedItemIds,
+    profile.statAllocations,
+    getActiveConsumableIds(profile)
+  );
 }
 
 function getXpThreshold(level) {
@@ -309,6 +447,9 @@ function buildProfile(userId, classType = "close_combat") {
     statAllocations,
     sessionState: {},
     inventoryItemIds: [...new Set(Object.values(equippedItemIds))],
+    inventoryCounts: Object.fromEntries(
+      [...new Set(Object.values(equippedItemIds))].map((itemId) => [itemId, 1])
+    ),
     equippedItemIds,
     unlockedSkillIds,
     equippedSkillIds,
@@ -318,12 +459,31 @@ function buildProfile(userId, classType = "close_combat") {
 
 function serializeProfile(profile) {
   const content = getBootstrapContent();
-  const inventoryItems = content.items.filter((item) => profile.inventoryItemIds.includes(item.id));
+  normalizeInventory(profile);
+  const inventoryItems = content.items
+    .filter((item) => profile.inventoryItemIds.includes(item.id))
+    .map((item) => ({
+      ...item,
+      quantity: profile.inventoryCounts?.[item.id] ?? 1
+    }));
   const equippedItems = content.items.filter((item) =>
     Object.values(profile.equippedItemIds).includes(item.id)
   );
   const availableSkills = content.skills.filter((skill) => profile.unlockedSkillIds.includes(skill.id));
   const equippedSkills = content.skills.filter((skill) => profile.equippedSkillIds.includes(skill.id));
+  const craftRecipes = getCraftRecipes().map((recipe) => ({
+    id: recipe.id,
+    result: content.items.find((item) => item.id === recipe.resultItemId) ?? null,
+    ingredients: recipe.ingredientIds
+      .map((itemId) => content.items.find((item) => item.id === itemId))
+      .filter(Boolean)
+      .map((item) => ({
+        ...item,
+        quantity: 1,
+        owned: profile.inventoryCounts?.[item.id] ?? 0
+      })),
+    canCraft: recipe.ingredientIds.every((itemId) => hasInventoryItem(profile, itemId, 1))
+  }));
 
   return {
     userId: profile.userId,
@@ -339,9 +499,12 @@ function serializeProfile(profile) {
     sessionState: profile.sessionState,
     computedStats: profile.computedStats,
     inventoryItems,
+    inventoryCounts: profile.inventoryCounts,
     equippedItems,
     availableSkills,
     equippedSkills,
+    activeConsumableIds: getActiveConsumableIds(profile),
+    craftRecipes,
     classOptions: getClassDefinitions().map((entry) => ({
       id: entry.id,
       name: entry.name,
@@ -374,9 +537,10 @@ export async function setPlayerClassType(userId, classType) {
 
 export async function equipPlayerItem(userId, itemId) {
   const profile = (await getPlayerProfileRecord(userId)) ?? buildProfile(userId);
+  normalizeInventory(profile);
 
   const item = getItemDefinitions().find((entry) => entry.id === itemId);
-  if (!item || !profile.inventoryItemIds.includes(itemId)) {
+  if (!item || !hasInventoryItem(profile, itemId, 1)) {
     return { error: "Item not available" };
   }
 
@@ -389,11 +553,7 @@ export async function equipPlayerItem(userId, itemId) {
   }
 
   profile.equippedItemIds[item.equipSlot] = item.id;
-  profile.computedStats = computeStats(
-    profile.classType,
-    profile.equippedItemIds,
-    profile.statAllocations
-  );
+  recomputeProfileStats(profile);
   const storedProfile = await upsertPlayerProfileRecord(profile);
   return { profile: serializeProfile(storedProfile) };
 }
@@ -441,11 +601,7 @@ export async function applyPlayerProgressionChoice(userId, optionId, runtimeStat
   };
   profile.statAllocations[optionId] += 1;
   profile.pendingStatPoints -= 1;
-  profile.computedStats = computeStats(
-    profile.classType,
-    profile.equippedItemIds,
-    profile.statAllocations
-  );
+  recomputeProfileStats(profile);
 
   const storedProfile = await upsertPlayerProfileRecord(profile);
   return { profile: serializeProfile(storedProfile) };
@@ -499,6 +655,7 @@ export async function updatePlayerSessionState(userId, sessionUpdate = {}) {
     sessionUpdate.sessionState ?? {},
     sessionUpdate.regionId ?? null
   );
+  recomputeProfileStats(profile);
 
   const storedProfile = await upsertPlayerProfileRecord(profile);
   return { profile: serializeProfile(storedProfile) };
@@ -506,6 +663,7 @@ export async function updatePlayerSessionState(userId, sessionUpdate = {}) {
 
 export async function claimPlayerReward(userId, rewardSource, regionId, sessionState = null) {
   const profile = (await getPlayerProfileRecord(userId)) ?? buildProfile(userId);
+  normalizeInventory(profile);
   if (sessionState && typeof sessionState === "object") {
     profile.currentRegionId = regionId ?? profile.currentRegionId;
     profile.sessionState = mergeSessionState(
@@ -537,22 +695,22 @@ export async function claimPlayerReward(userId, rewardSource, regionId, sessionS
   }
 
   if (rewardItemId) {
-    const hasReward = profile.inventoryItemIds.includes(rewardItemId);
-    if (!hasReward) {
-      profile.inventoryItemIds = [...profile.inventoryItemIds, rewardItemId];
+    const rewardDefinition = getItemDefinitions().find((item) => item.id === rewardItemId) ?? null;
+    const isStackableReward = ["consumable", "material"].includes(rewardDefinition?.type ?? "");
+    const hasReward = hasInventoryItem(profile, rewardItemId, 1);
+    if (!hasReward || isStackableReward) {
+      addInventoryItem(profile, rewardItemId, 1);
     }
     const grantedBonusItemIds = [];
     for (const bonusItemId of bonusRewardItemIds) {
-      if (!profile.inventoryItemIds.includes(bonusItemId)) {
-        profile.inventoryItemIds = [...profile.inventoryItemIds, bonusItemId];
-        grantedBonusItemIds.push(bonusItemId);
-      }
+      addInventoryItem(profile, bonusItemId, 1);
+      grantedBonusItemIds.push(bonusItemId);
     }
 
     const storedProfile = await upsertPlayerProfileRecord(profile);
     return {
       profile: serializeProfile(storedProfile),
-      reward: hasReward ? null : getItemDefinitions().find((item) => item.id === rewardItemId) ?? null,
+      reward: hasReward && !isStackableReward ? null : rewardDefinition,
       bonusRewards: getItemDefinitions().filter((item) => grantedBonusItemIds.includes(item.id))
     };
   }
@@ -563,10 +721,8 @@ export async function claimPlayerReward(userId, rewardSource, regionId, sessionS
   }
   const grantedBonusItemIds = [];
   for (const bonusItemId of bonusRewardItemIds) {
-    if (!profile.inventoryItemIds.includes(bonusItemId)) {
-      profile.inventoryItemIds = [...profile.inventoryItemIds, bonusItemId];
-      grantedBonusItemIds.push(bonusItemId);
-    }
+    addInventoryItem(profile, bonusItemId, 1);
+    grantedBonusItemIds.push(bonusItemId);
   }
   const storedProfile = await upsertPlayerProfileRecord(profile);
   return {
@@ -579,5 +735,58 @@ export async function claimPlayerReward(userId, rewardSource, regionId, sessionS
           rarity: "epic"
         },
     bonusRewards: getItemDefinitions().filter((item) => grantedBonusItemIds.includes(item.id))
+  };
+}
+
+export async function usePlayerConsumable(userId, itemId) {
+  const profile = (await getPlayerProfileRecord(userId)) ?? buildProfile(userId);
+  normalizeInventory(profile);
+  const item = getItemDefinitions().find((entry) => entry.id === itemId);
+
+  if (!item || item.type !== "consumable") {
+    return { error: "Consumable not available" };
+  }
+
+  if (!consumeInventoryItem(profile, itemId, 1)) {
+    return { error: "Consumable not available" };
+  }
+
+  profile.sessionState = {
+    ...(profile.sessionState ?? {}),
+    activeConsumableIds: [itemId]
+  };
+  recomputeProfileStats(profile);
+  const storedProfile = await upsertPlayerProfileRecord(profile);
+  return {
+    profile: serializeProfile(storedProfile),
+    effect: item
+  };
+}
+
+export async function craftPlayerInventoryItem(userId, recipeId) {
+  const profile = (await getPlayerProfileRecord(userId)) ?? buildProfile(userId);
+  normalizeInventory(profile);
+  const recipe = getCraftRecipes().find((entry) => entry.id === recipeId);
+
+  if (!recipe) {
+    return { error: "Recipe not available" };
+  }
+
+  const canCraft = recipe.ingredientIds.every((itemId) => hasInventoryItem(profile, itemId, 1));
+  if (!canCraft) {
+    return { error: "Missing crafting materials" };
+  }
+
+  recipe.ingredientIds.forEach((itemId) => {
+    consumeInventoryItem(profile, itemId, 1);
+  });
+  addInventoryItem(profile, recipe.resultItemId, 1);
+  recomputeProfileStats(profile);
+
+  const storedProfile = await upsertPlayerProfileRecord(profile);
+  return {
+    profile: serializeProfile(storedProfile),
+    craftedItem: getItemDefinitions().find((item) => item.id === recipe.resultItemId) ?? null,
+    consumedItemIds: recipe.ingredientIds
   };
 }

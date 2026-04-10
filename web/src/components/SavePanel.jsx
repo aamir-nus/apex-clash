@@ -4,6 +4,7 @@ export function SavePanel({
   error,
   backgroundSync,
   profileResumeRegion,
+  activeSave,
   selectedSlotId,
   setSelectedSlotId,
   onUseProfileResume,
@@ -11,6 +12,12 @@ export function SavePanel({
   onSaveCurrentRun,
   saveStatus
 }) {
+  const usingSnapshot = Boolean(selectedSlotId);
+  const resumeModeLabel = usingSnapshot ? `save snapshot (${selectedSlotId})` : "live profile session";
+  const resumeConsequence = usingSnapshot
+    ? `You will reopen the pinned checkpoint at ${activeSave?.regionId ?? "the saved region"} and ignore newer live route drift.`
+    : `You will reopen the latest backend-owned route state at ${profileResumeRegion || "hub_blacksite"}.`;
+
   return (
     <aside className="panel">
       <div className="panel-header">
@@ -18,6 +25,12 @@ export function SavePanel({
         <button className="mini-button" onClick={onCreateSlot} type="button">
           New
         </button>
+      </div>
+      <div className="panel-guide">
+        <strong>Run Recovery</strong>
+        <small>
+          Use live profile for the latest server-owned route state. Use a snapshot when you want to pin a specific checkpoint.
+        </small>
       </div>
       <div className="save-mode-block">
         <button
@@ -28,6 +41,7 @@ export function SavePanel({
           <strong>Live Profile Resume</strong>
           <span>{profileResumeRegion || "hub_blacksite"}</span>
           <small>Use backend session state</small>
+          <small className="slot-impact">Tracks the newest unlocked route and live session sync.</small>
         </button>
       </div>
       <div className="slot-list">
@@ -40,20 +54,33 @@ export function SavePanel({
           >
             <strong>{slot.label}</strong>
             <span>Level {slot.level}</span>
+            <small>{slot.regionId}</small>
             <small>{slot.archetypeId}</small>
+            <small className="slot-impact">Pins this checkpoint until you switch back to live profile.</small>
           </button>
         ))}
       </div>
       <button className="primary-button" onClick={onSaveCurrentRun} type="button">
         Sync Current Run
       </button>
-      <p className="save-meta">
-        Resume mode: {selectedSlotId ? `save snapshot (${selectedSlotId})` : "live profile session"}
-      </p>
-      <p className="save-meta">Save status: {saveStatus || status}</p>
-      <p className="save-meta">
-        Background sync: {backgroundSync?.detail || backgroundSync?.state || "idle"}
-      </p>
+      <div className="save-status-grid">
+        <p className="save-meta">
+          <strong>Resume mode</strong>
+          <span>{resumeModeLabel}</span>
+        </p>
+        <p className="save-meta">
+          <strong>Save status</strong>
+          <span>{saveStatus || status}</span>
+        </p>
+        <p className="save-meta">
+          <strong>Background sync</strong>
+          <span>{backgroundSync?.detail || backgroundSync?.state || "idle"}</span>
+        </p>
+        <p className="save-meta save-meta-wide">
+          <strong>Resume consequence</strong>
+          <span>{resumeConsequence}</span>
+        </p>
+      </div>
       {error ? <p className="error-text">{error}</p> : null}
     </aside>
   );

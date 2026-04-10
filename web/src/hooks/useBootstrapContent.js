@@ -3,6 +3,7 @@ import { apiBaseUrl } from "../config/api";
 
 const fallbackContent = {
   classes: [],
+  dungeons: [],
   enemies: [],
   items: [],
   regions: [],

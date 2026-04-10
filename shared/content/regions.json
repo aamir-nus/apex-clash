@@ -22,5 +22,11 @@
     "name": "Cinder Ward",
     "type": "region",
     "recommendedLevel": 10
+  },
+  {
+    "id": "night_cathedral",
+    "name": "Night Cathedral",
+    "type": "region",
+    "recommendedLevel": 14
   }
 ]

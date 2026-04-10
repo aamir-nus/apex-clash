@@ -37,8 +37,8 @@ const metrics = {
   saveResumeSurfaces:
     [
       "Live Profile Resume",
-      "Resume mode:",
-      "Background sync:",
+      "Resume mode",
+      "Background sync",
       "Use backend session state"
     ].filter((token) => savePanelSource.includes(token)).length,
   rewardBindFeedbackSurfaces:
@@ -75,8 +75,8 @@ assert(
 
 assert(
   savePanelSource.includes("Live Profile Resume") &&
-    savePanelSource.includes("Resume mode:") &&
-    savePanelSource.includes("Background sync:") &&
+    savePanelSource.includes("Resume mode") &&
+    savePanelSource.includes("Background sync") &&
     savePanelSource.includes("Use backend session state"),
   "Save panel must expose resume source and background sync state to the player."
 );

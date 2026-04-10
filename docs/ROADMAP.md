@@ -18,10 +18,10 @@ Reach the content-complete browser release candidate.
 ### Expected Shape
 
 - 1 hub area
-- 3 combat regions
-- 9 dungeon layouts
+- 4 combat regions
+- 12 dungeon layouts
 - 4 starting archetypes fully represented
-- 3 major bosses plus final boss
+- 4 route bosses including a final-ascent boss
 - progression cap around level 20
 - stable browser UX for launcher, HUD, save slots, settings, and progression screens
 - stronger 8-bit identity across art, UI, audio, and map dressing
@@ -50,9 +50,10 @@ Reach the content-complete browser release candidate.
 Current truth split:
 
 - browser-proven:
-  - Shatter, Veil, and Cinder full route flow
+  - Shatter, Veil, Cinder, and Night Cathedral full route flow
   - save/resume, reward claim, quick bind, quick equip, and cleared-route tracking
   - backend-owned profile, loadout, progression, and reward contracts
+  - longer browser proof for consumable use, crafting, snapshot/live resume, and manual sync
 - implemented but not polished enough to call release-ready:
   - launcher, HUD, route progression presentation, and inventory/moveset UX
   - combat presentation and scene dressing
@@ -61,13 +62,13 @@ Current truth split:
   - broader content volume
   - live Mongo gameplay verification
   - sprite/audio production pipeline
-  - stronger onboarding and presentation polish
+  - broader onboarding and presentation polish across the full release-candidate flow
 
 Near-term `v3` work should bias toward:
 
 1. live Mongo persistence verification in real gameplay flows
-2. scene polish on the proven 3-route path: hub, region, dungeon, boss readability
-3. expanding from the current 3 authored region routes into broader dungeon content
+2. scene polish on the proven 4-route path: hub, region, dungeon, boss readability
+3. expanding from the current 4 authored region routes into broader dungeon content
 4. broader scroll, consumable, material, and progression reward loops
 5. sprite, tileset, and sound pipeline adoption
 
@@ -77,8 +78,16 @@ Current verified browser baseline:
 - first full Shatter route is clearable in the headless browser gate
 - Veil continuation route is clearable in the headless browser gate
 - Veil scroll reward -> quick bind -> extract is clearable in the headless browser gate
+- Shatter boss scroll rewards now unlock class-specific skills and broaden the scroll route beyond Veil alone
 - Cinder continuation route is clearable in the headless browser gate
 - Cinder boss reward -> quick equip -> extract is clearable in the headless browser gate
+- Night Cathedral continuation route is clearable in the headless browser gate
+- Night boss scroll reward -> quick bind -> extract is clearable in the headless browser gate
+- the longer four-route browser path now proves consumable use, at least one successful craft, snapshot resume, live-profile resume, snapshot return, and manual sync
+- inventory, moveset, and save panels now have clearer action-oriented guidance and grouped state presentation
+- the current 4 routes now map onto 12 authored dungeon chamber layouts selected from combat-read state
+- route forecasts now surface authored enemy-family mixes from content before the chamber begins
+- a single `test:release-hardening` gate now proves local smoke plus deployed browser/deploy verification in sequence
 - unlocked and cleared route progression persists on the player profile and is reflected in the hub
 - the hub exposes a route-ladder summary with completion percentage and full authored-route clear state
 - Mongo runtime verification now proves health, profile, session, and save-slot persistence against a live Mongo-backed server
@@ -86,6 +95,17 @@ Current verified browser baseline:
 - Docker browser-flow verification now proves the multi-route gameplay loop against the deployed web and API stack
 - save-slot create, resume toggle, and manual sync all pass in the headless browser gate
 - first-run route guidance now has scene markers and stronger HUD objective surfacing on the proven path
+- first-run route guidance now also has a staged shell checklist that tracks deploy, boon, dungeon, and boss progress on the stable onboarding path
+- route briefings now expose reward shape, unlock payoff, and route hazard framing directly in the shell so route selection reads as authored progression
+- operator summary now exposes active tonics, ready crafts, and the next unlock target so run-state payoff reads clearly during the longer browser path
+- the live HUD now exposes current route payoff and active tonic state so combat readability stays aligned with progression state
+- boss-clear moments now expose route-specific unlock payoff through the live objective, effect chips, and combat feed before hub extraction
+- hub return now highlights the next uncleared unlocked route and pushes a clearer next-deployment recommendation into the post-extract state
+- save and resume surfaces now explain the consequence of live profile state versus a pinned snapshot during the longer browser path
+- inventory and reward surfaces now expose stat-modifier impact so route rewards and crafted items read as real build shifts
+- moveset surfaces now expose combat role and build impact so scroll unlocks and rebound slots read as real build decisions
+- the live HUD now echoes bound-skill role language so combat readability does not depend on reopening the moveset panel
+- the live HUD now turns tonic, craft, and unlock state into explicit next-step guidance during active play
 - combat readability now has stronger threat markers, danger-state washes, and clearer vulnerability signaling on the proven path
 - the browser shell now uses route-specific field briefings and directive framing tied to the active route
 - the core route spaces now have stronger authored landmarks and chamber dressing without breaking the proven browser path
@@ -93,9 +113,11 @@ Current verified browser baseline:
 - key route moments now use in-scene callouts and chamber flashes instead of relying only on HUD text
 - the combat sandbox and boss clears now have stronger hit-state and route-clear emphasis without breaking the browser proof
 - boss extract now hands a route-recovery summary back into the hub so the return flow has visible payoff
+- the proven route loop now has a minimal synth-audio cue layer for danger, route clear, extract, and hub return moments
 
 Current mechanic-hardening target:
-- broader reward pacing and authored content depth still need to reach the same UX bar
+- broader reward pacing and authored content depth still need to reach the same UX bar beyond the current 12 dungeon layouts
+- the longer manual browser run is still the one open accountability item before Phase 1 is honestly closed
 
 ## Demo-Ready Bar
 
@@ -103,30 +125,100 @@ Near-term demo-ready requirements:
 
 1. local smoke is green
 2. Docker browser-flow is green
-3. the three-route browser path stays regression-free
+3. the four-route browser path stays regression-free
 4. save/resume and reward/loadout sync remain stable
 5. scene readability is strong enough that a presenter does not need to narrate around the UI
 
 Current demo status:
-- requirements 1, 2, 3, 4, and 5: currently green on the proven 3-route slice
+- requirements 1, 2, 3, 4, and 5: currently green on the proven 4-route slice
 - demo-ready today means presentable vertical slice, not full `v3` completeness
 
 ## Current Milestone
 
 `v1` in repo-version terms means:
-- the three-route vertical slice is browser-proven end to end
+- the multi-route vertical slice is browser-proven end to end
 - reward, loadout, progression, save, and resume contracts are stable under the current harness
 - the hub reflects unlocked and cleared route progression clearly
 
 `v1` does not mean the PRD-complete game is done.
 
-## Next Tasks
+## Execution Order
 
-1. Keep rerunning the demo-ready gate after each polish batch: local smoke, then Docker browser-flow.
-2. Continue reducing text-only onboarding while strengthening live combat clarity and route framing.
-3. Expand authored dungeon layouts, encounter variety, and reward pacing.
-4. Move from placeholder presentation toward sprite/audio production quality.
-5. Revisit bundle strategy after more real content lands.
+Build toward `final` in three explicit phases:
+
+1. `v3 content expansion`
+2. `v3 release hardening`
+3. `final-product expansion`
+
+The rule is strict:
+- do not jump ahead on polish while content milestones are still missing
+- do not call a phase stable until its gate is green
+- keep `test:release-hardening` green while adding scope
+
+## Phase 1: v3 Content Expansion
+
+Target:
+- finish the minimum content bar for a credible browser release candidate
+
+Required outcomes:
+- 12 authored dungeon layouts across the current routes
+- at least 1 final-chapter route or final-boss climb beyond the earlier 3-route loop
+- more enemy families with clearer route-specific behavior identity
+- broader scroll, consumable, and material reward usage across the full run
+- stackable consumables/materials, consumable use, and crafting are now live in the profile loop
+- stronger class progression through level 20 pacing, not just the early slice
+
+Task order:
+1. Verify one longer manual browser run through the expanded content path.
+
+Gate:
+- `npm run test:smoke`
+- `npm run test:release-hardening`
+- browser flow still green on the current proven routes
+- expanded content path is manually clearable without debug intervention
+
+## Phase 2: v3 Release Hardening
+
+Target:
+- turn the broader content slice into a real browser release candidate
+
+Required outcomes:
+- browser UX is stable across launcher, save, inventory, moveset, and route progression
+- onboarding is strong enough that a new player can start without verbal guidance
+- persistence is reliable in local and Docker-backed runs
+- bundle, deploy, and regression gates are strong enough for external playtesting
+
+Task order:
+1. Continue reducing text-only onboarding and replace it with stronger live guidance.
+2. Harden save/resume under longer runs and broader route progression.
+3. Strengthen browser-flow automation to cover the expanded content path.
+4. Revisit bundle strategy after the expanded content load is real.
+5. Fix release-grade UX drift in inventory, moveset, and route progression surfaces.
+
+Gate:
+- `npm run test:release-hardening`
+- no known route-state regressions
+- no silent background sync failures
+- stable Docker/browser run for the release-candidate path
+
+## Phase 3: Final-Product Expansion
+
+Target:
+- move from a release candidate to the intended full game
+
+Required outcomes:
+- larger multi-region world structure
+- deeper class branches and progression identity
+- elite encounters, anomaly content, remixed dungeons, and endgame loops
+- real sprite/audio production pipeline
+- broader content-authoring pipeline for maps, enemies, items, bosses, and quests
+
+Task order:
+1. Expand world structure beyond the current hub + 3 core routes.
+2. Add deeper class trees and stronger late-game identity.
+3. Add elite hunts, anomaly zones, remixed dungeons, and endgame systems.
+4. Replace synth/demo presentation with real sprite/audio production assets.
+5. Scale content authoring and regression gates to support ongoing expansion.
 
 ## Final
 

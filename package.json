@@ -11,6 +11,7 @@
     "dev:server": "npm run dev -w server",
     "test:auth-profile-contract": "node scripts/auth_profile_contract_check.mjs",
     "test:backend-contract": "node scripts/backend_contract_check.mjs",
+    "test:bundle-audit": "node scripts/bundle_audit.mjs",
     "test:browser-flow": "node scripts/browser_flow_check.mjs",
     "test:debug-audit": "node scripts/debug_audit.mjs",
     "test:docker-browser-flow": "node scripts/docker_browser_flow_check.mjs",
@@ -18,11 +19,12 @@
     "test:experience-audit": "node scripts/experience_audit.mjs",
     "test:mongo-restart": "node scripts/mongo_restart_check.mjs",
     "test:mongo-runtime": "node scripts/mongo_runtime_check.mjs",
+    "test:release-hardening": "node scripts/release_hardening_check.mjs",
     "test:skill-binding-contract": "node scripts/skill_binding_contract_check.mjs",
     "test:ui-flow-audit": "node scripts/ui_flow_audit.mjs",
     "validate:content": "node scripts/validate-content.mjs",
     "test:server": "npm run test -w server",
-    "test:smoke": "npm run validate:content && npm run test:server && npm run test:backend-contract && npm run test:auth-profile-contract && npm run test:skill-binding-contract && npm run test:experience-audit && npm run test:debug-audit && npm run test:ui-flow-audit && npm run lint && npm run build && npm run test:browser-flow",
+    "test:smoke": "npm run validate:content && npm run test:server && npm run test:backend-contract && npm run test:auth-profile-contract && npm run test:skill-binding-contract && npm run test:experience-audit && npm run test:debug-audit && npm run test:ui-flow-audit && npm run lint && npm run build && npm run test:bundle-audit && npm run test:browser-flow",
     "build": "npm run build -w web",
     "lint": "npm run lint -w web"
   }

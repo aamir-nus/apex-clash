@@ -17,9 +17,34 @@ function cloneState(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function selectDungeonVariant(regionId, variants, combatSnapshot) {
+  const regionVariants = variants.filter((entry) => entry.regionId === regionId);
+  if (regionVariants.length === 0) {
+    return null;
+  }
+
+  const style = combatSnapshot?.style ?? "balanced";
+  return (
+    regionVariants.find((entry) => (entry.styleTags ?? []).includes(style)) ??
+    regionVariants[0]
+  );
+}
+
+function formatEncounterMix(content, variant) {
+  if (!variant?.enemyIds?.length) {
+    return "Unknown threat mix";
+  }
+
+  const names = variant.enemyIds
+    .map((enemyId) => content.enemies?.find((entry) => entry.id === enemyId)?.name)
+    .filter(Boolean);
+  return names.length > 0 ? names.join(" / ") : "Unknown threat mix";
+}
+
 export class DungeonScene extends Phaser.Scene {
   constructor() {
     super("DungeonScene");
+    this.content = {};
     this.player = null;
     this.cursors = null;
     this.actionKeys = null;
@@ -56,9 +81,11 @@ export class DungeonScene extends Phaser.Scene {
     this.vaultMarker = null;
     this.feedbackText = null;
     this.feedbackWash = null;
+    this.dungeonVariant = null;
   }
 
   create() {
+    this.content = this.registry.get("content") ?? {};
     this.playerProfile = this.registry.get("playerProfile") ?? null;
     this.currentRegionId = this.registry.get("currentRegionId") ?? "shatter_dungeon";
     this.selectedArchetype = this.registry.get("selectedArchetype") ?? "close_combat";
@@ -68,6 +95,8 @@ export class DungeonScene extends Phaser.Scene {
     const loadedPlayerState = this.registry.get("loadedPlayerState");
     const loadedSessionSummary = this.registry.get("loadedSessionSummary") ?? null;
     const loadedSessionState = loadedSessionSummary?.sessionState ?? {};
+    const combatSnapshot = this.registry.get("combatSnapshot") ?? loadedSessionState?.combatSnapshot ?? null;
+    this.dungeonVariant = selectDungeonVariant(this.currentRegionId, this.content.dungeons ?? [], combatSnapshot);
     this.playerState = loadedPlayerState
       ? cloneState(loadedPlayerState)
       : {
@@ -88,20 +117,22 @@ export class DungeonScene extends Phaser.Scene {
     this.minibossDefeated = Boolean(loadedSessionState.dungeonMinibossDefeated);
     const isVeilDungeon = this.currentRegionId === "veil_dungeon";
     const isCinderDungeon = this.currentRegionId === "cinder_dungeon";
+    const isNightDungeon = this.currentRegionId === "night_dungeon";
     const boonKind = this.explorationBonus?.kind ?? "none";
     const baseSanctumShield =
       boonKind === "technique" ? 18 : boonKind === "pressure" ? 24 : 30;
     this.sanctumCycleMs = boonKind === "pressure" ? 1800 : 2000;
     this.sanctumOpenMs = boonKind === "pressure" ? 1350 : 1100;
-    this.minibossHp = loadedSessionState.dungeonMinibossHp ?? (isVeilDungeon ? 84 : 72);
+    const variantBaseHp = this.dungeonVariant?.minibossBaseHp ?? (isNightDungeon ? 100 : isVeilDungeon ? 84 : 72);
+    this.minibossHp = loadedSessionState.dungeonMinibossHp ?? variantBaseHp;
     if (isCinderDungeon) {
-      this.minibossHp = loadedSessionState.dungeonMinibossHp ?? 76;
+      this.minibossHp = loadedSessionState.dungeonMinibossHp ?? variantBaseHp;
       this.cinderCycleMs = boonKind === "pressure" ? 1450 : 1650;
       this.cinderOpenMs = boonKind === "pressure" ? 1050 : 900;
       this.cinderBacklashHp = boonKind === "recovery" ? 1 : 3;
       this.cinderBacklashCe = boonKind === "recovery" ? 2 : 4;
     }
-    this.sanctumShield = loadedSessionState.sanctumShield ?? (isVeilDungeon ? baseSanctumShield : 0);
+    this.sanctumShield = loadedSessionState.sanctumShield ?? (isVeilDungeon || isNightDungeon ? baseSanctumShield + (isNightDungeon ? 10 : 0) : 0);
     this.sanctumWindowOpen = Boolean(loadedSessionState.sanctumWindowOpen);
     this.lastSanctumWindowOpen = this.sanctumWindowOpen;
     this.cinderWindowOpen = Boolean(loadedSessionState.cinderWindowOpen);
@@ -109,35 +140,35 @@ export class DungeonScene extends Phaser.Scene {
     this.registry.set("loadedPlayerState", null);
     this.registry.set("loadedSessionSummary", null);
 
-    this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, isVeilDungeon ? 0x100d18 : isCinderDungeon ? 0x1a0f0c : 0x0c1218);
-    this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, isVeilDungeon ? 0x20192b : isCinderDungeon ? 0x2d1811 : 0x171f29, 1).setStrokeStyle(2, isVeilDungeon ? 0xe2b6ff : isCinderDungeon ? 0xffb36b : 0x8fb9ff);
-    this.add.rectangle(300, 270, 160, 220, isVeilDungeon ? 0x1e2038 : isCinderDungeon ? 0x3a1e16 : 0x13283a, 0.22).setStrokeStyle(1, isVeilDungeon ? 0xd4b5ff : isCinderDungeon ? 0xff995a : 0x74c0fc);
-    this.add.rectangle(488, 270, 140, 180, isVeilDungeon ? 0x203126 : isCinderDungeon ? 0x3f281a : 0x2a1626, 0.2).setStrokeStyle(1, isVeilDungeon ? 0x87e0c2 : isCinderDungeon ? 0xffd08a : 0xe56b6f);
-    this.add.rectangle(660, 270, 180, 220, isVeilDungeon ? 0x341a3c : isCinderDungeon ? 0x472016 : 0x28161c, 0.22).setStrokeStyle(1, isVeilDungeon ? 0xffc9f5 : isCinderDungeon ? 0xff8a5b : 0xff8f70);
-    this.add.rectangle(246, 238, 42, 134, isVeilDungeon ? 0xd4b5ff : isCinderDungeon ? 0xff995a : 0x74c0fc, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
-    this.add.rectangle(418, 324, 54, 92, isVeilDungeon ? 0x87e0c2 : isCinderDungeon ? 0xffd08a : 0xe56b6f, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
-    this.add.rectangle(732, 248, 52, 150, isVeilDungeon ? 0xffc9f5 : isCinderDungeon ? 0xff8a5b : 0xff8f70, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
+    this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, isVeilDungeon ? 0x100d18 : isCinderDungeon ? 0x1a0f0c : isNightDungeon ? 0x090d1c : 0x0c1218);
+    this.add.rectangle(arena.width / 2, arena.height / 2, 820, 400, isVeilDungeon ? 0x20192b : isCinderDungeon ? 0x2d1811 : isNightDungeon ? 0x131c38 : 0x171f29, 1).setStrokeStyle(2, isVeilDungeon ? 0xe2b6ff : isCinderDungeon ? 0xffb36b : isNightDungeon ? 0xa9c4ff : 0x8fb9ff);
+    this.add.rectangle(300, 270, 160, 220, isVeilDungeon ? 0x1e2038 : isCinderDungeon ? 0x3a1e16 : isNightDungeon ? 0x18233f : 0x13283a, 0.22).setStrokeStyle(1, isVeilDungeon ? 0xd4b5ff : isCinderDungeon ? 0xff995a : isNightDungeon ? 0xc9d8ff : 0x74c0fc);
+    this.add.rectangle(488, 270, 140, 180, isVeilDungeon ? 0x203126 : isCinderDungeon ? 0x3f281a : isNightDungeon ? 0x1b1f34 : 0x2a1626, 0.2).setStrokeStyle(1, isVeilDungeon ? 0x87e0c2 : isCinderDungeon ? 0xffd08a : isNightDungeon ? 0x8e9cff : 0xe56b6f);
+    this.add.rectangle(660, 270, 180, 220, isVeilDungeon ? 0x341a3c : isCinderDungeon ? 0x472016 : isNightDungeon ? 0x1f2847 : 0x28161c, 0.22).setStrokeStyle(1, isVeilDungeon ? 0xffc9f5 : isCinderDungeon ? 0xff8a5b : isNightDungeon ? 0xd7e3ff : 0xff8f70);
+    this.add.rectangle(246, 238, 42, 134, isVeilDungeon ? 0xd4b5ff : isCinderDungeon ? 0xff995a : isNightDungeon ? 0xc9d8ff : 0x74c0fc, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
+    this.add.rectangle(418, 324, 54, 92, isVeilDungeon ? 0x87e0c2 : isCinderDungeon ? 0xffd08a : isNightDungeon ? 0x8e9cff : 0xe56b6f, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
+    this.add.rectangle(732, 248, 52, 150, isVeilDungeon ? 0xffc9f5 : isCinderDungeon ? 0xff8a5b : isNightDungeon ? 0xd7e3ff : 0xff8f70, 0.06).setStrokeStyle(1, 0xf6f1df, 0.1);
     this.add.line(0, 0, 308, 270, 690, 270, 0xf6f1df, 0.18).setOrigin(0, 0).setLineWidth(2);
     this.add.circle(308, 270, 38, isVeilDungeon ? 0xd4b5ff : isCinderDungeon ? 0xff995a : 0x74c0fc, 0.04).setStrokeStyle(1, 0xf6f1df, 0.12);
     this.add.circle(490, 270, 46, isVeilDungeon ? 0x87e0c2 : isCinderDungeon ? 0xffd08a : 0xe56b6f, 0.04).setStrokeStyle(1, 0xf6f1df, 0.12);
     this.add.circle(690, 270, 52, isVeilDungeon ? 0xffc9f5 : isCinderDungeon ? 0xff8a5b : 0xff8f70, 0.04).setStrokeStyle(1, 0xf6f1df, 0.12);
-    this.add.text(260, 176, isVeilDungeon ? "Sigil chamber" : isCinderDungeon ? "Core chamber" : "Relic chamber", {
+    this.add.text(260, 176, this.dungeonVariant?.relicLabel ?? (isVeilDungeon ? "Sigil chamber" : isCinderDungeon ? "Core chamber" : "Relic chamber"), {
       color: "#c6d2dc",
       fontFamily: "monospace",
       fontSize: "12px"
     });
-    this.add.text(446, 176, "Sentinel lock", {
+    this.add.text(446, 176, this.dungeonVariant?.minibossLabel ?? "Sentinel lock", {
       color: "#ffd98b",
       fontFamily: "monospace",
       fontSize: "12px"
     });
-    this.add.text(626, 176, "Vault gate", {
+    this.add.text(626, 176, this.dungeonVariant?.vaultLabel ?? "Vault gate", {
       color: "#f6f1df",
       fontFamily: "monospace",
       fontSize: "12px"
     });
 
-    this.add.text(100, 86, isVeilDungeon ? "Veil Depth" : isCinderDungeon ? "Furnace Descent" : "Shatter Dungeon", {
+    this.add.text(100, 86, this.dungeonVariant?.title ?? (isVeilDungeon ? "Veil Depth" : isCinderDungeon ? "Furnace Descent" : isNightDungeon ? "Night Ascent" : "Shatter Dungeon"), {
       color: "#f6f1df",
       fontFamily: "monospace",
       fontSize: "28px"
@@ -146,11 +177,14 @@ export class DungeonScene extends Phaser.Scene {
     this.add.text(
       100,
       128,
-      isVeilDungeon
+      this.dungeonVariant?.directive ??
+      (isVeilDungeon
         ? "Secure the shrine sigil, defeat the veil sentinel, then push into the sanctum vault.\nThis is the second authored route toward the v3 bar."
         : isCinderDungeon
           ? "Stabilize the ember core, force open burn windows, then descend into the cinder vault.\nThis is the third authored route toward the v3 bar."
-        : "Claim the relic shard, defeat the miniboss sentinel, then push into the boss vault.\nThis is the first authored dungeon chain for demo flow.",
+          : isNightDungeon
+            ? "Anchor the eclipse sigil, break the cathedral sentinel, then climb into the final vault.\nThis is the first final-chapter route beyond the base 3-route loop."
+          : "Claim the relic shard, defeat the miniboss sentinel, then push into the boss vault.\nThis is the first authored dungeon chain for demo flow."),
       {
         color: "#d9e7d2",
         fontFamily: "monospace",
@@ -169,7 +203,7 @@ export class DungeonScene extends Phaser.Scene {
       arena.height / 2,
       820,
       400,
-      isVeilDungeon ? 0xe2b6ff : isCinderDungeon ? 0xffb36b : 0x8fb9ff,
+      isVeilDungeon ? 0xe2b6ff : isCinderDungeon ? 0xffb36b : isNightDungeon ? 0xa9c4ff : 0x8fb9ff,
       0
     );
     this.feedbackText = this.add.text(480, 102, "", {
@@ -247,7 +281,7 @@ export class DungeonScene extends Phaser.Scene {
       fontSize: "12px"
     });
     this.add.rectangle(480, 428, 408, 24, 0x0d141d, 0.52).setStrokeStyle(1, 0xf6f1df, 0.12);
-    this.add.text(324, 420, isVeilDungeon ? "Sigil -> fracture shield -> sanctum vault" : isCinderDungeon ? "Core -> cooling breach -> cinder vault" : "Relic -> sentinel -> boss vault", {
+    this.add.text(324, 420, isVeilDungeon ? "Sigil -> fracture shield -> sanctum vault" : isCinderDungeon ? "Core -> cooling breach -> cinder vault" : isNightDungeon ? "Sigil -> eclipse shield -> final vault" : "Relic -> sentinel -> boss vault", {
       color: "#f6f1df",
       fontFamily: "monospace",
       fontSize: "12px"
@@ -322,6 +356,8 @@ export class DungeonScene extends Phaser.Scene {
     const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
     const isVeilDungeon = this.currentRegionId === "veil_dungeon";
     const isCinderDungeon = this.currentRegionId === "cinder_dungeon";
+    const isNightDungeon = this.currentRegionId === "night_dungeon";
+    const encounterMix = formatEncounterMix(this.content, this.dungeonVariant);
     emitRuntimeUpdate({
       scene: {
         scene: "dungeon",
@@ -352,13 +388,21 @@ export class DungeonScene extends Phaser.Scene {
                 ? this.cinderWindowOpen
                   ? `Cooling window · HP ${this.minibossHp}`
                   : "Furnace surge active"
+                : isNightDungeon
+                  ? this.sanctumShield > 0
+                    ? `Eclipse shield ${this.sanctumShield}`
+                    : this.sanctumWindowOpen
+                      ? `Blackout window · HP ${this.minibossHp}`
+                      : "Choir field active"
               : `Miniboss HP ${this.minibossHp}`
             : isVeilDungeon
               ? "Sigil search active"
               : isCinderDungeon
                 ? "Core search active"
-              : "Relic search active",
-        progress: isVeilDungeon && this.relicClaimed && !this.minibossDefeated
+                : isNightDungeon
+                  ? "Eclipse sigil search active"
+                : "Relic search active",
+        progress: (isVeilDungeon || isNightDungeon) && this.relicClaimed && !this.minibossDefeated
           ? this.sanctumShield > 0
             ? Math.max(0, Math.min(1, 1 - this.sanctumShield / 36))
             : this.sanctumWindowOpen
@@ -372,18 +416,28 @@ export class DungeonScene extends Phaser.Scene {
       },
       activeEffects: this.relicClaimed
         ? [
+            ...(this.dungeonVariant
+              ? [
+                  {
+                    id: "dungeon-layout",
+                    label: this.dungeonVariant.name,
+                    detail: `${this.dungeonVariant.pressureLabel} · ${encounterMix}`,
+                    tone: "neutral"
+                  }
+                ]
+              : []),
             {
               id: "dungeon-relic",
-              label: isVeilDungeon ? "Shrine sigil" : "Relic shard",
+              label: this.dungeonVariant?.relicLabel ?? (isVeilDungeon ? "Shrine sigil" : "Relic shard"),
               detail: "Miniboss chamber opened",
               tone: "boon"
             },
             ...(this.minibossDefeated
-              ? [{ id: "dungeon-miniboss", label: "Sentinel broken", detail: "Boss vault key acquired", tone: "boon" }]
+              ? [{ id: "dungeon-miniboss", label: `${this.dungeonVariant?.minibossLabel ?? "Sentinel"} broken`, detail: "Boss vault key acquired", tone: "boon" }]
               : [
                   {
                     id: "dungeon-miniboss",
-                    label: "Sentinel active",
+                    label: `${this.dungeonVariant?.minibossLabel ?? "Sentinel"} active`,
                     detail: isVeilDungeon ? "Break the sanctum guardian" : "Break the chamber guardian",
                     tone: "danger"
                   }
@@ -447,6 +501,18 @@ export class DungeonScene extends Phaser.Scene {
         options: []
       },
       combatFeed: [
+        ...(this.dungeonVariant
+          ? [
+              {
+                id: 0,
+                message: `Chamber profile: ${this.dungeonVariant.name} · ${this.dungeonVariant.pressureLabel}`
+              },
+              {
+                id: -1,
+                message: `Encounter mix: ${encounterMix}`
+              }
+            ]
+          : []),
         {
           id: 1,
           message: this.minibossDefeated
@@ -463,11 +529,13 @@ export class DungeonScene extends Phaser.Scene {
                     ? "Cooling window open. Push damage before the core flares again."
                     : "Furnace surge active. Mistimed attacks still chip, but clean windows are faster."
                 : "Relic claimed. Break the sentinel to unlock the boss vault."
-              : isVeilDungeon
-                ? "Claim the shrine sigil to wake the sanctum sentinel."
-                : isCinderDungeon
+            : isVeilDungeon
+              ? "Claim the shrine sigil to wake the sanctum sentinel."
+              : isCinderDungeon
                   ? "Claim the ember core to trigger the furnace sentinel."
-                : "Claim the relic shard to wake the chamber sentinel."
+                  : isNightDungeon
+                    ? "Claim the eclipse sigil to wake the cathedral sentinel."
+                  : "Claim the relic shard to wake the chamber sentinel."
         }
       ],
       encounter: {
@@ -495,14 +563,18 @@ export class DungeonScene extends Phaser.Scene {
     emitSoundEvent({ type: "enemy_down" });
     this.playSceneFeedback(
       this.currentRegionId === "veil_dungeon"
-        ? "Shrine sigil secured"
+        ? `${this.dungeonVariant?.relicLabel ?? "Shrine sigil"} secured`
         : this.currentRegionId === "cinder_dungeon"
-          ? "Ember core stabilized"
-          : "Relic shard secured",
+          ? `${this.dungeonVariant?.relicLabel ?? "Ember core"} stabilized`
+          : this.currentRegionId === "night_dungeon"
+            ? `${this.dungeonVariant?.relicLabel ?? "Eclipse sigil"} anchored`
+          : `${this.dungeonVariant?.relicLabel ?? "Relic shard"} secured`,
       this.currentRegionId === "veil_dungeon"
         ? 0xe2b6ff
         : this.currentRegionId === "cinder_dungeon"
           ? 0xffb36b
+          : this.currentRegionId === "night_dungeon"
+            ? 0xa9c4ff
           : 0x8fb9ff
     );
     this.emitDungeonRuntime();
@@ -515,21 +587,25 @@ export class DungeonScene extends Phaser.Scene {
 
     const isVeilDungeon = this.currentRegionId === "veil_dungeon";
     const isCinderDungeon = this.currentRegionId === "cinder_dungeon";
+    const isNightDungeon = this.currentRegionId === "night_dungeon";
     const damage = Math.max(10, Math.floor(this.playerState.attack * 0.8));
     this.player.setPosition(this.miniboss.x - 64, this.miniboss.y);
 
-    if (isVeilDungeon && this.sanctumShield > 0) {
+    if ((isVeilDungeon || isNightDungeon) && this.sanctumShield > 0) {
       const shieldBreak = Math.max(8, Math.floor(damage * 0.75));
       this.sanctumShield = Math.max(0, this.sanctumShield - shieldBreak);
       emitSoundEvent({ type: this.sanctumShield === 0 ? "enemy_down" : "skill_cast" });
+      if (this.sanctumShield === 0 && isNightDungeon) {
+        this.playSceneFeedback("Cathedral shield broken", 0xa9c4ff);
+      }
       this.emitDungeonRuntime();
       return;
     }
 
-    if (isVeilDungeon && !this.sanctumWindowOpen) {
+    if ((isVeilDungeon || isNightDungeon) && !this.sanctumWindowOpen) {
       this.playerState.ce = Math.max(0, this.playerState.ce - 6);
       this.playerState.hp = Math.max(1, this.playerState.hp - 3);
-      this.minibossHp = Math.max(0, this.minibossHp - Math.max(3, Math.floor(damage * 0.18)));
+      this.minibossHp = Math.max(0, this.minibossHp - Math.max(isNightDungeon ? 2 : 3, Math.floor(damage * (isNightDungeon ? 0.12 : 0.18))));
       emitSoundEvent({ type: "danger" });
       this.emitDungeonRuntime();
       return;
@@ -553,10 +629,12 @@ export class DungeonScene extends Phaser.Scene {
       this.playerState.pendingStatPoints += 1;
       this.playSceneFeedback(
         this.currentRegionId === "veil_dungeon"
-          ? "Sanctum sentinel broken"
+          ? `${this.dungeonVariant?.minibossLabel ?? "Sanctum sentinel"} broken`
           : this.currentRegionId === "cinder_dungeon"
-            ? "Furnace sentinel broken"
-            : "Sentinel broken",
+            ? `${this.dungeonVariant?.minibossLabel ?? "Furnace sentinel"} broken`
+            : this.currentRegionId === "night_dungeon"
+              ? `${this.dungeonVariant?.minibossLabel ?? "Cathedral sentinel"} broken`
+            : `${this.dungeonVariant?.minibossLabel ?? "Sentinel"} broken`,
         0xb8f29b
       );
       emitInventoryReward({
@@ -565,6 +643,8 @@ export class DungeonScene extends Phaser.Scene {
             ? "veil_miniboss"
             : this.currentRegionId === "cinder_dungeon"
               ? "cinder_miniboss"
+              : this.currentRegionId === "night_dungeon"
+                ? "night_miniboss"
               : "dungeon_miniboss",
         regionId: this.currentRegionId,
         sessionState: {
@@ -615,6 +695,9 @@ export class DungeonScene extends Phaser.Scene {
     if (this.currentRegionId === "cinder_dungeon") {
       this.registry.set("currentRegionId", "cinder_boss_vault");
     }
+    if (this.currentRegionId === "night_dungeon") {
+      this.registry.set("currentRegionId", "night_boss_vault");
+    }
     emitTransitionUpdate({
       active: true,
       label: "Entering boss vault",
@@ -646,6 +729,8 @@ export class DungeonScene extends Phaser.Scene {
         ? "veil_shrine"
         : this.currentRegionId === "cinder_dungeon"
           ? "cinder_ward"
+          : this.currentRegionId === "night_dungeon"
+            ? "night_cathedral"
           : "shatter_block"
     );
     emitTransitionUpdate({
@@ -674,6 +759,7 @@ export class DungeonScene extends Phaser.Scene {
 
     const isVeilDungeon = this.currentRegionId === "veil_dungeon";
     const isCinderDungeon = this.currentRegionId === "cinder_dungeon";
+    const isNightDungeon = this.currentRegionId === "night_dungeon";
     const velocity = 160;
     this.player.body.setVelocity(0, 0);
 
@@ -705,13 +791,13 @@ export class DungeonScene extends Phaser.Scene {
       Phaser.Input.Keyboard.JustDown(this.skillKeys.Q) ||
       Phaser.Input.Keyboard.JustDown(this.skillKeys.R);
 
-    if (isVeilDungeon && this.relicClaimed && !this.minibossDefeated) {
+    if ((isVeilDungeon || isNightDungeon) && this.relicClaimed && !this.minibossDefeated) {
       const cyclePosition = this.time.now % this.sanctumCycleMs;
       this.sanctumWindowOpen = this.sanctumShield <= 0 && cyclePosition >= this.sanctumCycleMs - this.sanctumOpenMs;
       if (this.sanctumWindowOpen !== this.lastSanctumWindowOpen) {
         this.lastSanctumWindowOpen = this.sanctumWindowOpen;
         emitSoundEvent({ type: this.sanctumWindowOpen ? "enemy_down" : "danger" });
-        this.minibossMarker.setColor(this.sanctumWindowOpen ? "#9bf6ff" : "#ffd98b");
+        this.minibossMarker.setColor(this.sanctumWindowOpen ? "#9bf6ff" : isNightDungeon ? "#d7e3ff" : "#ffd98b");
         this.emitDungeonRuntime();
       }
     }
@@ -733,6 +819,8 @@ export class DungeonScene extends Phaser.Scene {
           ? "Press E to claim the shrine sigil"
           : isCinderDungeon
             ? "Press E to claim the ember core"
+            : isNightDungeon
+              ? "Press E to claim the eclipse sigil"
             : "Press E to claim the relic shard"
       );
     } else if (this.relicClaimed && !this.minibossDefeated && minibossDistance < 120) {
@@ -748,11 +836,15 @@ export class DungeonScene extends Phaser.Scene {
               ? "Sanctum sentinel active. Break it to reach the inner vault."
               : isCinderDungeon
                 ? "Furnace sentinel active. Cooling breaches are best, but off-cycle pressure still chips."
+                : isNightDungeon
+                  ? "Cathedral sentinel active. Strip the eclipse shield, then punish the blackout window."
                 : "Sentinel active. Pressure the chamber guardian."
             : isVeilDungeon
               ? "Follow the marker and secure the sigil."
               : isCinderDungeon
                 ? "Follow the marker and stabilize the core."
+                : isNightDungeon
+                  ? "Follow the marker and anchor the eclipse sigil."
                 : "Follow the marker and secure the relic."
       );
     }

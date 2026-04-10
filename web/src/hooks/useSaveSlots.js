@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createSaveSlot, fetchSaveSlot, fetchSaveSlots, updateSaveSlot } from "../api/saveApi";
 import { updatePlayerSessionState } from "../api/playerApi";
+import { emitRuntimeUpdate } from "../game/runtime/runtimeBridge";
 
 export function useSaveSlots(selectedArchetype, runtime, authToken, onProfileSynced) {
   const [slots, setSlots] = useState([]);
@@ -117,6 +118,14 @@ export function useSaveSlots(selectedArchetype, runtime, authToken, onProfileSyn
     return data;
   }
 
+  function useLiveProfileResume() {
+    setSelectedSlotId("");
+    setActiveSave(null);
+    emitRuntimeUpdate({
+      resumeSource: "profile-session"
+    });
+  }
+
   async function saveCurrentRun() {
     const slotId = selectedSlotId || (await createSlot()).id;
     const updated = await updateSaveSlot(slotId, savePayload, authToken);
@@ -205,6 +214,7 @@ export function useSaveSlots(selectedArchetype, runtime, authToken, onProfileSyn
     backgroundSync,
     selectedSlotId,
     setSelectedSlotId,
+    useLiveProfileResume,
     activeSave,
     createSlot,
     saveCurrentRun

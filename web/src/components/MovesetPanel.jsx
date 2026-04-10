@@ -1,4 +1,5 @@
 import { BINDABLE_SKILL_KEYS, buildManualToggleSkillIds } from "../utils/skillBindings";
+import { getBuildImpact, getCombatRole, getRoleTone } from "../utils/skillPresentation";
 
 const slotLabels = BINDABLE_SKILL_KEYS;
 
@@ -6,6 +7,7 @@ export function MovesetPanel({
   skills,
   equippedSkillIds = [],
   latestReward,
+  loadoutFeedback,
   onEquipSkills,
   onQuickBindReward,
   locked
@@ -18,20 +20,44 @@ export function MovesetPanel({
       skill
     };
   });
+  const boundCount = boundSkills.filter((entry) => entry.skill).length;
+  const unboundCount = Math.max(0, skills.length - boundCount);
 
   return (
     <section className="panel">
-      <h2>Moveset</h2>
+      <div className="panel-header compact">
+        <h2>Moveset</h2>
+        <small>{boundCount}/2 slots bound</small>
+      </div>
       {locked ? <p className="hero-text">Login to bind and persist your moveset.</p> : null}
+      {!locked ? (
+        <div className="panel-guide">
+          <strong>Technique Flow</strong>
+          <small>
+            Keep `Q` and `E` filled. Fresh scroll rewards should either replace a weaker slot or stay in library until the next route.
+          </small>
+          <small>{unboundCount ? `${unboundCount} unbound techniques ready for testing.` : "All unlocked techniques are currently represented in the live loadout."}</small>
+        </div>
+      ) : null}
       {latestReward?.type === "scroll" ? (
         <div className="reward-card">
           <strong>New scroll: {latestReward.name}</strong>
           <span>
             {latestReward.castType} · CD {latestReward.cooldown}s
           </span>
+          <small className="move-role-summary">
+            <span className={`role-chip ${getRoleTone(latestReward)}`}>{getCombatRole(latestReward)}</span>
+            <span>{getBuildImpact(latestReward)}</span>
+          </small>
           <button className="mini-button" disabled={locked} onClick={onQuickBindReward} type="button">
             Quick bind
           </button>
+        </div>
+      ) : null}
+      {loadoutFeedback?.type === "skills" ? (
+        <div className="moveset-guide">
+          <strong>{loadoutFeedback.title}</strong>
+          <small>{loadoutFeedback.detail}</small>
         </div>
       ) : null}
       <div className="moveset-section">
@@ -49,6 +75,12 @@ export function MovesetPanel({
                   ? `${entry.skill.castType} · CD ${entry.skill.cooldown}s · Cost ${entry.skill.cost}`
                   : "Bind a technique from the library below"}
               </small>
+              {entry.skill ? (
+                <div className="move-role-summary compact">
+                  <span className={`role-chip ${getRoleTone(entry.skill)}`}>{getCombatRole(entry.skill)}</span>
+                  <small>{getBuildImpact(entry.skill)}</small>
+                </div>
+              ) : null}
             </div>
           ))}
         </div>
@@ -83,6 +115,10 @@ export function MovesetPanel({
               <small>{skill.castType}</small>
               <small>Cost {skill.cost}</small>
               <small>CD {skill.cooldown}s</small>
+            </div>
+            <div className="move-role-summary">
+              <span className={`role-chip ${getRoleTone(skill)}`}>{getCombatRole(skill)}</span>
+              <small>{getBuildImpact(skill)}</small>
             </div>
           </button>
         ))}

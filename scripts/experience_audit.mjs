@@ -18,6 +18,8 @@ function assert(condition, message) {
 }
 
 const classes = readJson("shared/content/classes.json");
+const dungeons = readJson("shared/content/dungeons.json");
+const enemies = readJson("shared/content/enemies.json");
 const regions = readJson("shared/content/regions.json");
 const skills = readJson("shared/content/skills.json");
 const items = readJson("shared/content/items.json");
@@ -74,6 +76,8 @@ const smokeChecks = {
 const metrics = {
   classes: classes.length,
   combatRegions: combatRegions.length,
+  dungeonLayouts: dungeons.length,
+  enemyTypes: enemies.length,
   skills: skills.length,
   equippableItems: equippableItems.length,
   consumables: consumables.length,
@@ -88,6 +92,8 @@ const metrics = {
 
 assert(classes.length === 4, "Expected exactly 4 class archetypes in content.");
 assert(combatRegions.length >= 3, "Expected at least 3 combat regions for the current slice.");
+assert(dungeons.length >= 9, "Expected at least 9 authored dungeon layouts for the current slice.");
+assert(enemies.length >= 9, "Expected at least 9 authored enemy types for the current slice.");
 assert(skills.length >= 11, "Expected at least 11 authored skills in content.");
 assert(equippableItems.length >= 18, "Expected at least 18 equippable items in content.");
 assert(consumables.length >= 2, "Expected consumables to be represented in rewards.");

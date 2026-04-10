@@ -66,6 +66,9 @@ async function run() {
   let composeLogs = "";
 
   try {
+    const reset = await runCommand(["down", "-v"]);
+    composeLogs += reset.stdout + reset.stderr;
+
     const up = await runCommand(["up", "-d", "--build"]);
     composeLogs += up.stdout + up.stderr;
 
@@ -85,7 +88,7 @@ async function run() {
     );
     process.exitCode = 1;
   } finally {
-    await runCommand(["down"]).catch(() => {});
+    await runCommand(["down", "-v"]).catch(() => {});
   }
 }
 

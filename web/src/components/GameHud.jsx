@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BINDABLE_SKILL_KEYS } from "../utils/skillBindings";
+import { getBuildImpact, getCombatRole, getRoleTone } from "../utils/skillPresentation";
 
 function StatBar({ label, value, max, tone }) {
   const width = max > 0 ? `${Math.max(0, Math.min(100, (value / max) * 100))}%` : "0%";
@@ -46,12 +47,19 @@ export function GameHud({
   latestReward,
   loadoutFeedback,
   profile,
+  routeBriefing,
+  nextCraftLabel,
+  nextUnlockLabel,
   soundEnabled,
   onToggleSound
 }) {
   const [activeFeedbackId, setActiveFeedbackId] = useState(null);
   const equippedItems = profile?.equippedItems ?? [];
   const equippedSkills = profile?.equippedSkills ?? [];
+  const activeConsumableIds = profile?.activeConsumableIds ?? [];
+  const activeConsumables = (profile?.inventoryItems ?? []).filter((item) =>
+    activeConsumableIds.includes(item.id)
+  );
   const skillBindings = BINDABLE_SKILL_KEYS;
   const feedbackFresh = loadoutFeedback?.createdAt === activeFeedbackId;
   const highlightedCooldownKeys = new Set(
@@ -102,9 +110,17 @@ export function GameHud({
       {latestReward ? (
         <section className="reward-banner">
           <strong>Reward secured</strong>
-          <span>
-            {latestReward.name} · {latestReward.type} · {latestReward.rarity}
-          </span>
+          <div className="reward-banner-copy">
+            <span>
+              {latestReward.name} · {latestReward.type} · {latestReward.rarity}
+            </span>
+            {latestReward.type === "scroll" ? (
+              <small>
+                <span className={`role-chip ${getRoleTone(latestReward)}`}>{getCombatRole(latestReward)}</span>
+                <span>{getBuildImpact(latestReward)}</span>
+              </small>
+            ) : null}
+          </div>
         </section>
       ) : null}
 
@@ -184,6 +200,10 @@ export function GameHud({
                   <small>
                     {skill.castType} · CD {skill.cooldown}s · Cost {skill.cost}
                   </small>
+                  <div className="hud-skill-role">
+                    <span className={`role-chip ${getRoleTone(skill)}`}>{getCombatRole(skill)}</span>
+                    <small>{getBuildImpact(skill)}</small>
+                  </div>
                   {feedbackFresh && highlightedCooldownKeys.has(skillBindings[index] ?? `S${index + 1}`) ? (
                     <small className="rebound-label">Fresh bind</small>
                   ) : null}
@@ -219,6 +239,59 @@ export function GameHud({
                 <span>No active combat modifiers</span>
               </div>
             )}
+          </div>
+        </section>
+
+        <section className="hud-panel">
+          <p className="hud-kicker">Route Payoff</p>
+          <div className="payoff-grid">
+            <div className="effect-chip boon">
+              <strong>{routeBriefing?.label ?? "Current route"}</strong>
+              <span>{routeBriefing?.reward ?? "Route reward payoff pending"}</span>
+            </div>
+            <div className="effect-chip neutral">
+              <strong>Unlock Track</strong>
+              <span>{routeBriefing?.unlock ?? "Unlock path pending"}</span>
+            </div>
+            <div className="effect-chip danger">
+              <strong>Hazard Read</strong>
+              <span>{routeBriefing?.hazard ?? "Hazard cadence unresolved"}</span>
+            </div>
+            <div className="effect-chip neutral">
+              <strong>Do Next</strong>
+              <span>{nextUnlockLabel ?? "Hold the current route ladder until the next unlock opens."}</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="hud-panel">
+          <p className="hud-kicker">Active Tonics</p>
+          <div className="effect-grid">
+            {activeConsumables.length ? (
+              activeConsumables.map((item, index) => (
+                <div key={item.id} className="effect-chip boon">
+                  <strong>{item.name}</strong>
+                  <span>
+                    {index === 0
+                      ? `${item.rarity} tonic is active. Spend this window before the next boss lane closes.`
+                      : `${item.rarity} tonic synced into the live route state`}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="effect-chip neutral">
+                <strong>No tonics active</strong>
+                <span>
+                  {nextCraftLabel
+                    ? `Use stash consumables now or craft ${nextCraftLabel} before the next route push.`
+                    : "Use stash consumables to push the next route window."}
+                </span>
+              </div>
+            )}
+            <div className="effect-chip neutral">
+              <strong>Craft Queue</strong>
+              <span>{nextCraftLabel ?? "No craft ready. Keep routing materials through the current run."}</span>
+            </div>
           </div>
         </section>
 

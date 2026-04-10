@@ -16,7 +16,7 @@ const routeDisplay = {
   shatter_block: {
     name: "Shatter Block",
     x: 268,
-    y: 252,
+    y: 230,
     fill: 0x244b33,
     stroke: 0xb8f29b,
     accent: 0x8ec07c
@@ -24,18 +24,26 @@ const routeDisplay = {
   veil_shrine: {
     name: "Veil Shrine",
     x: 488,
-    y: 252,
+    y: 230,
     fill: 0x322146,
     stroke: 0xf0d2ff,
     accent: 0xc77dff
   },
   cinder_ward: {
     name: "Cinder Ward",
-    x: 708,
-    y: 252,
+    x: 378,
+    y: 360,
     fill: 0x472016,
     stroke: 0xffd4a3,
     accent: 0xff8a5b
+  },
+  night_cathedral: {
+    name: "Night Cathedral",
+    x: 598,
+    y: 360,
+    fill: 0x141b36,
+    stroke: 0xa9c4ff,
+    accent: 0x7aa2ff
   }
 };
 
@@ -54,7 +62,18 @@ function mapBossVaultToClearedRegion(regionId) {
       ? "veil_shrine"
       : regionId === "cinder_boss_vault"
         ? "cinder_ward"
+        : regionId === "night_boss_vault"
+          ? "night_cathedral"
         : null;
+}
+
+function pickNextRecommendedRegion(unlockedRegionIds, clearedRegionIds) {
+  const routeOrder = ["shatter_block", "veil_shrine", "cinder_ward", "night_cathedral"];
+  return (
+    routeOrder.find((regionId) => unlockedRegionIds.includes(regionId) && !clearedRegionIds.includes(regionId)) ??
+    routeOrder.find((regionId) => unlockedRegionIds.includes(regionId)) ??
+    "shatter_block"
+  );
 }
 
 export class HubScene extends Phaser.Scene {
@@ -86,7 +105,7 @@ export class HubScene extends Phaser.Scene {
     this.isTransitioning = false;
     this.input.keyboard.resetKeys();
     this.enterKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
-    this.regionKeys = this.input.keyboard.addKeys("ONE,TWO,THREE");
+    this.regionKeys = this.input.keyboard.addKeys("ONE,TWO,THREE,FOUR");
     const profile = this.registry.get("playerProfile") ?? null;
     const loadedSessionSummary = this.registry.get("loadedSessionSummary") ?? null;
     this.routeReturnSummary = this.registry.get("routeReturnSummary") ?? null;
@@ -107,11 +126,7 @@ export class HubScene extends Phaser.Scene {
       ])
     ];
     this.registry.set("loadedSessionSummary", null);
-    this.selectedRegionId = this.unlockedRegionIds.includes("cinder_ward")
-      ? "cinder_ward"
-      : this.unlockedRegionIds.includes("veil_shrine")
-        ? "veil_shrine"
-        : "shatter_block";
+    this.selectedRegionId = pickNextRecommendedRegion(this.unlockedRegionIds, this.clearedRegionIds);
 
     this.add.rectangle(arena.width / 2, arena.height / 2, arena.width, arena.height, 0x0c1722);
     this.add.circle(168, 110, 34, 0xf4b942, 0.08).setStrokeStyle(2, 0xf4b942, 0.22);
@@ -198,7 +213,7 @@ export class HubScene extends Phaser.Scene {
       150,
       this.firstRunTutorial
         ? "First deployment briefing.\n\nPress 1 to target Shatter Block.\nPress ENTER to deploy.\nUse the browser shell to swap archetypes before stepping out."
-        : "Safe zone prototype.\n\nPress 1, 2, or 3 to target an unlocked region.\nPress ENTER to deploy.\nSwitch archetypes from the browser shell before entering.",
+        : "Safe zone prototype.\n\nPress 1, 2, 3, or 4 to target an unlocked region.\nPress ENTER to deploy.\nSwitch archetypes from the browser shell before entering.",
       {
         color: "#c6d2dc",
         fontFamily: "monospace",
@@ -248,10 +263,14 @@ export class HubScene extends Phaser.Scene {
   refreshSummary() {
     const definition = (this.content.classes ?? []).find((entry) => entry.id === this.selectedArchetype);
     const selectedRegion = (this.content.regions ?? []).find((entry) => entry.id === this.selectedRegionId);
+    const nextRegion = (this.content.regions ?? []).find(
+      (entry) => entry.id === pickNextRecommendedRegion(this.unlockedRegionIds, this.clearedRegionIds)
+    );
     const veilUnlocked = this.unlockedRegionIds.includes("veil_shrine");
     const cinderUnlocked = this.unlockedRegionIds.includes("cinder_ward");
+    const nightUnlocked = this.unlockedRegionIds.includes("night_cathedral");
     this.summaryText?.setText(
-      `Current build: ${definition?.name ?? "Unknown"}\nCombat style: ${definition?.combatStyle ?? "Unavailable"}\nSelected region: ${selectedRegion?.name ?? "Unknown"}\nUnlocked routes: Shatter Block${veilUnlocked ? ", Veil Shrine" : ""}${cinderUnlocked ? ", Cinder Ward" : ""}`
+      `Current build: ${definition?.name ?? "Unknown"}\nCombat style: ${definition?.combatStyle ?? "Unavailable"}\nSelected region: ${selectedRegion?.name ?? "Unknown"}\nNext recommended route: ${nextRegion?.name ?? "Unknown"}\nUnlocked routes: Shatter Block${veilUnlocked ? ", Veil Shrine" : ""}${cinderUnlocked ? ", Cinder Ward" : ""}${nightUnlocked ? ", Night Cathedral" : ""}`
     );
     this.tutorialText?.setText(
       this.firstRunTutorial
@@ -301,6 +320,9 @@ export class HubScene extends Phaser.Scene {
     const definition = (this.content.classes ?? []).find((entry) => entry.id === this.selectedArchetype);
     const resumeSource = this.registry.get("resumeSource") ?? "fresh-start";
     const returnSummary = this.routeReturnSummary;
+    const nextRecommendedRegionId = pickNextRecommendedRegion(this.unlockedRegionIds, this.clearedRegionIds);
+    const nextRecommendedRegionName =
+      (this.content.regions ?? []).find((entry) => entry.id === nextRecommendedRegionId)?.name ?? "the next route";
     const selectedRegionName =
       (this.content.regions ?? []).find((entry) => entry.id === this.selectedRegionId)?.name ?? "the field";
     emitRuntimeUpdate({
@@ -324,7 +346,7 @@ export class HubScene extends Phaser.Scene {
         archetype: definition?.name ?? "Unknown Build"
       },
       controls: [
-        { key: "1 / 2 / 3", label: "Select region" },
+        { key: "1 / 2 / 3 / 4", label: "Select region" },
         { key: "ENTER", label: "Deploy" },
         { key: "Shell", label: "Switch build from browser UI" }
       ],
@@ -334,8 +356,8 @@ export class HubScene extends Phaser.Scene {
         title: returnSummary?.title ?? (this.firstRunTutorial ? "First deployment" : "Deploy from Blacksite"),
         detail: returnSummary?.detail ?? (this.firstRunTutorial
           ? "Start in Shatter Block, secure one boon, then enter the field gate."
-          : `Choose a route and enter ${selectedRegionName}.`),
-        step: returnSummary?.step ?? (this.firstRunTutorial ? "Press 1, then Enter" : "Select 1 / 2 / 3, then press Enter")
+          : `Choose a route and enter ${selectedRegionName}. Next recommended route: ${nextRecommendedRegionName}.`),
+        step: returnSummary?.step ?? (this.firstRunTutorial ? "Press 1, then Enter" : `Select ${selectedRegionName}, then deploy toward ${nextRecommendedRegionName}`)
       },
       activeEffects: returnSummary
         ? [
@@ -344,6 +366,12 @@ export class HubScene extends Phaser.Scene {
               label: returnSummary.effectLabel,
               detail: returnSummary.effectDetail,
               tone: "boon"
+            },
+            {
+              id: "route-next",
+              label: "Next deployment",
+              detail: `${nextRecommendedRegionName} is the current recommended route.`,
+              tone: "neutral"
             }
           ]
         : [],
@@ -354,11 +382,7 @@ export class HubScene extends Phaser.Scene {
         },
         {
           id: 2,
-          message: this.unlockedRegionIds.includes("cinder_ward")
-            ? "Cinder Ward route unlocked from sanctum collapse."
-            : this.unlockedRegionIds.includes("veil_shrine")
-              ? "Veil Shrine route unlocked from prior boss clear."
-              : "Clear Shatter Block's boss to unlock the next route."
+          message: `Next recommended deployment: ${nextRecommendedRegionName}.`
         }
       ],
       encounter: {
@@ -368,7 +392,8 @@ export class HubScene extends Phaser.Scene {
       sessionState: {
         unlockedRegionIds: this.unlockedRegionIds,
         clearedRegionIds: this.clearedRegionIds,
-        routeReturnSummary: returnSummary
+        routeReturnSummary: returnSummary,
+        nextRecommendedRegionId
       },
       selectedRegionId: this.selectedRegionId
     });
@@ -384,6 +409,7 @@ export class HubScene extends Phaser.Scene {
     this.arrivalText.setAlpha(1).setY(164);
     this.arrivalSubtext.setAlpha(1).setY(194);
     this.arrivalGlow.setAlpha(0.32).setScale(1);
+    emitSoundEvent({ type: "route_return" });
     this.tweens.add({
       targets: [this.arrivalText, this.arrivalSubtext],
       alpha: 0,
@@ -472,6 +498,10 @@ export class HubScene extends Phaser.Scene {
 
     if (Phaser.Input.Keyboard.JustDown(this.regionKeys.THREE) && this.unlockedRegionIds.includes("cinder_ward")) {
       this.handleRegionSelection("cinder_ward");
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.regionKeys.FOUR) && this.unlockedRegionIds.includes("night_cathedral")) {
+      this.handleRegionSelection("night_cathedral");
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.enterKey)) {

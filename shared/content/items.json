@@ -288,7 +288,8 @@
     "type": "consumable",
     "rarity": "common",
     "statModifiers": {
-      "hp": 12
+      "hp": 12,
+      "defense": 1
     }
   },
   {
@@ -311,7 +312,8 @@
     "type": "consumable",
     "rarity": "rare",
     "statModifiers": {
-      "ce": 10
+      "ce": 10,
+      "technique": 2
     }
   },
   {
@@ -319,6 +321,97 @@
     "name": "Furnace Core",
     "type": "material",
     "rarity": "rare",
+    "statModifiers": {}
+  },
+  {
+    "id": "resin_elixir",
+    "name": "Resin Elixir",
+    "type": "consumable",
+    "rarity": "rare",
+    "statModifiers": {
+      "ce": 14,
+      "technique": 3
+    }
+  },
+  {
+    "id": "furnace_draught",
+    "name": "Furnace Draught",
+    "type": "consumable",
+    "rarity": "epic",
+    "statModifiers": {
+      "attack": 3,
+      "speed": 2,
+      "poise": 1
+    }
+  },
+  {
+    "id": "night_iron_chain",
+    "name": "Night Iron Chain",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["close_combat"],
+    "statModifiers": {
+      "attack": 4,
+      "crit": 2,
+      "poise": 2
+    }
+  },
+  {
+    "id": "cathedral_knot",
+    "name": "Cathedral Knot",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["mid_range"],
+    "statModifiers": {
+      "attack": 2,
+      "technique": 4,
+      "ce": 6
+    }
+  },
+  {
+    "id": "moonwire_prism",
+    "name": "Moonwire Prism",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["long_range"],
+    "statModifiers": {
+      "technique": 5,
+      "crit": 3,
+      "speed": 1
+    }
+  },
+  {
+    "id": "stalker_shroud",
+    "name": "Stalker Shroud",
+    "type": "charm",
+    "rarity": "epic",
+    "equipSlot": "charm",
+    "classRestrictions": ["heavenly_restriction"],
+    "statModifiers": {
+      "attack": 4,
+      "speed": 3,
+      "defense": 2
+    }
+  },
+  {
+    "id": "midnight_tonic",
+    "name": "Midnight Tonic",
+    "type": "consumable",
+    "rarity": "epic",
+    "statModifiers": {
+      "hp": 18,
+      "ce": 12,
+      "technique": 2
+    }
+  },
+  {
+    "id": "night_ichor",
+    "name": "Night Ichor",
+    "type": "material",
+    "rarity": "epic",
     "statModifiers": {}
   }
 ]

@@ -22,6 +22,7 @@ export function getClassDefinition(archetypeId) {
 export function getBootstrapContent() {
   return {
     classes: getClassDefinitions(),
+    dungeons: readContentFile("dungeons.json"),
     enemies: readContentFile("enemies.json"),
     items: readContentFile("items.json"),
     regions: readContentFile("regions.json"),
