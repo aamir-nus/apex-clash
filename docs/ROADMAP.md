@@ -18,10 +18,10 @@ Reach the content-complete browser release candidate.
 ### Expected Shape
 
 - 1 hub area
-- 4 combat regions
-- 12 dungeon layouts
+- 5 combat regions
+- 20 dungeon layouts
 - 4 starting archetypes fully represented
-- 4 route bosses including a final-ascent boss
+- 5 route bosses including a post-cathedral endgame boss
 - progression cap around level 20
 - stable browser UX for launcher, HUD, save slots, settings, and progression screens
 - stronger 8-bit identity across art, UI, audio, and map dressing
@@ -50,7 +50,7 @@ Reach the content-complete browser release candidate.
 Current truth split:
 
 - browser-proven:
-  - Shatter, Veil, Cinder, and Night Cathedral full route flow
+  - Shatter, Veil, Cinder, Night Cathedral, and Merger Ossuary full route flow
   - save/resume, reward claim, quick bind, quick equip, and cleared-route tracking
   - backend-owned profile, loadout, progression, and reward contracts
   - longer browser proof for consumable use, crafting, snapshot/live resume, and manual sync
@@ -68,8 +68,8 @@ Current truth split:
 Near-term `v3` work should bias toward:
 
 1. Phase 3 JJK content expansion on top of the completed terminology and system passes
-2. scene polish on the proven 4-route path: hub, region, dungeon, boss readability
-3. expanding from the current 4 authored region routes into broader dungeon content
+2. scene polish on the proven 5-route path: hub, region, dungeon, boss readability
+3. expanding from the current 5 authored region routes into broader dungeon content
 4. broader scroll, consumable, material, and progression reward loops
 5. sprite, tileset, and sound pipeline adoption
 
@@ -83,11 +83,12 @@ Current verified browser baseline:
 - Cinder continuation route is clearable in the headless browser gate
 - Cinder boss reward -> quick equip -> extract is clearable in the headless browser gate
 - Night Cathedral continuation route is clearable in the headless browser gate
+- Merger Ossuary continuation route is clearable in the headless browser gate
 - Night boss scroll reward -> quick bind -> extract is clearable in the headless browser gate
-- the longer four-route browser path now proves consumable use, at least one successful craft, snapshot resume, live-profile resume, snapshot return, and manual sync
+- the longer five-route browser path now proves consumable use, at least one successful craft, snapshot resume, live-profile resume, snapshot return, and manual sync
 - inventory, moveset, and save panels now have clearer action-oriented guidance and grouped state presentation
-- the current 4 routes now map onto 12 authored dungeon chamber layouts selected from combat-read state
-- route forecasts now surface authored enemy-family mixes from content before the chamber begins
+  - the current 5 routes now map onto 20 authored dungeon chamber layouts selected from combat-read state
+  - route forecasts now surface authored enemy-family mixes from content before the chamber begins
 - a single `test:release-hardening` gate now proves local smoke plus deployed browser/deploy verification in sequence
 - unlocked and cleared route progression persists on the player profile and is reflected in the hub
 - the hub exposes a route-ladder summary with completion percentage and full authored-route clear state
@@ -118,13 +119,15 @@ Current verified browser baseline:
 - the proven route loop now has a minimal synth-audio cue layer for danger, route clear, extract, and hub return moments
 
 Current mechanic-hardening target:
-- broader reward pacing and authored content depth still need to reach the same UX bar beyond the current 12 dungeon layouts
+- broader reward pacing and authored content depth still need to reach the same UX bar beyond the current 20 dungeon layouts
 - the longer manual browser run is still the one open accountability item before Phase 1 is honestly closed
 
 Current JJK migration status:
 - Phase 1 terminology pass: complete
 - Phase 2 system pass: complete
 - Phase 3 content expansion: active next step
+- latest Phase 3 content pass added 4 more authored chambers, 4 more curse families, late-route Black Flash/domain crafting payoff, and a fifth endgame route beyond Night Cathedral
+- latest mechanic pass now makes those added curse families affect both dungeon-sentinel pressure and boss cadence directly on the proven five-route path
 
 ## Demo-Ready Bar
 
@@ -132,12 +135,12 @@ Near-term demo-ready requirements:
 
 1. local smoke is green
 2. Docker browser-flow is green
-3. the four-route browser path stays regression-free
+3. the five-route browser path stays regression-free
 4. save/resume and reward/loadout sync remain stable
 5. scene readability is strong enough that a presenter does not need to narrate around the UI
 
 Current demo status:
-- requirements 1, 2, 3, 4, and 5: currently green on the proven 4-route slice
+- requirements 1, 2, 3, 4, and 5: currently green on the proven 5-route slice
 - demo-ready today means presentable vertical slice, not full `v3` completeness
 
 ## Current Milestone
@@ -168,15 +171,18 @@ Target:
 - finish the minimum content bar for a credible browser release candidate
 
 Required outcomes:
-- 12 authored dungeon layouts across the current routes
+- 20 authored dungeon layouts across the current routes
 - at least 1 final-chapter route or final-boss climb beyond the earlier 3-route loop
 - more enemy families with clearer route-specific behavior identity
 - broader scroll, consumable, and material reward usage across the full run
 - stackable consumables/materials, consumable use, and crafting are now live in the profile loop
+- late-route materials now also pay into Black Flash and domain-response crafting
 - stronger class progression through level 20 pacing, not just the early slice
 
 Task order:
 1. Verify one longer manual browser run through the expanded content path.
+2. Keep broadening route-specific chambers, curse families, and endgame craft payoffs without regressing the five-route browser proof.
+3. Push the same route-specific identity deeper into boss behavior and late-route reward usage.
 
 Gate:
 - `npm run test:smoke`
