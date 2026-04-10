@@ -31,6 +31,12 @@ export function loginUser(data) {
   });
 }
 
+export function createGuestSession() {
+  return request("/auth/guest", {
+    method: "POST"
+  });
+}
+
 export function fetchCurrentUser(token) {
   return request("/auth/me", {
     headers: {

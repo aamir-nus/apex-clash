@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState } from "react";
 import { useEffect } from "react";
-import { AuthPanel } from "./components/AuthPanel";
+import { LandingView } from "./components/LandingView";
 import { GameHud } from "./components/GameHud";
 import { InventoryPanel } from "./components/InventoryPanel";
 import { LevelUpPanel } from "./components/LevelUpPanel";
@@ -259,6 +259,7 @@ function App() {
     }
     return window.localStorage.getItem("apex-clash:first-run-complete") !== "true";
   });
+  const [showLanding, setShowLanding] = useState(true);
   const auth = useAuthSession();
   const runtime = useGameRuntime();
   const playerProfile = usePlayerProfile(auth.session.token, selectedArchetype);
@@ -382,32 +383,15 @@ function App() {
 
   return (
     <main className="app-shell">
-      <section className="hero-panel compact">
-        <div className="hero-copy compact">
-          <p className="eyebrow">Browser-first MERN + Phaser vertical slice</p>
-          <h1>Apex Clash</h1>
-          <div className="pill-list">
-            {experiencePillars.map((pillar) => (
-              <span key={pillar} className="pill">
-                {pillar}
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="status-card compact">
-          <h2>Field Brief</h2>
-          <ul>
-            <li>{highlightedRoute?.name ?? "Shatter Block"} is the active route focus</li>
-            <li>{highlightedBriefing.summary}</li>
-            <li>{runtime.objective?.title ?? "Deploy and take the next room cleanly."}</li>
-          </ul>
-        </div>
-      </section>
-
-      <AuthPanel auth={auth} />
-
-      <section className="dashboard-grid">
-        <section className="panel game-stage">
+      {!auth.isAuthenticated ? (
+        <LandingView
+          auth={auth}
+          showLanding={showLanding}
+          onCompleteLogin={() => setShowLanding(false)}
+        />
+      ) : (
+        <section className="dashboard-grid">
+          <section className="panel game-stage">
           <div className="stage-header">
             <div>
               <h2>Play Surface</h2>
@@ -809,6 +793,7 @@ function App() {
           />
         </aside>
       </section>
+      )}
     </main>
   );
 }

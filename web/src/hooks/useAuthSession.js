@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchCurrentUser, loginUser, registerUser } from "../api/authApi";
+import { createGuestSession, fetchCurrentUser, loginUser, registerUser } from "../api/authApi";
 
 const storageKey = "apex-clash-auth";
 
@@ -54,6 +54,22 @@ export function useAuthSession() {
     }
   }
 
+  async function guestLogin() {
+    setStatus("guest-login");
+    setError("");
+    try {
+      const data = await createGuestSession();
+      const nextSession = { token: data.token, user: data.user };
+      setSession(nextSession);
+      window.localStorage.setItem(storageKey, JSON.stringify(nextSession));
+      setStatus("ready");
+    } catch (guestError) {
+      setError(guestError.message);
+      setStatus("error");
+      throw guestError;
+    }
+  }
+
   function logout() {
     setSession({ token: "", user: null });
     window.localStorage.removeItem(storageKey);
@@ -68,6 +84,7 @@ export function useAuthSession() {
     isAuthenticated: Boolean(session.token && session.user),
     register,
     login,
+    guestLogin,
     logout
   };
 }

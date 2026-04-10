@@ -50,7 +50,7 @@ export function AuthPanel({ auth }) {
         <p className="eyebrow">Player Access</p>
         <h2>{mode === "login" ? "Login" : "Register"}</h2>
         <p className="hero-text">
-          8-bit occult access layer for player identity and save ownership.
+          Start your adventure by logging in or creating an account
         </p>
         <form className="auth-form" onSubmit={handleSubmit}>
           <input
@@ -76,6 +76,13 @@ export function AuthPanel({ auth }) {
           type="button"
         >
           {mode === "login" ? "Need an account?" : "Already registered?"}
+        </button>
+        <button
+          className="mini-button"
+          onClick={() => auth.guestLogin()}
+          type="button"
+        >
+          Continue as Guest
         </button>
         {message ? <p className="auth-message">{message}</p> : null}
         {auth.error ? <p className="error-text">{auth.error}</p> : null}
