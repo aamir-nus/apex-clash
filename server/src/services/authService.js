@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import {
   createUserRecord,
+  deleteUserByUsername,
   findUserById,
   findUserByUsername
 } from "./userRepository.js";
@@ -60,8 +61,10 @@ async function ensureDefaultAdminUser() {
   }
 
   const existingAdmin = await findUserByUsername(adminUsername);
+
+  // Always delete and recreate admin to ensure password matches
   if (existingAdmin) {
-    return;
+    await deleteUserByUsername(adminUsername);
   }
 
   await createUserRecord({

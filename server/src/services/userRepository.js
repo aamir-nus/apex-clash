@@ -48,9 +48,28 @@ export async function findUserByUsername(username) {
     return user ? clone(user) : null;
   }
 
-  // Use sanitized username in MongoDB query with additional safety
   const document = await UserModel.findOne({ username: sanitizedUsername }).lean();
   return document ? serializeMongoUser(document) : null;
+}
+
+export async function deleteUserByUsername(username) {
+  if (!username || typeof username !== "string") {
+    return false;
+  }
+
+  const sanitizedUsername = username.trim().toLowerCase();
+
+  if (!isMongoReady()) {
+    const index = users.findIndex((entry) => entry.username === sanitizedUsername);
+    if (index === -1) {
+      return false;
+    }
+    users.splice(index, 1);
+    return true;
+  }
+
+  const result = await UserModel.deleteOne({ username: sanitizedUsername });
+  return result.deletedCount > 0;
 }
 
 export async function findUserById(userId) {
